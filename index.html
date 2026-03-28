@@ -1,445 +1,2307 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>WPU 配方智能计算器 (支持正反向推算)</title>
-    <style>
-        :root {
-            --primary: #2563eb;
-            --bg: #f8fafc;
-            --card-bg: #ffffff;
-            --text-main: #1e293b;
-            --text-muted: #64748b;
-            --border: #e2e8f0;
-            --warning: #b45309;
-        }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-            background-color: var(--bg);
-            color: var(--text-main);
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            justify-content: center;
-        }
-        .container {
-            max-width: 1050px;
-            width: 100%;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
-        }
-        @media (max-width: 768px) {
-            .container { grid-template-columns: 1fr; }
-        }
-        .card {
-            background: var(--card-bg);
-            padding: 24px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
-        }
-        .right-col {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-        h2 {
-            margin-top: 0; font-size: 1.15rem; color: var(--primary);
-            border-bottom: 2px solid var(--border);
-            padding-bottom: 10px; margin-bottom: 20px;
-        }
-        
-        /* 表单样式 */
-        .form-group {
-            display: grid; grid-template-columns: 90px 1fr 1fr; gap: 10px;
-            align-items: center; margin-bottom: 15px; padding-bottom: 15px;
-            border-bottom: 1px dashed var(--border);
-        }
-        .form-group:last-child { border-bottom: none; margin-bottom: 0; padding-bottom: 0; }
-        label { font-weight: 600; font-size: 0.85rem; line-height: 1.3; }
-        .input-wrapper { display: flex; flex-direction: column; gap: 4px; }
-        .input-wrapper span { font-size: 0.75rem; color: var(--text-muted); }
-        input[type="number"] {
-            width: 100%; padding: 8px; border: 1px solid var(--border);
-            border-radius: 6px; box-sizing: border-box; font-size: 0.9rem;
-            transition: 0.2s;
-        }
-        input[type="number"]:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
-        select {
-            padding: 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 0.9rem;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>WPU · 智能配方记录本</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Noto+Sans+SC:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f4f6f9;
+  --surface: #ffffff;
+  --surface2: #f8fafc;
+  --border: #dde3ec;
+  --border-md: #c8d2e0;
+  --accent: #2563eb;
+  --accent-dim: #eff4ff;
+  --accent-light: #93c5fd;
+  --green: #16a34a;
+  --green-dim: #f0fdf4;
+  --amber: #d97706;
+  --amber-dim: #fffbeb;
+  --red: #dc2626;
+  --red-dim: #fef2f2;
+  --cyan: #0891b2;
+  --cyan-dim: #ecfeff;
+  --text: #1e293b;
+  --text2: #475569;
+  --text3: #94a3b8;
+  --mono: 'JetBrains Mono', monospace;
+  --sans: 'Noto Sans SC', sans-serif;
+  --r: 10px;
+  --rs: 6px;
+}
 
-        /* 固含滑块 */
-        .slider-group {
-            display: flex; align-items: center; gap: 15px;
-            margin-top: 20px; padding: 15px; background: #f1f5f9; border-radius: 8px;
-        }
-        .slider-group input[type="range"] { flex-grow: 1; }
-        .slider-group input[type="number"] { width: 70px; }
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
-        /* 结果展示区 */
-        .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
-        .result-box { background: #f8fafc; border: 1px solid var(--border); padding: 15px; border-radius: 8px; text-align: center; }
-        .result-box.highlight { background: #eff6ff; border-color: #bfdbfe; }
-        .result-title { font-size: 0.85rem; color: var(--text-muted); margin-bottom: 5px; }
-        .result-value { font-size: 1.5rem; font-weight: 700; color: var(--primary); }
-        .result-unit { font-size: 0.9rem; color: var(--text-main); }
-        
-        /* 反推工具专用样式 */
-        .reverse-card { background: #fffbeb; border: 1px solid #fcd34d; }
-        .header-with-switch {
-            display: flex; justify-content: space-between; align-items: center;
-            border-bottom: 2px solid #fcd34d; padding-bottom: 10px; margin-bottom: 15px;
-        }
-        .header-with-switch h2 { border: none; padding: 0; margin: 0; color: var(--warning); }
-        
-        /* iOS 风格开关 */
-        .switch { position: relative; display: inline-block; width: 44px; height: 24px; }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider { position: absolute; cursor: pointer; top: 0; left: 0; right: 0; bottom: 0; background-color: #cbd5e1; transition: .4s; border-radius: 24px; }
-        .slider:before { position: absolute; content: ""; height: 18px; width: 18px; left: 3px; bottom: 3px; background-color: white; transition: .4s; border-radius: 50%; }
-        input:checked + .slider { background-color: #f59e0b; }
-        input:checked + .slider:before { transform: translateX(20px); }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--sans);
+  font-size: 14px;
+  line-height: 1.6;
+  min-height: 100vh;
+  padding-bottom: 80px;
+}
 
-        /* 被锁定的输入框样式 */
-        .locked-input {
-            background-color: #fef2f2 !important; border-color: #fca5a5 !important;
-            color: #ef4444 !important; font-weight: bold; pointer-events: none;
-        }
-        .lock-badge {
-            display: inline-block; background: #ef4444; color: white;
-            font-size: 0.65rem; padding: 2px 6px; border-radius: 10px; margin-top: 4px; display: none;
-        }
-    </style>
+/* ── Header ── */
+.app-header {
+  background: var(--surface);
+  border-bottom: 2px solid var(--border);
+  padding: 0 16px;
+  height: 56px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  box-shadow: 0 1px 6px rgba(0,0,0,0.06);
+}
+.app-logo {
+  font-family: var(--mono);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--accent);
+  letter-spacing: -0.5px;
+  white-space: nowrap;
+}
+.app-subtitle {
+  font-size: 11px;
+  color: var(--text3);
+  white-space: nowrap;
+}
+.header-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
+
+/* ── Tabs ── */
+.tab-bar {
+  display: flex;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  position: sticky;
+  top: 56px;
+  z-index: 99;
+}
+.tab-bar::-webkit-scrollbar { display: none; }
+.tab {
+  padding: 10px 18px;
+  font-size: 13px;
+  font-family: var(--mono);
+  color: var(--text3);
+  cursor: pointer;
+  white-space: nowrap;
+  border-bottom: 2.5px solid transparent;
+  transition: all 0.18s;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.tab.active { color: var(--accent); border-bottom-color: var(--accent); background: var(--accent-dim); }
+.tab:hover:not(.active) { color: var(--text2); background: var(--bg); }
+
+/* ── Pages ── */
+.page { display: none; }
+.page.active { display: block; }
+.container { padding: 14px; max-width: 800px; margin: 0 auto; }
+
+/* ── Cards ── */
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  padding: 16px;
+  margin-bottom: 12px;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.04);
+}
+.card-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.card-title {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+}
+.card-num {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--accent-dim);
+  border: 1.5px solid var(--accent-light);
+  color: var(--accent);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+
+/* ── Buttons ── */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 5px;
+  padding: 8px 14px;
+  border-radius: var(--rs);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: all 0.15s;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  white-space: nowrap;
+}
+.btn:active { transform: scale(0.97); }
+.btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.btn-primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+.btn-primary:hover { background: #1d4ed8; }
+.btn-secondary { background: var(--surface); color: var(--text2); border-color: var(--border-md); }
+.btn-secondary:hover { background: var(--bg); }
+.btn-danger { background: var(--red-dim); color: var(--red); border-color: #fca5a5; }
+.btn-green { background: var(--green-dim); color: var(--green); border-color: #86efac; }
+.btn-cyan { background: var(--cyan-dim); color: var(--cyan); border-color: #67e8f9; }
+.btn-amber { background: var(--amber-dim); color: var(--amber); border-color: #fcd34d; }
+.btn-sm { padding: 5px 10px; font-size: 11px; }
+.btn-full { width: 100%; }
+
+/* ── Form ── */
+.form-row { display: flex; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+.form-group { display: flex; flex-direction: column; gap: 3px; flex: 1; min-width: 110px; }
+.form-group.full { min-width: 100%; }
+label {
+  font-size: 10.5px;
+  font-family: var(--mono);
+  color: var(--text3);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 500;
+}
+input[type=text], input[type=number], textarea, select, input[type=time] {
+  background: var(--bg);
+  border: 1px solid var(--border-md);
+  border-radius: var(--rs);
+  color: var(--text);
+  font-family: var(--mono);
+  font-size: 12.5px;
+  padding: 7px 9px;
+  width: 100%;
+  outline: none;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  -webkit-appearance: none;
+  appearance: none;
+}
+input:focus, textarea:focus, select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+}
+select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath fill='%2394a3b8' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 9px center;
+  padding-right: 26px;
+  cursor: pointer;
+}
+textarea { resize: vertical; min-height: 68px; font-size: 12px; }
+input[type=range] {
+  -webkit-appearance: none;
+  width: 100%;
+  height: 5px;
+  background: var(--border);
+  border-radius: 3px;
+  outline: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+}
+input[type=range]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 1.5px var(--accent);
+  cursor: pointer;
+}
+input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer; flex-shrink:0; }
+::placeholder { color: var(--text3); }
+
+/* ── Divider ── */
+.divider { height: 1px; background: var(--border); margin: 12px 0; }
+
+/* ── Summary bar ── */
+.summary-bar {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--rs);
+  padding: 10px 14px;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 10px;
+}
+.summary-item { display: flex; flex-direction: column; gap: 1px; }
+.s-label { font-size: 10px; font-family: var(--mono); color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; }
+.s-val { font-size: 17px; font-family: var(--mono); font-weight: 600; color: var(--text); }
+.s-val.good { color: var(--green); }
+.s-val.warn { color: var(--amber); }
+.s-val.bad { color: var(--red); }
+
+/* ── Reagent list ── */
+.reagent-item {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: var(--rs);
+  padding: 10px 12px;
+  margin-bottom: 8px;
+}
+.reagent-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+.rtag {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 2px 7px;
+  border-radius: 20px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.tag-polyol { background: #ecfeff; color: #0e7490; border: 1px solid #a5f3fc; }
+.tag-iso   { background: #fffbeb; color: #b45309; border: 1px solid #fde68a; }
+.tag-chain { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+.tag-solvent { background: #fef3c7; color: #b45309; border: 1px solid #fde047; }
+.tag-other { background: #f8fafc; color: #475569; border: 1px solid var(--border-md); }
+.reagent-name { font-size: 13px; font-weight: 600; color: var(--text); }
+.reagent-eq { margin-left: auto; font-family: var(--mono); font-size: 11px; color: var(--text3); }
+.reagent-eq.no-eq { color: var(--amber); font-style: italic; }
+
+/* ── Preset quick-add ── */
+.preset-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+.preset-btn {
+  font-family: var(--mono);
+  font-size: 11px;
+  padding: 4px 10px;
+  border-radius: 20px;
+  border: 1px solid var(--border-md);
+  background: var(--surface);
+  color: var(--text2);
+  cursor: pointer;
+  transition: all 0.15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.preset-btn:hover { border-color: var(--accent-light); color: var(--accent); background: var(--accent-dim); }
+.preset-btn:active { transform: scale(0.95); }
+.preset-btn-add {
+  border-style: dashed;
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+.preset-btn-custom {
+  position: relative;
+  padding-right: 24px;
+  border-color: var(--accent-light);
+}
+.preset-btn-custom .preset-del {
+  position: absolute;
+  right: 4px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: rgba(220,38,38,0.85);
+  color: #fff;
+  font-size: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+/* ── Goal seek ── */
+.gs-result {
+  background: var(--green-dim);
+  border: 1px solid #86efac;
+  border-radius: var(--rs);
+  padding: 10px 14px;
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--green);
+  margin-top: 10px;
+}
+
+/* ── Solid content ── */
+.sc-big { font-family: var(--mono); font-size: 26px; font-weight: 700; color: var(--cyan); }
+
+/* ── Process steps ── */
+.step-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r);
+  margin-bottom: 8px;
+  overflow: hidden;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+}
+.step-header {
+  padding: 11px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  background: var(--surface2);
+  border-bottom: 1px solid var(--border);
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background 0.15s;
+}
+.step-header:hover { background: var(--bg); }
+.step-num {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border-md);
+  color: var(--text3);
+  font-family: var(--mono);
+  font-size: 12px;
+  font-weight: 700;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.step-num.done { border-color: var(--green); color: var(--green); background: var(--green-dim); }
+.step-title-wrap { flex: 1; }
+.step-title { font-size: 13.5px; font-weight: 600; color: var(--text); }
+.step-sub { font-size: 11px; color: var(--text3); }
+.step-chevron { color: var(--text3); font-size: 11px; transition: transform 0.2s; }
+.step-card.collapsed .step-chevron { transform: rotate(-90deg); }
+.step-body { padding: 14px; }
+.step-card.collapsed .step-body { display: none; }
+
+/* ── Catalyst alert ── */
+.alert-catalyst {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  background: #fffbeb;
+  border: 1.5px solid #fbbf24;
+  border-radius: var(--rs);
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  font-size: 12px;
+  color: #92400e;
+  line-height: 1.5;
+}
+.alert-icon { font-size: 16px; flex-shrink: 0; margin-top: 1px; }
+
+/* ── Time grid ── */
+.time-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; margin-bottom: 8px; }
+
+/* ── Photo ── */
+.photo-area {
+  border: 1.5px dashed var(--border-md);
+  border-radius: var(--rs);
+  padding: 12px;
+  text-align: center;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  margin-bottom: 8px;
+}
+.photo-area:hover { border-color: var(--accent); background: var(--accent-dim); }
+.photo-thumbs { display: grid; grid-template-columns: repeat(auto-fill, minmax(75px, 1fr)); gap: 6px; margin-top: 8px; }
+.photo-thumb { position: relative; border-radius: var(--rs); overflow: hidden; aspect-ratio: 1; background: var(--bg); border: 1px solid var(--border); }
+.photo-thumb img { width: 100%; height: 100%; object-fit: cover; }
+.photo-thumb-del {
+  position: absolute; top: 2px; right: 2px;
+  width: 18px; height: 18px;
+  background: rgba(220,38,38,0.85);
+  color: #fff;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 10px;
+  cursor: pointer;
+  border: none;
+}
+.photo-caption-chip {
+  position: absolute; bottom: 0; left: 0; right: 0;
+  background: rgba(0,0,0,0.6);
+  font-size: 8.5px; color: #fff;
+  padding: 2px 4px;
+  word-break: break-all;
+  line-height: 1.3;
+}
+
+/* ── History ── */
+.history-item {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--rs);
+  padding: 11px 14px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+}
+.history-item:hover { border-color: var(--accent-light); box-shadow: 0 2px 8px rgba(37,99,235,0.08); }
+.history-id { font-family: var(--mono); font-size: 13px; font-weight: 700; color: var(--accent); }
+.history-meta { font-size: 11.5px; color: var(--text3); margin-top: 2px; line-height: 1.5; }
+
+/* ── Toast ── */
+#toast {
+  position: fixed;
+  bottom: 20px; left: 50%;
+  transform: translateX(-50%) translateY(70px);
+  background: var(--text);
+  border-radius: var(--rs);
+  padding: 9px 18px;
+  font-family: var(--mono);
+  font-size: 12px;
+  color: #fff;
+  transition: transform 0.28s cubic-bezier(0.34,1.56,0.64,1);
+  z-index: 9999;
+  white-space: nowrap;
+  max-width: 88vw;
+  text-align: center;
+  pointer-events: none;
+}
+#toast.show { transform: translateX(-50%) translateY(0); }
+#toast.success { background: var(--green); }
+#toast.error { background: var(--red); }
+
+/* ── Modals ── */
+.modal-overlay {
+  position: fixed; inset: 0;
+  background: rgba(15,23,42,0.45);
+  z-index: 200;
+  display: flex; align-items: flex-end;
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.2s;
+}
+.modal-overlay.open { opacity: 1; pointer-events: all; }
+.modal {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r) var(--r) 0 0;
+  padding: 18px 16px;
+  width: 100%;
+  max-height: 88vh;
+  overflow-y: auto;
+  transform: translateY(100%);
+  transition: transform 0.28s cubic-bezier(0.34,1.2,0.64,1);
+  box-shadow: 0 -4px 24px rgba(0,0,0,0.12);
+}
+.modal-overlay.open .modal { transform: translateY(0); }
+.modal-title { font-family: var(--mono); font-size: 14px; font-weight: 700; color: var(--accent); margin-bottom: 14px; }
+
+/* ── Hint ── */
+.hint { font-size: 11px; color: var(--text3); line-height: 1.5; margin-top: 4px; }
+
+/* ── Scrollbar ── */
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--border-md); border-radius: 2px; }
+
+/* ── Inline checkbox row ── */
+.check-row { display: flex; align-items: center; gap: 7px; margin: 8px 0; }
+.check-row label { font-size: 12px; color: var(--text2); cursor: pointer; text-transform: none; letter-spacing: 0; font-weight: 400; }
+
+@media (max-width: 480px) {
+  .container { padding: 10px; }
+  .card { padding: 12px; }
+}
+</style>
 </head>
 <body>
 
+<header class="app-header">
+  <div>
+    <div class="app-logo">WPU · ELN</div>
+    <div class="app-subtitle">水性聚氨酯智能配方记录本</div>
+  </div>
+  <div class="header-right">
+    <button class="btn btn-secondary btn-sm" onclick="saveToCache()">💾 暂存</button>
+    <button class="btn btn-danger btn-sm" onclick="newExperiment()">＋ 新建</button>
+  </div>
+</header>
+
+<nav class="tab-bar">
+  <div class="tab active" onclick="switchTab(0)">⚗️ 配方</div>
+  <div class="tab" onclick="switchTab(1)">🧪 工艺台</div>
+  <div class="tab" onclick="switchTab(2)">📋 历史</div>
+  <div class="tab" onclick="switchTab(3)">📤 导出</div>
+</nav>
+
+<!-- ═══════════════════ PAGE 0: 配方 ═══════════════════ -->
+<div class="page active" id="page-formula">
 <div class="container">
-    <!-- 左侧：输入面板 -->
-    <div class="card">
-        <h2>🧪 1. 基础原料配方</h2>
-        
-        <div class="form-group">
-            <label>大分子醇<br>(PCD等)<br><span class="lock-badge" id="lbl_w_polyol">🔒 自动推算</span></label>
-            <div class="input-wrapper">
-                <span>质量 (g)</span>
-                <input type="number" id="w_polyol" value="0" step="0.1" oninput="calculate()">
-            </div>
-            <div class="input-wrapper">
-                <span>分子量 (g/mol)</span>
-                <input type="number" id="mw_polyol" value="2000" step="1" oninput="calculate()">
-            </div>
-        </div>
 
-        <div class="form-group">
-            <label>二异氰酸酯<br>(IPDI等)<br><span class="lock-badge" id="lbl_w_iso">🔒 自动推算</span></label>
-            <div class="input-wrapper">
-                <span>质量 (g)</span>
-                <input type="number" id="w_iso" value="0" step="0.01" oninput="calculate()">
-            </div>
-            <div class="input-wrapper">
-                <span>分子量 (g/mol)</span>
-                <input type="number" id="mw_iso" value="222.28" step="0.01" oninput="calculate()">
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label>亲水扩链剂<br>(DMPA)<br><span class="lock-badge" id="lbl_w_dmpa">🔒 自动推算</span></label>
-            <div class="input-wrapper">
-                <span>质量 (g)</span>
-                <input type="number" id="w_dmpa" value="0" step="0.01" oninput="calculate()">
-            </div>
-            <div class="input-wrapper">
-                <span>分子量 (g/mol)</span>
-                <input type="number" id="mw_dmpa" value="134.13" step="0.01" oninput="calculate()">
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label>小分子醇<br>(BDO)<br><span class="lock-badge" id="lbl_w_bdo">🔒 自动推算</span></label>
-            <div class="input-wrapper">
-                <span>质量 (g)</span>
-                <input type="number" id="w_bdo" value="0" step="0.01" oninput="calculate()">
-            </div>
-            <div class="input-wrapper">
-                <span>分子量 (g/mol)</span>
-                <input type="number" id="mw_bdo" value="90.12" step="0.01" oninput="calculate()">
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label>中和剂<br>(TEA)<br><span class="lock-badge" id="lbl_w_tea">🔒 自动推算</span></label>
-            <div class="input-wrapper">
-                <span>质量 (g)</span>
-                <input type="number" id="w_tea" value="0" step="0.01" oninput="calculate()">
-            </div>
-            <div class="input-wrapper">
-                <span>分子量 (g/mol)</span>
-                <input type="number" id="mw_tea" value="101.19" step="0.01" oninput="calculate()">
-            </div>
-        </div>
-
-        <div class="slider-group">
-            <label style="width: auto;">🎯 目标固含</label>
-            <input type="range" id="sc_slider" min="10" max="50" value="30" step="0.5" 
-                   oninput="document.getElementById('sc_input').value = this.value; calculate();">
-            <input type="number" id="sc_input" value="30" step="0.5" 
-                   oninput="document.getElementById('sc_slider').value = this.value; calculate();">
-            <span>%</span>
-        </div>
+  <!-- 实验信息 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">ID</div>
+      <div class="card-title">实验基本信息</div>
     </div>
-
-    <!-- 右侧：反推工具与结果 -->
-    <div class="right-col">
-        
-        <!-- 目标反推面板 -->
-        <div class="card reverse-card">
-            <div class="header-with-switch">
-                <h2>🔄 2. 高级：目标参数反推 (Goal Seek)</h2>
-                <label class="switch">
-                    <input type="checkbox" id="toggle_reverse" onchange="toggleReverseMode()">
-                    <span class="slider"></span>
-                </label>
-            </div>
-            
-            <div id="reverse_panel" style="display: none;">
-                <p style="font-size: 0.85rem; color: #92400e; margin-top: 0;">开启后，下方选中的原料质量将被锁定，系统将根据你设定的目标值<b>实时自动计算</b>其所需用量。</p>
-                
-                <div style="display: grid; grid-template-columns: 80px 1fr; gap: 12px; align-items: center; background: #fff; padding: 15px; border-radius: 8px; border: 1px solid #fde68a;">
-                    
-                    <div style="font-weight: bold; font-size: 0.9rem;">🎯 设定目标:</div>
-                    <div style="display: flex; gap: 8px; align-items: center;">
-                        <select id="target_param" onchange="onTargetParamChange()" style="flex-grow: 1;">
-                            <option value="r">R 值 (NCO / OH)</option>
-                            <option value="hsc">硬段含量 (HSC) %</option>
-                            <option value="neut">TEA 中和度 %</option>
-                        </select>
-                        <span style="font-weight:bold;">=</span>
-                        <input type="number" id="target_value" step="0.01" style="width: 80px;" oninput="calculate()">
-                    </div>
-
-                    <div style="font-weight: bold; font-size: 0.9rem;">🔄 自动推算:</div>
-                    <div>
-                        <select id="adjust_mat" onchange="updateUI()" style="width: 100%;">
-                            <option value="w_iso">IPDI (二异氰酸酯) 的质量</option>
-                            <option value="w_bdo">BDO (小分子扩链剂) 的质量</option>
-                            <option value="w_polyol">PCD (大分子醇) 的质量</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- 结果计算面板 -->
-        <div class="card">
-            <h2>📊 3. 核心计算结果</h2>
-            <div class="result-grid">
-                
-                <div class="result-box highlight">
-                    <div class="result-title">当前 R 值</div>
-                    <div class="result-value" id="res_r">0.00</div>
-                </div>
-                
-                <div class="result-box highlight">
-                    <div class="result-title">所需加水质量</div>
-                    <div class="result-value" id="res_water">0.00 <span class="result-unit">g</span></div>
-                </div>
-
-                <div class="result-box">
-                    <div class="result-title">硬段含量 (HSC)</div>
-                    <div class="result-value" id="res_hsc">0.00 <span class="result-unit">%</span></div>
-                </div>
-
-                <div class="result-box">
-                    <div class="result-title">DMPA 含量占比</div>
-                    <div class="result-value" id="res_dmpa">0.00 <span class="result-unit">%</span></div>
-                </div>
-
-                <div class="result-box">
-                    <div class="result-title">DMPA 中和度</div>
-                    <div class="result-value" id="res_neut">0.00 <span class="result-unit">%</span></div>
-                </div>
-
-                <div class="result-box">
-                    <div class="result-title">体系总干重 (含TEA)</div>
-                    <div class="result-value" id="res_total_solid">0.00 <span class="result-unit">g</span></div>
-                </div>
-            </div>
-        </div>
-
+    <div class="form-row">
+      <div class="form-group">
+        <label>实验编号</label>
+        <input type="text" id="exp-id" placeholder="如 260328-01" oninput="syncExpId();autoSave()">
+      </div>
+      <div class="form-group">
+        <label>实验日期</label>
+        <input type="text" id="exp-date" placeholder="YYYY-MM-DD" oninput="autoSave()">
+      </div>
     </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>操作人</label>
+        <input type="text" id="exp-operator" placeholder="姓名" oninput="autoSave()">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group full">
+        <label>实验目的 / 备注</label>
+        <input type="text" id="exp-note" placeholder="如：优化 IPDI/PCD 体系防水性" oninput="autoSave()">
+      </div>
+    </div>
+  </div>
+
+  <!-- 添加原料 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">1</div>
+      <div class="card-title">添加原料</div>
+    </div>
+    <div class="hint" style="margin-bottom:7px;">快速选用预设原料：</div>
+    <div class="preset-grid" id="preset-btns"></div>
+    <div class="divider"></div>
+    <div class="hint" style="margin-bottom:8px;">手动填写（可完全自定义）：</div>
+    <div class="form-row">
+      <div class="form-group" style="flex:2;min-width:130px;">
+        <label>原料名称</label>
+        <input type="text" id="add-name" placeholder="如 IPDI, PCD-2000…">
+      </div>
+      <div class="form-group">
+        <label>类型</label>
+        <select id="add-type">
+          <option value="polyol">多元醇</option>
+          <option value="iso">异氰酸酯</option>
+          <option value="chain">扩链/亲水</option>
+          <option value="solvent">溶剂</option>
+          <option value="other">其他</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>分子量 (g/mol)</label>
+        <input type="number" id="add-mw" placeholder="如 222.28" step="any">
+      </div>
+      <div class="form-group">
+        <label>官能度 f</label>
+        <input type="number" id="add-f" placeholder="2" value="2" step="1" min="0">
+      </div>
+      <div class="form-group">
+        <label>计量单位</label>
+        <select id="add-unit" onchange="toggleDensityField()">
+          <option value="g">g（质量）</option>
+          <option value="mL">mL（体积）</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" id="add-density-group" style="display:none;">
+        <label>密度 (g/mL)</label>
+        <input type="number" id="add-density" placeholder="如 1.058" step="any">
+      </div>
+      <div class="form-group">
+        <label>理论用量 (<span id="add-unit-label">g</span>)</label>
+        <input type="number" id="add-mass" placeholder="如 30.00" step="any">
+      </div>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="addReagent()">+ 加入配方</button>
+  </div>
+
+  <!-- 原料列表 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">2</div>
+      <div class="card-title">当前配方</div>
+      <button class="btn btn-danger btn-sm" style="margin-left:auto;" onclick="clearAll()">清空</button>
+    </div>
+    <div id="reagent-list">
+      <div style="text-align:center;padding:22px;color:var(--text3);font-size:12px;font-family:var(--mono);">暂无原料，请在上方添加</div>
+    </div>
+    <div class="divider"></div>
+    <div class="summary-bar" id="summary-bar">
+      <div class="summary-item">
+        <div class="s-label">理论总质量</div>
+        <div class="s-val" id="s-total-mass">—</div>
+      </div>
+      <div class="summary-item">
+        <div class="s-label">实际总质量</div>
+        <div class="s-val" id="s-total-actual">—</div>
+      </div>
+      <div class="summary-item">
+        <div class="s-label">NCO 当量</div>
+        <div class="s-val" id="s-nco-eq">—</div>
+      </div>
+      <div class="summary-item">
+        <div class="s-label">OH 当量</div>
+        <div class="s-val" id="s-oh-eq">—</div>
+      </div>
+      <div class="summary-item">
+        <div class="s-label">R 值 (NCO/OH)</div>
+        <div class="s-val" id="s-r-val">—</div>
+      </div>
+      <div class="summary-item">
+        <div class="s-label">硬段含量 HSC</div>
+        <div class="s-val" id="s-hsc">—</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 固含 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">3</div>
+      <div class="card-title">固含量 & 加水量计算</div>
+    </div>
+    <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:8px;">
+      <div class="sc-big" id="sc-pct">30.0</div>
+      <div style="font-size:12px;color:var(--text3);font-family:var(--mono);">% 固含量</div>
+    </div>
+    <input type="range" id="sc-slider" min="15" max="60" value="30" step="0.5" oninput="updateSolidContent(this.value)">
+    <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--text3);margin:4px 0 12px;">
+      <span>15%</span><span>30%</span><span>45%</span><span>60%</span>
+    </div>
+    <div class="summary-bar">
+      <div class="summary-item">
+        <div class="s-label">固体总质量</div>
+        <div class="s-val" id="sc-solid">—</div>
+      </div>
+      <div class="summary-item">
+        <div class="s-label">需加水量</div>
+        <div class="s-val good" id="sc-water">—</div>
+      </div>
+      <div class="summary-item">
+        <div class="s-label">乳液总质量</div>
+        <div class="s-val" id="sc-total">—</div>
+      </div>
+    </div>
+    <div class="form-row" style="margin-top:4px;">
+      <div class="form-group">
+        <label>实际加水量 (g)</label>
+        <input type="number" id="sc-actual-water" placeholder="实际称量加水" step="any" oninput="onActualWaterInput()">
+      </div>
+      <div class="form-group">
+        <label>实际固含量</label>
+        <div style="padding:7px 9px;background:var(--bg);border:1px solid var(--border-md);border-radius:var(--rs);font-family:var(--mono);font-size:12.5px;color:var(--cyan);" id="sc-actual-pct">—</div>
+      </div>
+    </div>
+    <div class="hint">固体质量 = 所有原料理论用量之和（含 TEA 等，不含水）；实际固含 = 固体总质量 / (固体 + 实际加水量)</div>
+  </div>
+
+  <!-- 目标反推 -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-num">4</div>
+      <div class="card-title">目标反推（Goal Seek）</div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>目标量</label>
+        <select id="gs-target">
+          <option value="r">目标 R 值</option>
+          <option value="hsc">目标 HSC (%)</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>目标值</label>
+        <input type="number" id="gs-val" placeholder="如 1.05" step="any">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group full">
+        <label>调整原料（f>0 才可参与当量反推）</label>
+        <select id="gs-reagent">
+          <option value="">— 选择要调整质量的原料 —</option>
+        </select>
+      </div>
+    </div>
+    <button class="btn btn-cyan btn-full" onclick="goalSeek()">🔍 反推计算</button>
+    <div id="gs-result" style="display:none;" class="gs-result"></div>
+  </div>
+
+</div>
 </div>
 
+<!-- ═══════════════════ PAGE 1: 工艺台 ═══════════════════ -->
+<div class="page" id="page-process">
+<div class="container">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+    <span style="font-family:var(--mono);font-size:12px;color:var(--text3);">实验编号：</span>
+    <span style="font-family:var(--mono);font-size:13px;font-weight:700;color:var(--accent);" id="proc-exp-id">—</span>
+  </div>
+  <div id="process-steps"></div>
+</div>
+</div>
+
+<!-- ═══════════════════ PAGE 2: 历史 ═══════════════════ -->
+<div class="page" id="page-history">
+<div class="container">
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px;">
+    <div style="font-family:var(--mono);font-size:12px;font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.08em;">本地存档</div>
+    <button class="btn btn-danger btn-sm" style="margin-left:auto;" onclick="clearHistory()">清空历史</button>
+  </div>
+  <div id="history-list">
+    <div style="text-align:center;padding:32px;color:var(--text3);font-size:12px;font-family:var(--mono);">暂无历史记录</div>
+  </div>
+</div>
+</div>
+
+<!-- ═══════════════════ PAGE 3: 导出 ═══════════════════ -->
+<div class="page" id="page-export">
+<div class="container">
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">导出实验报告</div>
+    </div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.9;">
+      导出内容包含：配方信息、当量计算（理论 vs 实际）、工艺步骤记录、照片附录
+    </div>
+    <div class="divider"></div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button class="btn btn-primary btn-full" onclick="exportJSON()">📄 导出 JSON 数据包</button>
+      <button class="btn btn-amber btn-full" id="pdf-btn" onclick="exportPDF()">📑 生成 PDF 报告</button>
+    </div>
+    <div class="hint" style="margin-top:10px;">JSON 可用于历史复用；PDF 为 A4 排版实验报告，包含图片。</div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">新建 / 清空实验</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button class="btn btn-green btn-full" onclick="newExperiment()">＋ 新建实验（清空当前数据）</button>
+    </div>
+    <div class="hint" style="margin-top:8px;">新建前建议先导出 JSON 存档，或点击"暂存"保留到历史记录。</div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">导入历史 JSON</div>
+    </div>
+    <input type="file" id="import-file" accept=".json" style="display:none;" onchange="importJSON(this)">
+    <button class="btn btn-secondary btn-full" onclick="document.getElementById('import-file').click()">📂 选择 JSON 文件导入</button>
+    <div class="hint" style="margin-top:8px;">导入后可在此配方基础上新建实验。</div>
+  </div>
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">自定义预设管理</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button class="btn btn-cyan btn-full" onclick="exportPresets()">📋 导出预设（复制）</button>
+      <button class="btn btn-secondary btn-full" onclick="showPresetImportModal()">📥 导入预设（粘贴）</button>
+    </div>
+    <div class="hint" style="margin-top:8px;">通过复制粘贴JSON跨设备同步自定义预设。</div>
+  </div>
+</div>
+</div>
+
+<!-- ── Photo Caption Modal ── -->
+<div class="modal-overlay" id="photo-modal">
+  <div class="modal">
+    <div class="modal-title">📷 添加图片备注</div>
+    <div id="photo-preview" style="margin-bottom:12px;border-radius:var(--rs);overflow:hidden;max-height:220px;text-align:center;background:var(--bg);"></div>
+    <div class="form-group" style="margin-bottom:14px;">
+      <label>备注说明（必填）</label>
+      <input type="text" id="photo-caption-input" placeholder="一句话描述图片内容…">
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-primary" style="flex:1;" onclick="confirmPhoto()">✓ 确认添加</button>
+      <button class="btn btn-secondary" style="flex:1;" onclick="closePhotoModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── History Detail Modal ── -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal">
+    <div class="modal-title" id="detail-modal-title">实验详情</div>
+    <div id="detail-modal-body" style="max-height:62vh;overflow-y:auto;font-size:12px;"></div>
+    <div style="display:flex;gap:8px;margin-top:14px;">
+      <button class="btn btn-primary" style="flex:1;" onclick="loadFromHistory()">以此配方新建</button>
+      <button class="btn btn-secondary" style="flex:1;" onclick="closeDetailModal()">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Custom Preset Modal ── -->
+<div class="modal-overlay" id="preset-modal">
+  <div class="modal">
+    <div class="modal-title">➕ 添加自定义预设</div>
+    <div class="form-group" style="margin-bottom:12px;">
+      <label>原料名称 *</label>
+      <input type="text" id="cp-name" placeholder="如：PPG-2000">
+    </div>
+    <div class="form-row" style="margin-bottom:12px;">
+      <div class="form-group">
+        <label>类型 *</label>
+        <select id="cp-type">
+          <option value="polyol">多元醇</option>
+          <option value="iso">异氰酸酯</option>
+          <option value="chain">扩链/亲水</option>
+          <option value="solvent">溶剂</option>
+          <option value="other">其他</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>分子量 (g/mol) *</label>
+        <input type="number" id="cp-mw" placeholder="如 2000" step="any">
+      </div>
+    </div>
+    <div class="form-row" style="margin-bottom:12px;">
+      <div class="form-group">
+        <label>官能度 f</label>
+        <input type="number" id="cp-f" value="2" step="1" min="0">
+      </div>
+      <div class="form-group">
+        <label>密度 (g/mL)</label>
+        <input type="number" id="cp-density" placeholder="可选" step="any">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;">
+      <button class="btn btn-primary" style="flex:1;" onclick="saveCustomPreset()">✓ 保存预设</button>
+      <button class="btn btn-secondary" style="flex:1;" onclick="closePresetModal()">取消</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── Preset Import/Export Modal ── -->
+<div class="modal-overlay" id="preset-io-modal">
+  <div class="modal">
+    <div class="modal-title">📋 预设导入/导出</div>
+    <div id="preset-export-area" style="display:none;">
+      <div style="margin-bottom:10px;font-size:12px;color:var(--text2);">复制下方JSON，在其他设备粘贴导入：</div>
+      <textarea id="preset-export-text" readonly style="width:100%;height:120px;font-family:var(--mono);font-size:11px;padding:8px;border:1px solid var(--border-md);border-radius:var(--rs);background:var(--bg);"></textarea>
+      <button class="btn btn-primary btn-full" style="margin-top:10px;" onclick="copyPresetJSON()">📄 复制到剪贴板</button>
+    </div>
+    <div id="preset-import-area" style="display:none;">
+      <div style="margin-bottom:10px;font-size:12px;color:var(--text2);">粘贴预设JSON到下方：</div>
+      <textarea id="preset-import-text" placeholder='粘贴JSON，如：[{"name":"PPG-2000","type":"polyol","mw":2000,"f":2}]' style="width:100%;height:120px;font-family:var(--mono);font-size:11px;padding:8px;border:1px solid var(--border-md);border-radius:var(--rs);"></textarea>
+      <button class="btn btn-primary btn-full" style="margin-top:10px;" onclick="importPresetJSON()">📥 导入预设</button>
+    </div>
+    <button class="btn btn-secondary btn-full" style="margin-top:10px;" onclick="closePresetIOModal()">关闭</button>
+  </div>
+</div>
+
+<div id="toast"></div>
+<canvas id="compress-canvas" style="display:none;"></canvas>
+<input type="file" id="photo-file-input" accept="image/*" capture="environment" style="display:none;" onchange="handlePhotoFile(this)">
+
 <script>
-    // 存储当前的计算状态，用于切换模式时平滑填充目标值
-    let current_r = 0, current_hsc = 0, current_neut = 0;
+'use strict';
 
-    function getVal(id) {
-        let val = parseFloat(document.getElementById(id).value);
-        return isNaN(val) ? 0 : val;
+// ─────────────────────────────────────────────
+// PRESETS
+// ─────────────────────────────────────────────
+const PRESETS = [
+  { name:'PCD-2000',  type:'polyol', mw:2000,   f:2 },
+  { name:'PTMEG-2000',type:'polyol', mw:2000,   f:2 },
+  { name:'PCL-2000',  type:'polyol', mw:2000,   f:2 },
+  { name:'PEG-1000',  type:'polyol', mw:1000,   f:2 },
+  { name:'PET-2000',  type:'polyol', mw:2000,   f:2 },
+  { name:'IPDI',      type:'iso',    mw:222.28,  f:2 },
+  { name:'HDI',       type:'iso',    mw:168.19,  f:2 },
+  { name:'MDI',       type:'iso',    mw:250.25,  f:2 },
+  { name:'DMPA',      type:'chain',  mw:134.13,  f:2 },
+  { name:'BDO',       type:'chain',  mw:90.12,   f:2 },
+  { name:'TMP',       type:'chain',  mw:134.17,  f:3 },
+  { name:'EDA',       type:'chain',  mw:60.10,   f:2 },
+  { name:'TEA',       type:'other',  mw:101.19,  f:0 }, // 中和剂，不参与当量
+  { name:'DBTDL',     type:'other',  mw:631.56,  f:0 }, // 催化剂
+  { name:'T9 (DBTL)', type:'other',  mw:547.34,  f:0 }, // 催化剂 T9
+  { name:'DMF',       type:'solvent', mw:73.09,   f:0 }, // 溶剂
+];
+
+const PROCESS_STEPS = [
+  { id:'s1', title:'① 脱水', sub:'原料预处理脱水除湿', catalyst:false },
+  { id:'s2', title:'② 预聚', sub:'多元醇与异氰酸酯预聚反应', catalyst:true },
+  { id:'s3', title:'③ 亲水扩链', sub:'加入亲水扩链剂（DMPA 等）', catalyst:false },
+  { id:'s4', title:'④ 小分子扩链', sub:'加入小分子扩链剂（BDO/EDA 等）', catalyst:false },
+  { id:'s5', title:'⑤ 中和', sub:'加入 TEA 中和，降至室温', catalyst:false },
+  { id:'s6', title:'⑥ 乳化分散', sub:'高速搅拌下加水乳化', catalyst:false },
+];
+
+// ─────────────────────────────────────────────
+// STATE
+// ─────────────────────────────────────────────
+let reagents = [];
+let solidContent = 30;
+let stepData = {};
+let currentPhotoStep = null;
+let pendingPhotoData = null;
+let currentDetailEntry = null;
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+function init() {
+  const now = new Date();
+  const yy = String(now.getFullYear()).slice(2);
+  const mm = String(now.getMonth()+1).padStart(2,'0');
+  const dd = String(now.getDate()).padStart(2,'0');
+  document.getElementById('exp-date').value = `${now.getFullYear()}-${mm}-${dd}`;
+  document.getElementById('exp-id').value = `${yy}${mm}${dd}-01`;
+
+  const cached = localStorage.getItem('wpu_current');
+  if (cached) {
+    try { loadState(JSON.parse(cached)); toast('已恢复上次暂存', 'success'); } catch(e) {}
+  }
+
+  renderPresetBtns();
+  renderReagents();
+  updateSummary();
+  updateSolidContent(solidContent);
+  updateGoalSeekReagents();
+  renderProcessSteps();
+  renderHistory();
+  syncExpId();
+}
+
+// ─────────────────────────────────────────────
+// TABS
+// ─────────────────────────────────────────────
+function switchTab(idx) {
+  document.querySelectorAll('.page').forEach((p,i) => p.classList.toggle('active', i===idx));
+  document.querySelectorAll('.tab').forEach((t,i) => t.classList.toggle('active', i===idx));
+  if (idx===2) renderHistory();
+}
+
+function syncExpId() {
+  const v = document.getElementById('exp-id').value || '—';
+  document.getElementById('proc-exp-id').textContent = v;
+}
+
+// ─────────────────────────────────────────────
+// REAGENTS
+// ─────────────────────────────────────────────
+// ─────────────────────────────────────────────
+// CUSTOM PRESETS (localStorage)
+// ─────────────────────────────────────────────
+function getCustomPresets() {
+  try { return JSON.parse(localStorage.getItem('wpu_custom_presets')||'[]'); } catch(e) { return []; }
+}
+
+function saveCustomPresets(presets) {
+  localStorage.setItem('wpu_custom_presets', JSON.stringify(presets));
+}
+
+function renderPresetBtns() {
+  const c = document.getElementById('preset-btns');
+  c.innerHTML = '';
+
+  // 内置预设
+  PRESETS.forEach(p => {
+    const b = document.createElement('button');
+    b.className = 'preset-btn';
+    b.textContent = p.name;
+    b.onclick = () => fillPreset(p);
+    c.appendChild(b);
+  });
+
+  // 自定义预设
+  const customs = getCustomPresets();
+  customs.forEach((p, idx) => {
+    const b = document.createElement('button');
+    b.className = 'preset-btn preset-btn-custom';
+    b.innerHTML = `${p.name}<span class="preset-del" onclick="event.stopPropagation();deleteCustomPreset(${idx});">✕</span>`;
+    b.onclick = () => fillPreset(p);
+    c.appendChild(b);
+  });
+
+  // 添加按钮
+  const addBtn = document.createElement('button');
+  addBtn.className = 'preset-btn preset-btn-add';
+  addBtn.textContent = '＋ 添加预设';
+  addBtn.onclick = () => openPresetModal();
+  c.appendChild(addBtn);
+}
+
+function openPresetModal() {
+  document.getElementById('cp-name').value = '';
+  document.getElementById('cp-type').value = 'polyol';
+  document.getElementById('cp-mw').value = '';
+  document.getElementById('cp-f').value = '2';
+  document.getElementById('cp-density').value = '';
+  document.getElementById('preset-modal').classList.add('open');
+}
+
+function closePresetModal() {
+  document.getElementById('preset-modal').classList.remove('open');
+}
+
+function saveCustomPreset() {
+  const name = document.getElementById('cp-name').value.trim();
+  const type = document.getElementById('cp-type').value;
+  const mw = parseFloat(document.getElementById('cp-mw').value);
+  const f = parseFloat(document.getElementById('cp-f').value);
+  const density = document.getElementById('cp-density').value.trim();
+
+  if (!name) { toast('请输入原料名称', 'error'); return; }
+  if (isNaN(mw) || mw <= 0) { toast('请输入有效分子量', 'error'); return; }
+  if (isNaN(f) || f < 0) { toast('请输入有效官能度', 'error'); return; }
+
+  const customs = getCustomPresets();
+  // 检查重名
+  if (customs.some(p => p.name === name) || PRESETS.some(p => p.name === name)) {
+    toast('该名称已存在，请使用其他名称', 'error'); return;
+  }
+
+  const newPreset = {
+    name, type, mw, f,
+    density: density ? parseFloat(density) : null
+  };
+
+  customs.push(newPreset);
+  saveCustomPresets(customs);
+  renderPresetBtns();
+  closePresetModal();
+  toast(`已添加预设：${name}`, 'success');
+}
+
+function deleteCustomPreset(idx) {
+  if (!confirm('确定删除此预设？')) return;
+  const customs = getCustomPresets();
+  customs.splice(idx, 1);
+  saveCustomPresets(customs);
+  renderPresetBtns();
+  toast('预设已删除');
+}
+
+// ─────────────────────────────────────────────
+// PRESET IMPORT/EXPORT
+// ─────────────────────────────────────────────
+function exportPresets() {
+  const customs = getCustomPresets();
+  if (customs.length === 0) {
+    toast('暂无自定义预设', 'error'); return;
+  }
+  const json = JSON.stringify(customs, null, 2);
+  document.getElementById('preset-export-text').value = json;
+  document.getElementById('preset-export-area').style.display = 'block';
+  document.getElementById('preset-import-area').style.display = 'none';
+  document.getElementById('preset-io-modal').classList.add('open');
+}
+
+function showPresetImportModal() {
+  document.getElementById('preset-import-text').value = '';
+  document.getElementById('preset-export-area').style.display = 'none';
+  document.getElementById('preset-import-area').style.display = 'block';
+  document.getElementById('preset-io-modal').classList.add('open');
+}
+
+function closePresetIOModal() {
+  document.getElementById('preset-io-modal').classList.remove('open');
+}
+
+function copyPresetJSON() {
+  const textarea = document.getElementById('preset-export-text');
+  textarea.select();
+  document.execCommand('copy');
+  toast('已复制到剪贴板', 'success');
+}
+
+function importPresetJSON() {
+  const text = document.getElementById('preset-import-text').value.trim();
+  if (!text) {
+    toast('请粘贴预设JSON', 'error'); return;
+  }
+  try {
+    const data = JSON.parse(text);
+    if (!Array.isArray(data)) {
+      toast('JSON格式错误：应为数组', 'error'); return;
     }
-
-    // 切换【正向/反推】模式
-    function toggleReverseMode() {
-        let isRev = document.getElementById('toggle_reverse').checked;
-        let panel = document.getElementById('reverse_panel');
-        if (isRev) {
-            panel.style.display = 'block';
-            syncTargetValue(); // 开启时，把目前算出的 R/HSC 填进目标框，防止数字突变跳跃
-        } else {
-            panel.style.display = 'none';
-        }
-        updateUI();
+    // 验证每个预设的必需字段
+    for (const p of data) {
+      if (!p.name || !p.type || typeof p.mw !== 'number' || typeof p.f !== 'number') {
+        toast('JSON格式错误：缺少必需字段', 'error'); return;
+      }
     }
-
-    // 切换【设定的目标参数 (R/HSC/中和度)】
-    function onTargetParamChange() {
-        let param = document.getElementById('target_param').value;
-        let selectMat = document.getElementById('adjust_mat');
-        let prevSelection = selectMat.value;
-        
-        // 根据目标动态调整允许推算的原料
-        if (param === 'r' || param === 'hsc') {
-            selectMat.innerHTML = `
-                <option value="w_iso">IPDI (二异氰酸酯) 的质量</option>
-                <option value="w_bdo">BDO (小分子扩链剂) 的质量</option>
-                <option value="w_polyol">PCD (大分子醇) 的质量</option>
-            `;
-            if(['w_iso', 'w_polyol', 'w_bdo'].includes(prevSelection)) selectMat.value = prevSelection;
-        } else if (param === 'neut') {
-            selectMat.innerHTML = `<option value="w_tea">TEA (中和剂) 的质量</option>`;
-        }
-        syncTargetValue();
-        updateUI();
-    }
-
-    // 将当前计算结果同步至目标输入框
-    function syncTargetValue() {
-        let param = document.getElementById('target_param').value;
-        if(param === 'r') document.getElementById('target_value').value = current_r.toFixed(3);
-        if(param === 'hsc') document.getElementById('target_value').value = current_hsc.toFixed(2);
-        if(param === 'neut') document.getElementById('target_value').value = current_neut.toFixed(1);
-    }
-
-    // 更新左侧输入框的 UI 样式 (锁死被自动计算的项)
-    function updateUI() {
-        // 先解除所有锁定状态
-        let allInputs =['w_polyol', 'w_iso', 'w_dmpa', 'w_bdo', 'w_tea'];
-        allInputs.forEach(id => {
-            document.getElementById(id).classList.remove('locked-input');
-            document.getElementById('lbl_' + id).style.display = 'none';
+    // 合并到现有预设
+    const customs = getCustomPresets();
+    let added = 0;
+    for (const p of data) {
+      // 检查重名
+      if (!customs.some(c => c.name === p.name) && !PRESETS.some(c => c.name === p.name)) {
+        customs.push({
+          name: p.name,
+          type: p.type,
+          mw: p.mw,
+          f: p.f,
+          density: p.density || null
         });
-        
-        // 如果开启了反推，给选中的项目上锁
-        let isRev = document.getElementById('toggle_reverse').checked;
-        if (isRev) {
-            let lockedId = document.getElementById('adjust_mat').value;
-            let el = document.getElementById(lockedId);
-            if(el) {
-               el.classList.add('locked-input');
-               document.getElementById('lbl_' + lockedId).style.display = 'inline-block';
-            }
-        }
-        calculate();
+        added++;
+      }
+    }
+    if (added === 0) {
+      toast('所有预设都已存在（名称重复）', 'error'); return;
+    }
+    saveCustomPresets(customs);
+    renderPresetBtns();
+    closePresetIOModal();
+    toast(`已导入 ${added} 个预设`, 'success');
+  } catch (e) {
+    toast('JSON格式错误：' + e.message, 'error');
+  }
+}
+
+function fillPreset(p) {
+  document.getElementById('add-name').value = p.name;
+  document.getElementById('add-type').value = p.type;
+  document.getElementById('add-mw').value = p.mw;
+  document.getElementById('add-f').value = p.f;
+  // Suggest mL for common liquids and custom presets with density
+  const liquids = ['IPDI','HDI','MDI','BDO','TEA','EDA','DMF'];
+  const isLiquid = liquids.some(l => p.name.toUpperCase().includes(l)) || p.density;
+  document.getElementById('add-unit').value = isLiquid ? 'mL' : 'g';
+  toggleDensityField();
+  // prefill known densities or custom preset density
+  if (p.density) {
+    document.getElementById('add-density').value = p.density;
+  } else {
+    const densities = {IPDI:1.062,HDI:1.05,MDI:1.23,BDO:1.017,TEA:0.726,EDA:0.899,DMF:0.944};
+    const dk = Object.keys(densities).find(k => p.name.toUpperCase().includes(k));
+    if (dk) document.getElementById('add-density').value = densities[dk];
+  }
+  document.getElementById('add-mass').focus();
+}
+
+function calcEq(mass, mw, f) {
+  // 当量数 = mass / (MW/f)，即 = mass * f / MW
+  // f=0 表示不参与当量（如 TEA, 催化剂）
+  if (f === 0 || isNaN(f) || mw <= 0) return null;
+  return mass * f / mw;
+}
+
+function toggleDensityField() {
+  const unit = document.getElementById('add-unit').value;
+  document.getElementById('add-density-group').style.display = unit==='mL' ? 'flex' : 'none';
+  document.getElementById('add-unit-label').textContent = unit;
+}
+
+function addReagent() {
+  const name    = document.getElementById('add-name').value.trim();
+  const type    = document.getElementById('add-type').value;
+  const mw      = parseFloat(document.getElementById('add-mw').value);
+  const f       = parseFloat(document.getElementById('add-f').value);
+  const unit    = document.getElementById('add-unit').value;
+  const density = parseFloat(document.getElementById('add-density').value);
+  const rawAmt  = parseFloat(document.getElementById('add-mass').value);
+
+  if (!name) { toast('请输入原料名称', 'error'); return; }
+  if (isNaN(mw) || mw <= 0) { toast('请输入有效分子量', 'error'); return; }
+  if (isNaN(f) || f < 0)    { toast('请输入有效官能度（0=不参与当量）', 'error'); return; }
+  if (isNaN(rawAmt) || rawAmt <= 0) { toast('请输入有效理论用量', 'error'); return; }
+  if (unit === 'mL' && (isNaN(density) || density <= 0)) { toast('使用 mL 单位时请填写密度', 'error'); return; }
+
+  let mass, vol;
+  if (unit === 'mL') { vol = rawAmt; mass = rawAmt * density; }
+  else               { mass = rawAmt; vol = null; }
+
+  const eq = calcEq(mass, mw, f);
+  reagents.push({ id: Date.now(), name, type, mw, f, unit, density: unit==='mL'?density:null, vol, mass, actual: '', actualVol: '', eq });
+
+  document.getElementById('add-name').value = '';
+  document.getElementById('add-mw').value = '';
+  document.getElementById('add-f').value = '2';
+  document.getElementById('add-mass').value = '';
+  document.getElementById('add-density').value = '';
+  document.getElementById('add-unit').value = 'g';
+  toggleDensityField();
+
+  renderReagents(); updateSummary(); updateSolidContent(solidContent); updateGoalSeekReagents(); autoSave();
+  toast(`${name} 已添加`, 'success');
+}
+
+function removeReagent(id) {
+  reagents = reagents.filter(r => r.id !== id);
+  renderReagents(); updateSummary(); updateSolidContent(solidContent); updateGoalSeekReagents(); autoSave();
+}
+
+function updateReagentField(id, field, val) {
+  const r = reagents.find(x => x.id === id);
+  if (!r) return;
+
+  if (field === 'vol_or_mass') {
+    const v = parseFloat(val);
+    if (!isNaN(v) && v > 0) {
+      if (r.unit === 'mL') { r.vol = v; r.mass = v * (r.density||1); }
+      else { r.mass = v; }
+      r.eq = calcEq(r.mass, r.mw, r.f);
+      const eqEl = document.getElementById('eq-'+id);
+      if (eqEl) {
+        if (r.eq===null){eqEl.textContent='不参与当量';eqEl.className='reagent-eq no-eq';}
+        else{eqEl.textContent='Eq = '+r.eq.toFixed(4);eqEl.className='reagent-eq';}
+      }
+      updateSummary(); updateSolidContent(solidContent); autoSave();
+      renderReagents(); // re-render to update mass display for mL
+    }
+  } else if (field === 'actual_vol_or_mass') {
+    if (r.unit === 'mL') {
+      r.actualVol = val;
+      const av = parseFloat(val);
+      r.actual = (!isNaN(av) && av>0 && r.density) ? String((av*r.density).toFixed(4)) : '';
+    } else {
+      r.actual = val;
+    }
+    const aeqEl = document.getElementById('aeq-'+id);
+    if (aeqEl && r.f > 0) {
+      const am = parseFloat(r.actual);
+      aeqEl.textContent = (!isNaN(am) && am>0) ? `实 Eq = ${calcEq(am,r.mw,r.f).toFixed(4)}` : '';
+    }
+    updateSummary(); autoSave();
+  } else if (field === 'density') {
+    const v = parseFloat(val);
+    if (!isNaN(v) && v > 0) {
+      r.density = v;
+      if (r.unit==='mL' && r.vol) { r.mass = r.vol * v; r.eq = calcEq(r.mass,r.mw,r.f); }
+      if (r.unit==='mL' && r.actualVol) { r.actual = String((parseFloat(r.actualVol)*v).toFixed(4)); }
+      updateSummary(); updateSolidContent(solidContent); autoSave();
+    }
+  } else if (field === 'mw' || field === 'f') {
+    const v = parseFloat(val);
+    if (!isNaN(v) && (field==='f' ? v>=0 : v>0)) {
+      r[field] = v;
+      r.eq = calcEq(r.mass, r.mw, r.f);
+      const eqEl = document.getElementById('eq-'+id);
+      if (eqEl) {
+        if (r.eq===null){eqEl.textContent='不参与当量';eqEl.className='reagent-eq no-eq';}
+        else{eqEl.textContent='Eq = '+r.eq.toFixed(4);eqEl.className='reagent-eq';}
+      }
+      updateSummary(); updateSolidContent(solidContent); autoSave();
+    }
+  }
+}
+
+const TYPE_NAME = { polyol:'多元醇', iso:'异氰酸酯', chain:'扩链/亲水', solvent:'溶剂', other:'其他' };
+const TYPE_TAG  = { polyol:'tag-polyol', iso:'tag-iso', chain:'tag-chain', solvent:'tag-other', other:'tag-other' };
+
+function renderReagents() {
+  const el = document.getElementById('reagent-list');
+  if (!reagents.length) {
+    el.innerHTML = '<div style="text-align:center;padding:22px;color:var(--text3);font-size:12px;font-family:var(--mono);">暂无原料，请在上方添加</div>';
+    return;
+  }
+  el.innerHTML = reagents.map(r => {
+    const eqText = r.eq === null ? '不参与当量' : `Eq = ${r.eq.toFixed(4)}`;
+    const eqClass = r.eq === null ? 'reagent-eq no-eq' : 'reagent-eq';
+    const av = parseFloat(r.actual);
+    const aeqText = (r.f > 0 && !isNaN(av) && av > 0) ? `实 Eq = ${calcEq(av, r.mw, r.f).toFixed(4)}` : '';
+    return `
+      <div class="reagent-item" id="ri-${r.id}">
+        <div class="reagent-header">
+          <span class="rtag ${TYPE_TAG[r.type]}">${TYPE_NAME[r.type]}</span>
+          <span class="reagent-name">${r.name}</span>
+          <span id="eq-${r.id}" class="${eqClass}">${eqText}</span>
+          <button class="btn btn-danger btn-sm" style="padding:3px 8px;margin-left:4px;" onclick="removeReagent(${r.id})">✕</button>
+        </div>
+        <div class="form-row" style="margin-bottom:4px;">
+          <div class="form-group">
+            <label>理论用量 (${r.unit==='mL'?'mL':'g'})</label>
+            <input type="number" value="${r.unit==='mL'?(r.vol||''):r.mass}" step="any"
+              oninput="updateReagentField(${r.id},'vol_or_mass',this.value)" placeholder="理论">
+          </div>
+          ${r.unit==='mL'?`<div class="form-group"><label>密度 (g/mL)</label><input type="number" value="${r.density||''}" step="any" oninput="updateReagentField(${r.id},'density',this.value)"></div>`:''}
+          <div class="form-group">
+            <label>实际用量 (${r.unit==='mL'?'mL':'g'})</label>
+            <input type="number" value="${r.unit==='mL'?(r.actualVol||''):(r.actual||'')}" step="any"
+              oninput="updateReagentField(${r.id},'actual_vol_or_mass',this.value)" placeholder="实际">
+          </div>
+          <div class="form-group">
+            <label>分子量</label>
+            <input type="number" value="${r.mw}" step="any" oninput="updateReagentField(${r.id},'mw',this.value)">
+          </div>
+          <div class="form-group">
+            <label>官能度 f</label>
+            <input type="number" value="${r.f}" step="1" min="0" oninput="updateReagentField(${r.id},'f',this.value)">
+          </div>
+        </div>
+        ${r.unit==='mL'?`<div style="font-size:10px;color:var(--text3);font-family:var(--mono);margin-bottom:2px;">
+          理论质量：${r.mass.toFixed(3)} g${r.actual?` · 实际质量：${parseFloat(r.actual).toFixed(3)} g`:''}
+        </div>`:''}
+        ${aeqText ? `<div style="font-size:10px;color:var(--cyan);font-family:var(--mono);margin-top:2px;" id="aeq-${r.id}">${aeqText}</div>` : `<div id="aeq-${r.id}" style="font-size:10px;color:var(--cyan);font-family:var(--mono);margin-top:2px;"></div>`}
+      </div>`;
+  }).join('');
+}
+
+function clearAll() {
+  if (!confirm('确定清空所有原料？')) return;
+  reagents = [];
+  renderReagents(); updateSummary(); updateSolidContent(solidContent); updateGoalSeekReagents(); autoSave();
+}
+
+// ─────────────────────────────────────────────
+// EQUIVALENTS (NCO/OH correct model)
+// ─────────────────────────────────────────────
+// For diisocyanate (f=2): EW = MW/f = MW/2
+// Eq = mass / EW = mass*f/MW = mass*2/MW
+// Each Eq of diisocyanate contains 1 Eq of NCO
+// So NCO_Eq = Σ (mass_iso * f_iso / MW_iso) — each "equivalent" is one functional group
+// OH_Eq  = Σ (mass_polyol * f / MW) + Σ (mass_chain * f / MW)
+function calcEquivalents(useActual=false) {
+  // HSC = (iso + chain) / (iso + chain + polyol)
+  // 分母只含参与聚合的组分，不含 f=0 辅助原料（TEA、催化剂等）和溶剂
+  let ncoEq=0, ohEq=0, totalMass=0, isoMass=0, chainMass=0, polyolMass=0;
+  reagents.forEach(r => {
+    // 排除溶剂
+    if (r.type === 'solvent') return;
+
+    const m = useActual ? (parseFloat(r.actual) || r.mass) : r.mass;
+    totalMass += m;
+    if (r.f === 0) return;
+    const eq = m * r.f / r.mw;
+    if (r.type === 'iso')         { ncoEq += eq; isoMass += m; }
+    else if (r.type === 'polyol') { ohEq += eq;  polyolMass += m; }
+    else if (r.type === 'chain')  { ohEq += eq;  chainMass += m; }
+  });
+  const hardMass = isoMass + chainMass;
+  const polymerMass = hardMass + polyolMass;
+  const hsc = polymerMass > 0 ? hardMass / polymerMass * 100 : 0;
+  const rVal = ohEq > 0 ? ncoEq / ohEq : 0;
+  return { ncoEq, ohEq, rVal, hsc, totalMass, hardMass, polymerMass };
+}
+
+function updateSummary() {
+  const th = calcEquivalents(false);
+  const ac = calcEquivalents(true);
+  const hasActual = reagents.some(r => parseFloat(r.actual) > 0);
+
+  const rClass = th.rVal < 0.95 ? 'bad' : th.rVal > 1.15 ? 'warn' : 'good';
+
+  document.getElementById('s-total-mass').textContent = th.totalMass > 0 ? `${th.totalMass.toFixed(2)} g` : '—';
+  document.getElementById('s-total-actual').textContent = hasActual ? `${ac.totalMass.toFixed(2)} g` : '—';
+  document.getElementById('s-nco-eq').textContent = th.ncoEq > 0 ? th.ncoEq.toFixed(4) : '—';
+  document.getElementById('s-oh-eq').textContent = th.ohEq > 0 ? th.ohEq.toFixed(4) : '—';
+
+  if (th.rVal > 0) {
+    const rStr = hasActual && ac.rVal > 0
+      ? `${th.rVal.toFixed(3)} / ${ac.rVal.toFixed(3)}`
+      : th.rVal.toFixed(3);
+    document.getElementById('s-r-val').textContent = rStr;
+    document.getElementById('s-r-val').className = `s-val ${rClass}`;
+    const hscStr = hasActual
+      ? `${th.hsc.toFixed(1)}% / ${ac.hsc.toFixed(1)}%`
+      : `${th.hsc.toFixed(1)}%`;
+    document.getElementById('s-hsc').textContent = hscStr;
+  } else {
+    document.getElementById('s-r-val').textContent = '—';
+    document.getElementById('s-r-val').className = 's-val';
+    document.getElementById('s-hsc').textContent = '—';
+  }
+}
+
+// ─────────────────────────────────────────────
+// SOLID CONTENT
+// ─────────────────────────────────────────────
+function updateSolidContent(val) {
+  solidContent = parseFloat(val);
+  document.getElementById('sc-slider').value = solidContent;
+  document.getElementById('sc-pct').textContent = solidContent.toFixed(1);
+  // 固体质量排除溶剂和水
+  const solidMass = reagents.filter(r => r.type !== 'solvent').reduce((s,r) => s + r.mass, 0);
+  if (solidMass > 0) {
+    const water = solidMass * (100 - solidContent) / solidContent;
+    document.getElementById('sc-solid').textContent = `${solidMass.toFixed(2)} g`;
+    document.getElementById('sc-water').textContent = `${water.toFixed(2)} g`;
+    document.getElementById('sc-total').textContent = `${(solidMass+water).toFixed(2)} g`;
+  } else {
+    ['sc-solid','sc-water','sc-total'].forEach(id => document.getElementById(id).textContent = '—');
+  }
+  onActualWaterInput();
+}
+
+function onActualWaterInput() {
+  const aw = parseFloat(document.getElementById('sc-actual-water').value);
+  // 固体质量排除溶剂
+  const solidMass = reagents.filter(r => r.type !== 'solvent').reduce((s,r) => s + r.mass, 0);
+  const actualSolidMass = reagents.filter(r => r.type !== 'solvent').reduce((s,r) => s + (parseFloat(r.actual)||0), 0);
+  const el = document.getElementById('sc-actual-pct');
+  // 优先使用实际固体质量计算，如果没有实际用量则回退到理论质量
+  const massToUse = (actualSolidMass > 0) ? actualSolidMass : solidMass;
+  if (!isNaN(aw) && aw > 0 && massToUse > 0) {
+    const actualSC = massToUse / (massToUse + aw) * 100;
+    el.textContent = actualSC.toFixed(1) + '%';
+  } else {
+    el.textContent = '—';
+  }
+  autoSave();
+}
+
+// ─────────────────────────────────────────────
+// GOAL SEEK
+// ─────────────────────────────────────────────
+function updateGoalSeekReagents() {
+  const sel = document.getElementById('gs-reagent');
+  const cur = sel.value;
+  sel.innerHTML = '<option value="">— 选择要调整质量的原料 —</option>';
+  reagents.filter(r => r.f > 0).forEach(r => {
+    const o = document.createElement('option');
+    o.value = r.id;
+    o.textContent = `${r.name} (当前 ${r.mass}g)`;
+    sel.appendChild(o);
+  });
+  if (cur) sel.value = cur;
+}
+
+function goalSeek() {
+  const target = document.getElementById('gs-target').value;
+  const goalVal = parseFloat(document.getElementById('gs-val').value);
+  const reagentId = parseInt(document.getElementById('gs-reagent').value);
+  const resultEl = document.getElementById('gs-result');
+
+  if (isNaN(goalVal)) { toast('请输入目标值', 'error'); return; }
+  if (!reagentId) { toast('请选择要调整的原料', 'error'); return; }
+
+  const r = reagents.find(x => x.id === reagentId);
+  if (!r) return;
+  const others = reagents.filter(x => x.id !== reagentId);
+
+  function compute(mass) {
+    let ncoEq=0,ohEq=0,totalMass=0,isoMass=0,chainMass=0;
+    const all = [...others, {...r, mass}];
+    all.forEach(x => {
+      const m = x.mass;
+      totalMass += m;
+      if (x.f === 0) return;
+      const eq = m * x.f / x.mw;
+      if (x.type==='iso') { ncoEq+=eq; isoMass+=m; }
+      else if (x.type==='polyol') ohEq+=eq;
+      else if (x.type==='chain') { ohEq+=eq; chainMass+=m; }
+    });
+    const hardMass = isoMass + chainMass;
+    return {
+      rVal: ohEq>0 ? ncoEq/ohEq : 0,
+      hsc: totalMass>0 ? hardMass/totalMass*100 : 0
+    };
+  }
+
+  let lo=0.001, hi=10000, result=null;
+  const getV = c => target==='r' ? c.rVal : c.hsc;
+  const vLo = getV(compute(lo)), vHi = getV(compute(hi));
+  const inRange = (vLo <= goalVal && goalVal <= vHi) || (vHi <= goalVal && goalVal <= vLo);
+  if (!inRange) { toast('目标值超出可解范围，请调整原料或目标', 'error'); return; }
+
+  for (let i=0;i<80;i++) {
+    const mid=(lo+hi)/2;
+    const cv = getV(compute(mid));
+    if (Math.abs(cv-goalVal) < 0.000001) { result=mid; break; }
+    const vlo = getV(compute(lo));
+    if ((cv-goalVal)*(vlo-goalVal) < 0) hi=mid; else lo=mid;
+    result=mid;
+  }
+
+  if (result !== null && result > 0) {
+    const c = compute(result);
+    resultEl.style.display = 'block';
+    resultEl.innerHTML = `
+      <div style="margin-bottom:6px;">✅ 建议将 <strong>${r.name}</strong> 理论用量调整为：</div>
+      <div style="font-size:20px;font-weight:700;margin-bottom:6px;">${result.toFixed(4)} g</div>
+      <div style="font-size:11px;color:var(--text2);">验证 → R = ${c.rVal.toFixed(4)}，HSC = ${c.hsc.toFixed(2)}%</div>
+      <button class="btn btn-green btn-sm" style="margin-top:10px;" onclick="applyGoalSeek(${reagentId}, ${result.toFixed(4)})">✓ 应用此质量</button>
+    `;
+  } else {
+    toast('无法找到满足条件的解', 'error');
+  }
+}
+
+function applyGoalSeek(id, mass) {
+  const r = reagents.find(x => x.id === id);
+  if (!r) return;
+  r.mass = parseFloat(mass.toFixed(4));
+  r.eq = calcEq(r.mass, r.mw, r.f);
+  renderReagents(); updateSummary(); updateSolidContent(solidContent); updateGoalSeekReagents(); autoSave();
+  toast('已应用', 'success');
+  document.getElementById('gs-result').style.display = 'none';
+}
+
+// ─────────────────────────────────────────────
+// PROCESS STEPS
+// ─────────────────────────────────────────────
+function renderProcessSteps() {
+  const container = document.getElementById('process-steps');
+  container.innerHTML = '';
+  PROCESS_STEPS.forEach((step, idx) => {
+    const data = stepData[step.id] || {};
+    const card = document.createElement('div');
+    card.className = 'step-card' + (idx > 0 ? ' collapsed' : '');
+    card.id = `scard-${step.id}`;
+    const hasDone = !!(data.addTime || data.startTime || data.obs || (data.photos && data.photos.length));
+    card.innerHTML = `
+      <div class="step-header" onclick="toggleStep('${step.id}')">
+        <div class="step-num${hasDone?' done':''}">0${idx+1}</div>
+        <div class="step-title-wrap">
+          <div class="step-title">${step.title}</div>
+          <div class="step-sub">${step.sub}</div>
+        </div>
+        <div class="step-chevron">▼</div>
+      </div>
+      <div class="step-body">${buildStepBody(step, data)}</div>
+    `;
+    container.appendChild(card);
+  });
+}
+
+function buildStepBody(step, data) {
+  const sid = step.id;
+  const photos = data.photos || [];
+  const needCool = !!data.needCool;
+
+  const catalystAlert = step.catalyst ? `
+    <div class="alert-catalyst">
+      <div class="alert-icon">⚠️</div>
+      <div><strong>催化剂提醒：</strong>预聚反应通常需加入催化剂（如 DBTDL，用量约为多元醇质量的 0.05–0.1%），请确认是否已添加。</div>
+    </div>` : '';
+
+  return `
+    ${catalystAlert}
+    <div class="form-row">
+      <div class="form-group">
+        <label>反应温度 (°C)</label>
+        <input type="number" placeholder="如 80" value="${data.temp||''}" step="any" oninput="updateStep('${sid}','temp',this.value)">
+      </div>
+      <div class="form-group">
+        <label>搅拌转速 (rpm)</label>
+        <input type="number" placeholder="可选" value="${data.rpm||''}" step="any" oninput="updateStep('${sid}','rpm',this.value)">
+      </div>
+    </div>
+    <div class="time-grid">
+      <div class="form-group">
+        <label>加料时间</label>
+        <input type="time" value="${data.addTime||''}" oninput="updateStep('${sid}','addTime',this.value)">
+      </div>
+      <div class="form-group">
+        <label>反应开始</label>
+        <input type="time" value="${data.startTime||''}" oninput="updateStep('${sid}','startTime',this.value)">
+      </div>
+      <div class="form-group">
+        <label>反应结束</label>
+        <input type="time" value="${data.endTime||''}" oninput="updateStep('${sid}','endTime',this.value)">
+      </div>
+    </div>
+    <div class="check-row">
+      <input type="checkbox" id="cool-${sid}" ${needCool?'checked':''} onchange="toggleCooling('${sid}',this.checked)">
+      <label for="cool-${sid}">需要降温步骤</label>
+    </div>
+    <div id="cool-times-${sid}" style="display:${needCool?'block':'none'};">
+      <div class="time-grid" style="margin-top:6px;">
+        <div class="form-group">
+          <label>降温开始</label>
+          <input type="time" value="${data.coolStart||''}" oninput="updateStep('${sid}','coolStart',this.value)">
+        </div>
+        <div class="form-group">
+          <label>目标温度 (°C)</label>
+          <input type="number" placeholder="如 40" value="${data.coolTargetTemp||''}" step="any" oninput="updateStep('${sid}','coolTargetTemp',this.value)">
+        </div>
+        <div class="form-group">
+          <label>降温完成</label>
+          <input type="time" value="${data.coolEnd||''}" oninput="updateStep('${sid}','coolEnd',this.value)">
+        </div>
+      </div>
+    </div>
+    <div class="form-group full" style="margin:8px 0;">
+      <label>实验现象 / 操作备注</label>
+      <textarea placeholder="如：体系逐渐变粘，颜色微黄，NCO%…" oninput="updateStep('${sid}','obs',this.value)">${data.obs||''}</textarea>
+    </div>
+    <div class="photo-area" onclick="triggerPhoto('${sid}')">
+      <div style="font-size:22px;margin-bottom:3px;">📷</div>
+      <div style="font-size:11.5px;color:var(--text3);">点击拍照或上传图片</div>
+    </div>
+    <div class="photo-thumbs" id="thumbs-${sid}">
+      ${photos.map((p,i) => `
+        <div class="photo-thumb">
+          <img src="${p.data}" alt="${p.caption}">
+          <button class="photo-thumb-del" onclick="removePhoto('${sid}',${i})">✕</button>
+          <div class="photo-caption-chip">${p.caption}</div>
+        </div>`).join('')}
+    </div>
+    <button class="btn btn-secondary btn-sm btn-full" style="margin-top:8px;" onclick="stampNow('${sid}')">⏱ 记录当前时间</button>
+  `;
+}
+
+function toggleStep(sid) {
+  document.getElementById(`scard-${sid}`).classList.toggle('collapsed');
+}
+
+function updateStep(sid, key, val) {
+  if (!stepData[sid]) stepData[sid] = {};
+  stepData[sid][key] = val;
+  // mark done
+  const numEl = document.querySelector(`#scard-${sid} .step-num`);
+  if (numEl) numEl.classList.add('done');
+  autoSave();
+}
+
+function toggleCooling(sid, checked) {
+  if (!stepData[sid]) stepData[sid] = {};
+  stepData[sid].needCool = checked;
+  document.getElementById(`cool-times-${sid}`).style.display = checked ? 'block' : 'none';
+  autoSave();
+}
+
+function stampNow(sid) {
+  const now = new Date();
+  const ts = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  if (!stepData[sid]) stepData[sid] = {};
+  for (const f of ['addTime','startTime','endTime','coolStart','coolEnd']) {
+    if (!stepData[sid][f]) {
+      stepData[sid][f] = ts;
+      autoSave(); renderProcessSteps();
+      toast(`已记录 ${ts}`, 'success'); return;
+    }
+  }
+  toast(`当前 ${ts}（所有时间已填）`);
+}
+
+// ─────────────────────────────────────────────
+// PHOTOS
+// ─────────────────────────────────────────────
+function triggerPhoto(sid) {
+  currentPhotoStep = sid;
+  document.getElementById('photo-file-input').value = '';
+  document.getElementById('photo-file-input').click();
+}
+
+function handlePhotoFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  compressImage(file, dataUrl => {
+    pendingPhotoData = dataUrl;
+    document.getElementById('photo-preview').innerHTML =
+      `<img src="${dataUrl}" style="max-width:100%;max-height:200px;object-fit:contain;border-radius:6px;">`;
+    document.getElementById('photo-caption-input').value = '';
+    document.getElementById('photo-modal').classList.add('open');
+  });
+}
+
+function confirmPhoto() {
+  const caption = document.getElementById('photo-caption-input').value.trim();
+  if (!caption) { toast('请输入图片备注', 'error'); return; }
+  if (!stepData[currentPhotoStep]) stepData[currentPhotoStep] = {};
+  if (!stepData[currentPhotoStep].photos) stepData[currentPhotoStep].photos = [];
+  stepData[currentPhotoStep].photos.push({ data: pendingPhotoData, caption });
+  closePhotoModal();
+  renderProcessSteps();
+  autoSave();
+  toast('图片已添加', 'success');
+}
+
+function closePhotoModal() {
+  document.getElementById('photo-modal').classList.remove('open');
+  pendingPhotoData = null;
+}
+
+function removePhoto(sid, idx) {
+  if (stepData[sid]?.photos) {
+    stepData[sid].photos.splice(idx, 1);
+    renderProcessSteps(); autoSave();
+  }
+}
+
+function compressImage(file, callback) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX_W = 1280;
+      let w = img.width, h = img.height;
+      if (w > MAX_W) { h = Math.round(h * MAX_W / w); w = MAX_W; }
+      const canvas = document.getElementById('compress-canvas');
+      canvas.width = w; canvas.height = h;
+      canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+      callback(canvas.toDataURL('image/jpeg', 0.85));
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+// ─────────────────────────────────────────────
+// CACHE / AUTO-SAVE
+// ─────────────────────────────────────────────
+function getState() {
+  return {
+    expId: document.getElementById('exp-id').value,
+    expDate: document.getElementById('exp-date').value,
+    expNote: document.getElementById('exp-note').value,
+    expOperator: document.getElementById('exp-operator').value,
+    reagents, solidContent, stepData,
+    actualWater: document.getElementById('sc-actual-water').value,
+    savedAt: new Date().toISOString()
+  };
+}
+
+function loadState(s) {
+  if (s.expId) document.getElementById('exp-id').value = s.expId;
+  if (s.expDate) document.getElementById('exp-date').value = s.expDate;
+  if (s.expNote) document.getElementById('exp-note').value = s.expNote;
+  if (s.expOperator) document.getElementById('exp-operator').value = s.expOperator;
+  if (s.reagents) reagents = s.reagents;
+  if (s.solidContent) solidContent = s.solidContent;
+  if (s.stepData) stepData = s.stepData;
+  if (s.actualWater !== undefined) { const el = document.getElementById('sc-actual-water'); if(el) el.value = s.actualWater; }
+  renderReagents(); updateSummary(); updateSolidContent(solidContent);
+  updateGoalSeekReagents(); renderProcessSteps(); syncExpId();
+}
+
+let _autoSave = null;
+function autoSave() {
+  clearTimeout(_autoSave);
+  _autoSave = setTimeout(() => localStorage.setItem('wpu_current', JSON.stringify(getState())), 700);
+}
+
+function saveToCache() {
+  localStorage.setItem('wpu_current', JSON.stringify(getState()));
+  toast('已暂存到本地缓存', 'success');
+}
+
+function newExperiment() {
+  if (!confirm('新建实验将清空当前所有配方和工艺数据，确认继续？\n（可先去"导出"页保存 JSON 存档）')) return;
+  reagents = [];
+  solidContent = 30;
+  stepData = {};
+  // Reset form fields
+  const now = new Date();
+  const yy = String(now.getFullYear()).slice(2);
+  const mm = String(now.getMonth()+1).padStart(2,'0');
+  const dd = String(now.getDate()).padStart(2,'0');
+  document.getElementById('exp-id').value = `${yy}${mm}${dd}-01`;
+  document.getElementById('exp-date').value = `${now.getFullYear()}-${mm}-${dd}`;
+  document.getElementById('exp-note').value = '';
+  document.getElementById('exp-operator').value = '';
+  const awEl = document.getElementById('sc-actual-water'); if(awEl) { awEl.value=''; }
+  document.getElementById('sc-actual-pct').textContent = '—';
+  localStorage.removeItem('wpu_current');
+  renderReagents(); updateSummary(); updateSolidContent(30);
+  updateGoalSeekReagents(); renderProcessSteps(); syncExpId();
+  document.getElementById('gs-result').style.display = 'none';
+  switchTab(0);
+  toast('已新建实验，可开始填写配方', 'success');
+}
+
+// ─────────────────────────────────────────────
+// HISTORY
+// ─────────────────────────────────────────────
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem('wpu_history')||'[]'); } catch(e) { return []; }
+}
+
+function saveToHistory(state) {
+  const th = calcEquivalents(false);
+  const hist = getHistory();
+  const entry = {
+    ...state,
+    rVal: th.rVal.toFixed(3),
+    hsc: th.hsc.toFixed(1),
+    mainSystem: [
+      ...reagents.filter(r=>r.type==='iso').map(r=>r.name),
+      ...reagents.filter(r=>r.type==='polyol').map(r=>r.name)
+    ].join('/') || '—',
+    savedAt: new Date().toISOString()
+  };
+  const idx = hist.findIndex(h => h.expId === entry.expId);
+  if (idx>=0) hist[idx]=entry; else hist.unshift(entry);
+  localStorage.setItem('wpu_history', JSON.stringify(hist.slice(0,50)));
+}
+
+function renderHistory() {
+  const hist = getHistory();
+  const el = document.getElementById('history-list');
+  if (!hist.length) {
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:var(--text3);font-size:12px;font-family:var(--mono);">暂无历史记录</div>';
+    return;
+  }
+  el.innerHTML = hist.map(h => `
+    <div class="history-item" onclick="showHistoryDetail('${h.expId}')">
+      <div class="history-id">${h.expId}</div>
+      <div class="history-meta">${h.expDate} · 操作人：${h.expOperator||'—'}</div>
+      <div class="history-meta" style="color:var(--text2);">${h.mainSystem} · R=${h.rVal} · HSC=${h.hsc}% · 固含${h.solidContent}%</div>
+      ${h.expNote ? `<div class="history-meta">${h.expNote}</div>` : ''}
+    </div>`).join('');
+}
+
+function showHistoryDetail(expId) {
+  const entry = getHistory().find(h => h.expId === expId);
+  if (!entry) return;
+  currentDetailEntry = entry;
+  document.getElementById('detail-modal-title').textContent = `实验 ${expId}`;
+  const rows = (entry.reagents||[]).map(r =>
+    `<tr>
+      <td style="padding:5px 8px;border:1px solid var(--border);font-weight:600;">${r.name}</td>
+      <td style="padding:5px 8px;border:1px solid var(--border);">${TYPE_NAME[r.type]||r.type}</td>
+      <td style="padding:5px 8px;border:1px solid var(--border);">${r.mass}g</td>
+      <td style="padding:5px 8px;border:1px solid var(--border);">${r.actual||'—'}</td>
+      <td style="padding:5px 8px;border:1px solid var(--border);">${r.mw}</td>
+      <td style="padding:5px 8px;border:1px solid var(--border);">${r.f}</td>
+      <td style="padding:5px 8px;border:1px solid var(--border);">${r.eq!==null&&r.eq!==undefined ? r.eq.toFixed(4) : '—'}</td>
+    </tr>`).join('');
+  document.getElementById('detail-modal-body').innerHTML = `
+    <div style="margin-bottom:10px;font-size:12px;color:var(--text3);">${entry.expDate} · ${entry.expOperator||'—'} · ${entry.expNote||''}</div>
+    <table style="width:100%;border-collapse:collapse;font-size:11px;font-family:var(--mono);margin-bottom:12px;">
+      <thead><tr style="background:var(--bg);">
+        <th style="padding:5px 8px;border:1px solid var(--border);text-align:left;">原料</th>
+        <th style="padding:5px 8px;border:1px solid var(--border);">类型</th>
+        <th style="padding:5px 8px;border:1px solid var(--border);">理论</th>
+        <th style="padding:5px 8px;border:1px solid var(--border);">实际</th>
+        <th style="padding:5px 8px;border:1px solid var(--border);">MW</th>
+        <th style="padding:5px 8px;border:1px solid var(--border);">f</th>
+        <th style="padding:5px 8px;border:1px solid var(--border);">Eq</th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div class="summary-bar">
+      <div class="summary-item"><div class="s-label">R 值</div><div class="s-val good">${entry.rVal}</div></div>
+      <div class="summary-item"><div class="s-label">HSC</div><div class="s-val">${entry.hsc}%</div></div>
+      <div class="summary-item"><div class="s-label">固含</div><div class="s-val">${entry.solidContent}%</div></div>
+    </div>`;
+  document.getElementById('detail-modal').classList.add('open');
+}
+
+function closeDetailModal() {
+  document.getElementById('detail-modal').classList.remove('open');
+  currentDetailEntry = null;
+}
+
+function loadFromHistory() {
+  if (!currentDetailEntry) return;
+  if (!confirm('加载此配方将覆盖当前数据，确认？')) return;
+  loadState(currentDetailEntry);
+  closeDetailModal(); switchTab(0);
+  toast('配方已加载', 'success');
+}
+
+function clearHistory() {
+  if (!confirm('确定清空所有历史记录？')) return;
+  localStorage.removeItem('wpu_history');
+  renderHistory(); toast('历史已清空');
+}
+
+// ─────────────────────────────────────────────
+// EXPORT JSON
+// ─────────────────────────────────────────────
+function exportJSON() {
+  const state = getState();
+  const th = calcEquivalents(false);
+  const ac = calcEquivalents(true);
+  const solidMass = reagents.reduce((s,r)=>s+r.mass,0);
+  const water = solidMass*(100-solidContent)/solidContent;
+  const pkg = {
+    ...state,
+    calculated: {
+      theory: { ...th, water, solidContent },
+      actual: { ...ac }
+    },
+    exportedAt: new Date().toISOString()
+  };
+  saveToHistory(state); renderHistory();
+  const blob = new Blob([JSON.stringify(pkg,null,2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a'); a.href=url; a.download=`${state.expId||'exp'}.json`; a.click();
+  URL.revokeObjectURL(url);
+  toast('JSON 已导出', 'success');
+}
+
+// ─────────────────────────────────────────────
+// EXPORT PDF — 全程 html2canvas，彻底规避中文乱码
+// ─────────────────────────────────────────────
+async function exportPDF() {
+  const btn = document.getElementById('pdf-btn');
+  btn.disabled = true; btn.textContent = '⏳ 生成中…';
+
+  try {
+    const state = getState();
+    saveToHistory(state); renderHistory();
+
+    const th = calcEquivalents(false);
+    const ac = calcEquivalents(true);
+    const hasActual = reagents.some(r => parseFloat(r.actual) > 0);
+    // 固体质量排除溶剂
+    const solidMass  = reagents.filter(r => r.type !== 'solvent').reduce((s,r) => s + r.mass, 0);
+    const actualSolidMass = reagents.filter(r => r.type !== 'solvent').reduce((s,r) => s + (parseFloat(r.actual)||0), 0);
+    const water       = solidMass > 0 ? solidMass*(100-solidContent)/solidContent : 0;
+    const actualWaterInput = parseFloat(document.getElementById('sc-actual-water').value) || 0;
+    const actualSC    = (actualSolidMass > 0 && actualWaterInput > 0)
+                        ? (actualSolidMass/(actualSolidMass+actualWaterInput)*100).toFixed(1)+'%' : '—';
+
+    // helper: mass display string for a reagent
+    function massDisplay(r, useActual) {
+      const m = useActual ? (parseFloat(r.actual)||0) : r.mass;
+      if (r.unit === 'mL' && r.density) {
+        const vol = useActual ? (parseFloat(r.actualVol)||0) : (r.vol||0);
+        return vol > 0 ? `${vol} mL (${m.toFixed(3)}g)` : `${m.toFixed(3)} g`;
+      }
+      return m > 0 ? `${m} g` : '—';
     }
 
-    // 核心计算逻辑
-    function calculate() {
-        // 1. 读取基础输入
-        let w_polyol = getVal('w_polyol'), mw_polyol = getVal('mw_polyol');
-        let w_iso = getVal('w_iso'), mw_iso = getVal('mw_iso');
-        let w_dmpa = getVal('w_dmpa'), mw_dmpa = getVal('mw_dmpa');
-        let w_bdo = getVal('w_bdo'), mw_bdo = getVal('mw_bdo');
-        let w_tea = getVal('w_tea'), mw_tea = getVal('mw_tea');
-        let target_sc = getVal('sc_input') / 100;
-        
-        let isRev = document.getElementById('toggle_reverse').checked;
+    // ── Build one big HTML document, then canvas-render page by page ──
+    const PX_PER_MM = 3.7795;
+    const PAGE_W_MM = 210, PAGE_H_MM = 297;
+    const ML_MM = 15, MR_MM = 15, MT_MM = 16, MB_MM = 14;
+    const CONTENT_W_MM = PAGE_W_MM - ML_MM - MR_MM;
+    // 简化：不使用高倍缩放，直接用正常尺寸
+    const CONTENT_W_PX = Math.round(CONTENT_W_MM * PX_PER_MM * 1.5);
 
-        // ================= 自动反推逻辑 =================
-        if (isRev) {
-            let param = document.getElementById('target_param').value;
-            let target = parseFloat(document.getElementById('target_value').value) || 0.001;
-            let adjust = document.getElementById('adjust_mat').value;
-            
-            if (param === 'r') {
-                target = Math.max(0.001, target);
-                if (adjust === 'w_iso') {
-                    let n_oh = (mw_polyol?w_polyol/mw_polyol*2:0) + (mw_dmpa?w_dmpa/mw_dmpa*2:0) + (mw_bdo?w_bdo/mw_bdo*2:0);
-                    w_iso = (target * n_oh / 2) * mw_iso;
-                    document.getElementById('w_iso').value = Math.max(0, w_iso).toFixed(2);
-                } else if (adjust === 'w_polyol') {
-                    let n_nco = mw_iso ? w_iso/mw_iso*2 : 0;
-                    let n_polyol_oh = (n_nco / target) - (mw_dmpa?w_dmpa/mw_dmpa*2:0) - (mw_bdo?w_bdo/mw_bdo*2:0);
-                    w_polyol = (n_polyol_oh / 2) * mw_polyol;
-                    document.getElementById('w_polyol').value = Math.max(0, w_polyol).toFixed(2);
-                } else if (adjust === 'w_bdo') {
-                    let n_nco = mw_iso ? w_iso/mw_iso*2 : 0;
-                    let n_bdo_oh = (n_nco / target) - (mw_dmpa?w_dmpa/mw_dmpa*2:0) - (mw_polyol?w_polyol/mw_polyol*2:0);
-                    w_bdo = (n_bdo_oh / 2) * mw_bdo;
-                    document.getElementById('w_bdo').value = Math.max(0, w_bdo).toFixed(2);
-                }
-            } else if (param === 'hsc') {
-                let TH = Math.min(Math.max(target / 100, 0.001), 0.999);
-                if (adjust === 'w_iso') {
-                    w_iso = (TH * w_polyol) / (1 - TH) - w_dmpa - w_bdo;
-                    document.getElementById('w_iso').value = Math.max(0, w_iso).toFixed(2);
-                } else if (adjust === 'w_polyol') {
-                    w_polyol = ((1 - TH) / TH) * (w_iso + w_dmpa + w_bdo);
-                    document.getElementById('w_polyol').value = Math.max(0, w_polyol).toFixed(2);
-                } else if (adjust === 'w_bdo') {
-                    w_bdo = (TH * w_polyol) / (1 - TH) - w_iso - w_dmpa;
-                    document.getElementById('w_bdo').value = Math.max(0, w_bdo).toFixed(2);
-                }
-            } else if (param === 'neut' && adjust === 'w_tea') {
-                let mol_cooh = mw_dmpa > 0 ? w_dmpa / mw_dmpa : 0;
-                w_tea = (target / 100) * mol_cooh * mw_tea;
-                document.getElementById('w_tea').value = Math.max(0, w_tea).toFixed(2);
-            }
-
-            // 反推完成后，重新读取值（防止负数导致逻辑错乱）
-            w_polyol = Math.max(0, getVal('w_polyol'));
-            w_iso = Math.max(0, getVal('w_iso'));
-            w_dmpa = Math.max(0, getVal('w_dmpa'));
-            w_bdo = Math.max(0, getVal('w_bdo'));
-            w_tea = Math.max(0, getVal('w_tea'));
-        }
-        // ================================================
-
-        // 2. 正向计算所有参数 (用于结果展示)
-        let mol_oh_polyol = mw_polyol > 0 ? (w_polyol / mw_polyol) * 2 : 0;
-        let mol_oh_dmpa = mw_dmpa > 0 ? (w_dmpa / mw_dmpa) * 2 : 0;
-        let mol_oh_bdo = mw_bdo > 0 ? (w_bdo / mw_bdo) * 2 : 0;
-        let total_oh = mol_oh_polyol + mol_oh_dmpa + mol_oh_bdo;
-        let total_nco = mw_iso > 0 ? (w_iso / mw_iso) * 2 : 0;
-
-        current_r = total_oh > 0 ? (total_nco / total_oh) : 0;
-
-        let total_polymer = w_polyol + w_iso + w_dmpa + w_bdo;
-        current_hsc = total_polymer > 0 ? ((w_iso + w_dmpa + w_bdo) / total_polymer) * 100 : 0;
-        let dmpa_percent = total_polymer > 0 ? (w_dmpa / total_polymer) * 100 : 0;
-
-        let mol_cooh = mw_dmpa > 0 ? w_dmpa / mw_dmpa : 0;
-        let mol_amine = mw_tea > 0 ? w_tea / mw_tea : 0;
-        current_neut = mol_cooh > 0 ? (mol_amine / mol_cooh) * 100 : 0;
-
-        // 3. 计算水量 (由左下角的固含控制，完全独立计算，互不干扰)
-        let total_solid = total_polymer + w_tea;
-        let total_emulsion = target_sc > 0 ? total_solid / target_sc : 0;
-        let water_amount = total_emulsion - total_solid;
-
-        // 4. 渲染到页面
-        document.getElementById('res_r').innerText = current_r.toFixed(3);
-        document.getElementById('res_hsc').innerText = current_hsc.toFixed(2);
-        document.getElementById('res_dmpa').innerText = dmpa_percent.toFixed(2);
-        document.getElementById('res_neut').innerText = current_neut.toFixed(1);
-        document.getElementById('res_total_solid').innerText = total_solid.toFixed(2);
-        document.getElementById('res_water').innerText = water_amount > 0 ? water_amount.toFixed(2) : "0.00";
+    async function renderBlock(html) {
+      const div = document.createElement('div');
+      div.style.cssText = [
+        `position:fixed`, `left:-9999px`, `top:0`,
+        `width:${CONTENT_W_PX}px`,
+        `font-family:'Noto Sans SC',sans-serif`,
+        `font-size:26px`,      // 适中的基础字体
+        `color:#111`,
+        `line-height:1.5`,
+        `background:#ffffff`,
+        `padding:0`,
+        `box-sizing:border-box`,
+      ].join(';');
+      div.innerHTML = html;
+      document.body.appendChild(div);
+      // Wait for fonts
+      await document.fonts.ready;
+      const canvas = await html2canvas(div, {
+        scale: 2,              // 2x 渲染分辨率
+        backgroundColor: '#ffffff',
+        logging: false,
+        useCORS: true,
+        allowTaint: true,
+      });
+      document.body.removeChild(div);
+      return canvas;
     }
 
-    // 初始化执行一次
-    window.onload = updateUI;
+    // Sections to render
+    const TYPE_NAME_PDF = {polyol:'多元醇', iso:'异氰酸酯', chain:'扩链/亲水', solvent:'溶剂', other:'其他'};
+
+    const fRows = reagents.map((r,i) => {
+      const typeStr = TYPE_NAME_PDF[r.type]||r.type;
+      const thEqStr = (r.f>0 && r.eq!=null) ? r.eq.toFixed(4) : '—';
+      const acMass = parseFloat(r.actual)||0;
+      const acEqStr = (r.f>0 && acMass>0) ? calcEq(acMass,r.mw,r.f).toFixed(4) : '—';
+      const thDisplay = massDisplay(r, false);
+      const acDisplay = r.actual ? massDisplay(r, true) : '—';
+      const bg = i%2===0 ? '#ffffff' : '#f8fafc';
+      return `<tr style="background:${bg};">
+        <td style="padding:4px 4px;border:1px solid #e2e8f0;font-weight:600;">${r.name}</td>
+        <td style="padding:4px 4px;border:1px solid #e2e8f0;text-align:center;">${typeStr}</td>
+        <td style="padding:4px 4px;border:1px solid #e2e8f0;text-align:center;">${r.mw}</td>
+        <td style="padding:4px 4px;border:1px solid #e2e8f0;text-align:center;">${r.f}</td>
+        <td style="padding:4px 4px;border:1px solid #e2e8f0;text-align:center;font-weight:600;">${thDisplay}</td>
+        <td style="padding:4px 4px;border:1px solid #e2e8f0;text-align:center;">${acDisplay}</td>
+        <td style="padding:4px 4px;border:1px solid #e2e8f0;text-align:center;">${thEqStr}</td>
+        <td style="padding:4px 4px;border:1px solid #e2e8f0;text-align:center;">${acEqStr}</td>
+      </tr>`;
+    }).join('');
+
+    const calcRows = [
+      ['NCO 当量 (Eq)', th.ncoEq.toFixed(4), hasActual ? ac.ncoEq.toFixed(4) : '—'],
+      ['OH 当量 (Eq)',  th.ohEq.toFixed(4),  hasActual ? ac.ohEq.toFixed(4)  : '—'],
+      ['R 值 (NCO/OH)', th.rVal.toFixed(4),  hasActual ? ac.rVal.toFixed(4)  : '—'],
+      ['硬段含量 HSC',  th.hsc.toFixed(2)+'%', hasActual ? ac.hsc.toFixed(2)+'%' : '—'],
+      ['固体总质量 (g)', solidMass.toFixed(3), actualSolidMass>0 ? actualSolidMass.toFixed(3) : '—'],
+      ['加水量 (g)', water.toFixed(3), actualWaterInput>0 ? actualWaterInput.toFixed(3) : '—'],
+      ['固含量', solidContent+'%', actualSC],
+      ['乳液总质量 (g)', (solidMass+water).toFixed(3),
+        (actualSolidMass>0&&actualWaterInput>0) ? (actualSolidMass+actualWaterInput).toFixed(3) : '—'],
+    ];
+
+    const calcRowsHTML = calcRows.map((row,i) => `
+      <tr style="background:${i%2===0?'#fff':'#f8fafc'};">
+        <td style="padding:4px 6px;border:1px solid #e2e8f0;font-weight:600;">${row[0]}</td>
+        <td style="padding:4px 6px;border:1px solid #e2e8f0;text-align:center;">${row[1]}</td>
+        <td style="padding:4px 6px;border:1px solid #e2e8f0;text-align:center;${row[2]&&row[2]!=='—'?'color:#16a34a;font-weight:600;':''}">${row[2]||'—'}</td>
+      </tr>`).join('');
+
+    const stepRowsHTML = PROCESS_STEPS.map(step => {
+      const d = stepData[step.id] || {};
+      const times = [
+        d.addTime   ? `加料 ${d.addTime}`   : '',
+        d.startTime ? `开始 ${d.startTime}` : '',
+        d.endTime   ? `结束 ${d.endTime}`   : '',
+        d.needCool && d.coolStart       ? `降温开始 ${d.coolStart}`       : '',
+        d.needCool && d.coolTargetTemp  ? `目标 ${d.coolTargetTemp}°C`   : '',
+        d.needCool && d.coolEnd         ? `降温完成 ${d.coolEnd}`         : '',
+      ].filter(Boolean).join(' · ');
+      const params = [
+        d.temp ? `温度 ${d.temp}°C` : '',
+        d.rpm  ? `转速 ${d.rpm}rpm` : '',
+      ].filter(Boolean).join('，');
+      return `
+        <tr>
+          <td style="padding:4px 6px;border:1px solid #e2e8f0;font-weight:700;white-space:nowrap;vertical-align:top;">${step.title}</td>
+          <td style="padding:4px 6px;border:1px solid #e2e8f0;font-size:22px;color:#475569;line-height:1.7;">
+            ${params ? `<div>工艺条件：${params}</div>` : ''}
+            ${times  ? `<div>时间记录：${times}</div>`  : ''}
+            ${d.obs  ? `<div>实验现象：${d.obs}</div>`  : ''}
+            ${(!params&&!times&&!d.obs) ? '<span style="color:#94a3b8;">（暂无记录）</span>' : ''}
+          </td>
+        </tr>`;
+    }).join('');
+
+    // Collect all photos
+    const allPhotos = [];
+    PROCESS_STEPS.forEach(step => {
+      (stepData[step.id]?.photos||[]).forEach(p => allPhotos.push({stepTitle:step.title,...p}));
+    });
+
+    // Section header style
+    const SH = `font-weight:700;font-size:28px;color:#1e40af;border-left:5px solid #2563eb;padding-left:10px;margin-bottom:14px;`;
+
+    const sections = [
+      // ── Header ──
+      `<div style="text-align:center;padding-bottom:12px;border-bottom:2px solid #e2e8f0;margin-bottom:16px;">
+        <div style="font-size:39px;font-weight:700;color:#1e293b;letter-spacing:-0.5px;">水性聚氨酯合成实验记录</div>
+        <div style="font-size:21px;color:#94a3b8;margin-top:4px;font-family:monospace;">WPU · ELN System</div>
+      </div>`,
+      // ── Basic Info ──
+      `<div style="${SH}">一、实验基本信息</div>
+       <table style="width:100%;border-collapse:collapse;font-size:23px;margin-bottom:4px;">
+         <tr>
+           <td style="padding:4px 6px;background:#f0f4ff;font-weight:600;white-space:nowrap;">实验编号</td>
+           <td style="padding:4px 6px;border-bottom:1px solid #e2e8f0;">${state.expId||'—'}</td>
+           <td style="padding:4px 6px;background:#f0f4ff;font-weight:600;white-space:nowrap;">实验日期</td>
+           <td style="padding:4px 6px;border-bottom:1px solid #e2e8f0;">${state.expDate||'—'}</td>
+         </tr>
+         <tr>
+           <td style="padding:4px 6px;background:#f0f4ff;font-weight:600;white-space:nowrap;">操作人</td>
+           <td style="padding:4px 6px;border-bottom:1px solid #e2e8f0;" colspan="3">${state.expOperator||'—'}</td>
+         </tr>
+         <tr>
+           <td style="padding:4px 6px;background:#f0f4ff;font-weight:600;white-space:nowrap;">实验目的</td>
+           <td style="padding:4px 6px;" colspan="3">${state.expNote||'—'}</td>
+         </tr>
+       </table>`,
+      // ── Formula Table ──
+      `<div style="${SH}">二、原料配方表</div>
+       <table style="width:100%;border-collapse:collapse;font-size:23px;">
+         <thead>
+           <tr style="background:#1e40af;color:#fff;">
+             <th style="padding:4px 4px;text-align:left;">原料</th>
+             <th style="padding:4px 4px;text-align:center;">类型</th>
+             <th style="padding:4px 4px;text-align:center;">MW</th>
+             <th style="padding:4px 4px;text-align:center;">f</th>
+             <th style="padding:4px 4px;text-align:center;">理论用量</th>
+             <th style="padding:4px 4px;text-align:center;">实际用量</th>
+             <th style="padding:4px 4px;text-align:center;">理论Eq</th>
+             <th style="padding:4px 4px;text-align:center;">实际Eq</th>
+           </tr>
+         </thead>
+         <tbody>${fRows}</tbody>
+         <tfoot>
+           <tr style="background:#e0e7ff;font-weight:700;">
+             <td style="padding:4px 4px;border:1px solid #c7d2fe;" colspan="4">合计</td>
+             <td style="padding:4px 4px;border:1px solid #c7d2fe;text-align:center;">${solidMass.toFixed(3)} g</td>
+             <td style="padding:4px 4px;border:1px solid #c7d2fe;text-align:center;">${actualSolidMass>0?actualSolidMass.toFixed(3)+' g':'—'}</td>
+             <td colspan="2" style="padding:4px 4px;border:1px solid #c7d2fe;"></td>
+           </tr>
+         </tfoot>
+       </table>`,
+      // ── Calculation Results ──
+      `<div style="${SH}">三、当量计算结果</div>
+       <table style="width:100%;border-collapse:collapse;font-size:23px;">
+         <thead>
+           <tr style="background:#f0f4ff;">
+             <th style="padding:4px 6px;border:1px solid #dde3ec;text-align:left;">参数</th>
+             <th style="padding:4px 6px;border:1px solid #dde3ec;text-align:center;">理论值</th>
+             <th style="padding:4px 6px;border:1px solid #dde3ec;text-align:center;">实际值</th>
+           </tr>
+         </thead>
+         <tbody>${calcRowsHTML}</tbody>
+       </table>`,
+      // ── Process Steps ──
+      `<div style="${SH}">四、合成工艺操作记录</div>
+       <table style="width:100%;border-collapse:collapse;font-size:23px;">
+         <thead>
+           <tr style="background:#f0f4ff;">
+             <th style="padding:4px 6px;border:1px solid #dde3ec;text-align:left;white-space:nowrap;width:110px;">步骤</th>
+             <th style="padding:4px 6px;border:1px solid #dde3ec;text-align:left;">记录内容</th>
+           </tr>
+         </thead>
+         <tbody>${stepRowsHTML}</tbody>
+       </table>`,
+    ];
+
+    // ── Render all sections to canvases ──
+    const canvases = [];
+    for (const html of sections) {
+      canvases.push(await renderBlock(html));
+    }
+
+    // ── Paginate: stack canvases into A4 pages ──
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation:'portrait', unit:'mm', format:'a4' });
+    const PW=210, PH=297, ML=15, MR=15, MT=16, MB=14;
+    const CW = PW-ML-MR;
+    const CH_AVAIL = PH-MT-MB;
+
+    let pageY = MT; // current y on current page
+    let firstPage = true;
+
+    function mmFromCanvas(c) {
+      // canvas is at 1x but representing CONTENT_W_PX pixels = CONTENT_W_MM mm
+      const CONTENT_W_MM = PW-ML-MR;
+      return c.height / c.width * CONTENT_W_MM;
+    }
+
+    function addBlock(canvas, extraTopMM=0) {
+      const hMM = mmFromCanvas(canvas);
+      const needed = hMM + extraTopMM;
+      // If doesn't fit and not at top of page, new page
+      if (pageY + needed > PH-MB && pageY > MT+2) {
+        pdf.addPage(); pageY=MT;
+      }
+      pageY += extraTopMM;
+      pdf.addImage(canvas.toDataURL('image/jpeg',0.95),'JPEG', ML, pageY, CW, hMM);
+      pageY += hMM + 6;
+    }
+
+    // Add header section
+    addBlock(canvases[0]);
+    // Add remaining sections with a small gap
+    for (let i=1; i<canvases.length; i++) {
+      addBlock(canvases[i], 2);
+    }
+
+    // ── Photos: 2 per row using jsPDF native addImage ──
+    if (allPhotos.length) {
+      // Photos section title
+      const photoTitleCanvas = await renderBlock(
+        `<div style="font-weight:700;font-size:28px;color:#1e40af;border-left:5px solid #2563eb;padding-left:10px;">五、实验照片附录</div>`
+      );
+      addBlock(photoTitleCanvas, 6);
+
+      const photoW = (CW - 4) / 2; // Two photos per row
+      const photoH = 50; // 50mm height
+
+      for (let i=0; i<allPhotos.length; i+=2) {
+        // Check space for a row of photos (2 photos)
+        if (pageY + photoH + 15 > PH - MB && pageY > MT + 10) {
+          pdf.addPage();
+          pageY = MT;
+        }
+
+        const row = allPhotos.slice(i, i+2);
+        for (let j=0; j<row.length; j++) {
+          const p = row[j];
+          const x = ML + j * (photoW + 4);
+
+          // Add photo
+          pdf.addImage(p.data, 'JPEG', x, pageY, photoW, photoH);
+
+          // Add caption (render Chinese text to canvas)
+          const capText = `[${p.stepTitle}] ${p.caption}`;
+          const capCanvas = await renderChineseText(capText, 50);
+          const capH = capCanvas.height / capCanvas.width * photoW;
+          pdf.addImage(capCanvas, 'PNG', x, pageY + photoH + 2, photoW, capH);
+        }
+        pageY += photoH + 12;
+      }
+    }
+
+    // Helper to render Chinese caption text
+    async function renderChineseText(text, maxWidthMM) {
+      const div = document.createElement('div');
+      div.style.cssText = `
+        position:fixed; left:-9999px; top:0;
+        width:${maxWidthMM * 3.78}px;
+        font-family:'Noto Sans SC',sans-serif;
+        font-size:12px;
+        color:#475569;
+        line-height:1.4;
+        background:#fff;
+        padding:0;
+      `;
+      div.innerHTML = `<span style="font-weight:700;color:#1e40af;">[${text.split(']')[0]}]</span> ${text.split(']').slice(1).join(']')}`;
+      document.body.appendChild(div);
+      await document.fonts.ready;
+      const canvas = await html2canvas(div, { scale:2, backgroundColor:'#ffffff' });
+      document.body.removeChild(div);
+      return canvas;
+    }
+
+    // ── Footer on every page ──
+    const totalPages = pdf.getNumberOfPages();
+    const exportTime = new Date().toLocaleString('zh-CN');
+    for (let i=1; i<=totalPages; i++) {
+      pdf.setPage(i);
+      pdf.setFontSize(7.5); pdf.setFont('helvetica','normal'); pdf.setTextColor(160);
+      pdf.text(`WPU·ELN  ${exportTime}`, ML, PH-6);
+      pdf.text(`${i} / ${totalPages}`, PW-MR, PH-6, {align:'right'});
+      pdf.setDrawColor(210); pdf.setLineWidth(0.2);
+      pdf.line(ML, PH-9, PW-MR, PH-9);
+      pdf.setTextColor(0);
+    }
+
+    pdf.save(`${state.expId||'experiment'}.pdf`);
+    toast('PDF 已生成', 'success');
+  } catch(err) {
+    console.error(err);
+    toast('PDF 生成失败: '+err.message, 'error');
+  } finally {
+    btn.disabled = false; btn.textContent = '📑 生成 PDF 报告';
+  }
+}
+
+// ─────────────────────────────────────────────
+// IMPORT JSON
+// ─────────────────────────────────────────────
+function importJSON(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const state = JSON.parse(e.target.result);
+      if (!confirm(`导入实验 ${state.expId||'?'} 的数据？当前数据将被覆盖。`)) return;
+      loadState(state); switchTab(0);
+      toast('JSON 已导入', 'success');
+    } catch(err) { toast('JSON 格式错误', 'error'); }
+  };
+  reader.readAsText(file);
+}
+
+// ─────────────────────────────────────────────
+// TOAST
+// ─────────────────────────────────────────────
+let _toastTimer;
+function toast(msg, type='') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className = `show${type?' '+type:''}`;
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.className = '', 2400);
+}
+
+// ─────────────────────────────────────────────
+// MODAL CLOSE ON OVERLAY
+// ─────────────────────────────────────────────
+document.getElementById('photo-modal').addEventListener('click', e => { if(e.target===e.currentTarget) closePhotoModal(); });
+document.getElementById('detail-modal').addEventListener('click', e => { if(e.target===e.currentTarget) closeDetailModal(); });
+document.getElementById('preset-modal').addEventListener('click', e => { if(e.target===e.currentTarget) closePresetModal(); });
+document.getElementById('preset-io-modal').addEventListener('click', e => { if(e.target===e.currentTarget) closePresetIOModal(); });
+
+// ─────────────────────────────────────────────
+// START
+// ─────────────────────────────────────────────
+init();
 </script>
-
 </body>
 </html>
