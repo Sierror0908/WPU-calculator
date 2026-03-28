@@ -1544,11 +1544,23 @@ function applyGoalSeek(id, mass) {
 // ─────────────────────────────────────────────
 function renderProcessSteps() {
   const container = document.getElementById('process-steps');
+
+  // 保存当前每个卡片的折叠状态
+  const collapsedStates = {};
+  PROCESS_STEPS.forEach(step => {
+    const existingCard = document.getElementById(`scard-${step.id}`);
+    if (existingCard) {
+      collapsedStates[step.id] = existingCard.classList.contains('collapsed');
+    }
+  });
+
   container.innerHTML = '';
   PROCESS_STEPS.forEach((step, idx) => {
     const data = stepData[step.id] || {};
     const card = document.createElement('div');
-    card.className = 'step-card' + (idx > 0 ? ' collapsed' : '');
+    // 使用保存的状态，如果是第一次渲染则使用默认行为（第一个展开，其他折叠）
+    const isCollapsed = collapsedStates[step.id] !== undefined ? collapsedStates[step.id] : (idx > 0);
+    card.className = 'step-card' + (isCollapsed ? ' collapsed' : '');
     card.id = `scard-${step.id}`;
     const hasDone = !!(data.addTime || data.startTime || data.obs || (data.photos && data.photos.length));
     card.innerHTML = `
