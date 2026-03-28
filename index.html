@@ -911,8 +911,7 @@ input[type=checkbox] { width: 15px; height: 15px; accent-color: var(--accent); c
 
 <div id="toast"></div>
 <canvas id="compress-canvas" style="display:none;"></canvas>
-<input type="file" id="photo-file-input" accept="image/*" capture="environment" style="display:none;" onchange="handlePhotoFile(this)">
-<input type="file" id="photo-file-input-gallery" accept="image/*" style="display:none;" onchange="handlePhotoFile(this)">
+<input type="file" id="photo-file-input" accept="image/*" style="display:none;" onchange="handlePhotoFile(this)">
 
 <script>
 'use strict';
@@ -1682,16 +1681,8 @@ function stampNow(sid) {
 // ─────────────────────────────────────────────
 function triggerPhoto(sid) {
   currentPhotoStep = sid;
-  // 弹出选择：拍照还是选相册
-  if (confirm('点击"确定"拍照，点击"取消"从相册选择')) {
-    // 拍照
-    document.getElementById('photo-file-input').value = '';
-    document.getElementById('photo-file-input').click();
-  } else {
-    // 选相册
-    document.getElementById('photo-file-input-gallery').value = '';
-    document.getElementById('photo-file-input-gallery').click();
-  }
+  document.getElementById('photo-file-input').value = '';
+  document.getElementById('photo-file-input').click();
 }
 
 function handlePhotoFile(input) {
