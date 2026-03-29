@@ -1891,14 +1891,14 @@ function fillPreset(p) {
   document.getElementById('add-type').value = p.type;
   document.getElementById('add-mw').value   = p.mw;
   document.getElementById('add-f').value    = p.f;
-  const liquids = ['IPDI','HDI','MDI','BDO','TEA','EDA','DMF'];
+  const liquids = ['HDI','MDI','BDO','TEA','EDA','DMF'];
   const isLiquid = liquids.some(l=>p.name.toUpperCase().includes(l)) || p.density;
   document.getElementById('add-unit').value = isLiquid ? 'mL' : 'g';
   toggleDensityField();
   if (p.density) {
     document.getElementById('add-density').value = p.density;
   } else {
-    const d = {IPDI:1.062,HDI:1.05,MDI:1.23,BDO:1.017,TEA:0.726,EDA:0.899,DMF:0.944};
+    const d = {HDI:1.05,MDI:1.23,BDO:1.017,TEA:0.726,EDA:0.899,DMF:0.944};
     const dk = Object.keys(d).find(k => p.name.toUpperCase().includes(k));
     if (dk) document.getElementById('add-density').value = d[dk];
   }
@@ -1983,11 +1983,11 @@ function updateReagentField(id, field, val) {
       if (r.unit==='mL') { r.vol=v; r.mass=v*(r.density||1); } else { r.mass=v; }
       r.eq = calcEq(r.mass, r.mw, r.f);
       const eqEl = document.getElementById('eq-'+id);
-      if (eqEl) { eqEl.textContent = r.eq===null?'不参与当量':`Eq=${r.eq.toFixed(4)}`; eqEl.className='reagent-eq-badge '+(r.eq===null?'no-eq':'has-eq'); }
+      if (eqEl) { eqEl.textContent = r.eq===null?'不参与当量':`Eq=${r.eq.toFixed(2)}`; eqEl.className='reagent-eq-badge '+(r.eq===null?'no-eq':'has-eq'); }
       updateSummary(); updateSolidContent(solidContent); autoSave();
     }
   } else if (field === 'actual_vol_or_mass') {
-    if (r.unit==='mL') { r.actualVol=val; const av=parseFloat(val); r.actual=(!isNaN(av)&&av>0&&r.density)?String((av*r.density).toFixed(4)):''; }
+    if (r.unit==='mL') { r.actualVol=val; const av=parseFloat(val); r.actual=(!isNaN(av)&&av>0&&r.density)?String(av*r.density):''; }
     else               { r.actual=val; }
     updateSummary(); autoSave();
   } else if (field === 'density') {
@@ -2004,7 +2004,7 @@ function renderReagents() {
     return;
   }
   el.innerHTML = reagents.map(r => {
-    const eqText  = r.eq===null ? '不参与当量' : `Eq=${r.eq.toFixed(4)}`;
+    const eqText  = r.eq===null ? '不参与当量' : `Eq=${r.eq.toFixed(2)}`;
     const eqClass = r.eq===null ? 'no-eq' : 'has-eq';
     return `
     <div class="reagent-item">
@@ -2034,7 +2034,7 @@ function renderReagents() {
             <input type="number" value="${r.f}" step="1" min="0" oninput="updateReagentField(${r.id},'f',this.value)">
           </div>
         </div>
-        ${r.unit==='mL'?`<div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:2px;">理论质量 ${r.mass.toFixed(3)} g${r.actual?` · 实际质量 ${parseFloat(r.actual).toFixed(3)} g`:''}</div>`:''}
+        ${r.unit==='mL'?`<div style="font-family:var(--mono);font-size:10px;color:var(--text3);margin-top:2px;">理论质量 ${r.mass.toFixed(2)} g${r.actual?` · 实际质量 ${parseFloat(r.actual).toFixed(2)} g`:''}</div>`:''}
       </div>
     </div>`;
   }).join('');
@@ -2072,12 +2072,12 @@ function updateSummary() {
   const rClass = th.rVal<0.95?'bad':th.rVal>1.15?'warn':'good';
   document.getElementById('s-total-mass').textContent   = th.totalMass>0 ? `${th.totalMass.toFixed(2)} g` : '—';
   document.getElementById('s-total-actual').textContent = hasActual ? `${ac.totalMass.toFixed(2)} g` : '—';
-  document.getElementById('s-nco-eq').textContent       = th.ncoEq>0 ? th.ncoEq.toFixed(4) : '—';
-  document.getElementById('s-oh-eq').textContent        = th.ohEq>0  ? th.ohEq.toFixed(4)  : '—';
+  document.getElementById('s-nco-eq').textContent       = th.ncoEq>0 ? th.ncoEq.toFixed(2) : '—';
+  document.getElementById('s-oh-eq').textContent        = th.ohEq>0  ? th.ohEq.toFixed(2)  : '—';
   if (th.rVal>0) {
-    document.getElementById('s-r-val').textContent  = hasActual&&ac.rVal>0 ? `${th.rVal.toFixed(3)} / ${ac.rVal.toFixed(3)}` : th.rVal.toFixed(3);
+    document.getElementById('s-r-val').textContent  = hasActual&&ac.rVal>0 ? `${th.rVal.toFixed(2)} / ${ac.rVal.toFixed(2)}` : th.rVal.toFixed(2);
     document.getElementById('s-r-val').className    = `stat-value ${rClass}`;
-    document.getElementById('s-hsc').textContent    = hasActual ? `${th.hsc.toFixed(1)}% / ${ac.hsc.toFixed(1)}%` : `${th.hsc.toFixed(1)}%`;
+    document.getElementById('s-hsc').textContent    = hasActual ? `${th.hsc.toFixed(2)}% / ${ac.hsc.toFixed(2)}%` : `${th.hsc.toFixed(2)}%`;
   } else {
     document.getElementById('s-r-val').textContent  = '—';
     document.getElementById('s-r-val').className    = 'stat-value';
@@ -2091,7 +2091,7 @@ function updateSummary() {
 function updateSolidContent(val) {
   solidContent = parseFloat(val);
   document.getElementById('sc-slider').value = solidContent;
-  document.getElementById('sc-pct').textContent = solidContent.toFixed(1);
+  document.getElementById('sc-pct').textContent = solidContent.toFixed(2);
   const solidMass = reagents.filter(r => r.type!=='solvent').reduce((s,r) => s+r.mass, 0);
   if (solidMass > 0) {
     const water = solidMass * (100-solidContent) / solidContent;
@@ -2110,7 +2110,7 @@ function onActualWaterInput() {
   const actualSolidMass = reagents.filter(r=>r.type!=='solvent').reduce((s,r)=>s+(parseFloat(r.actual)||0), 0);
   const el = document.getElementById('sc-actual-pct');
   const m  = actualSolidMass>0 ? actualSolidMass : solidMass;
-  el.textContent = (!isNaN(aw)&&aw>0&&m>0) ? (m/(m+aw)*100).toFixed(1)+'%' : '—';
+  el.textContent = (!isNaN(aw)&&aw>0&&m>0) ? (m/(m+aw)*100).toFixed(2)+'%' : '—';
   autoSave();
 }
 
@@ -2139,13 +2139,17 @@ function goalSeek() {
   const r = reagents.find(x => x.id===reagentId);
   if (!r) return;
   const others = reagents.filter(x => x.id!==reagentId);
+  // 反推基于质量计算，如果是 mL 单位需要转换
+  const isMlUnit = r.unit === 'mL';
   function compute(mass) {
-    let nco=0, oh=0, tot=0, iso=0, chain=0;
+    let nco=0, oh=0, polymerMass=0, iso=0, chain=0, polyol=0;
     [...others, {...r,mass}].forEach(x => {
-      const m=x.mass; tot+=m; if(x.f===0)return; const eq=m*x.f/x.mw;
-      if(x.type==='iso'){nco+=eq;iso+=m;}else if(x.type==='polyol')oh+=eq;else if(x.type==='chain'){oh+=eq;chain+=m;}
+      if (x.type==='solvent') return;
+      const m=x.mass; polymerMass+=m; if(x.f===0)return; const eq=m*x.f/x.mw;
+      if(x.type==='iso'){nco+=eq;iso+=m;}else if(x.type==='polyol'){oh+=eq;polyol+=m;}else if(x.type==='chain'){oh+=eq;chain+=m;}
     });
-    return {rVal:oh>0?nco/oh:0, hsc:tot>0?(iso+chain)/tot*100:0};
+    const hardMass=iso+chain;
+    return {rVal:oh>0?nco/oh:0, hsc:polymerMass>0?hardMass/polymerMass*100:0};
   }
   let lo=0.001, hi=10000, result=null;
   const getV = c => target==='r' ? c.rVal : c.hsc;
@@ -2159,18 +2163,29 @@ function goalSeek() {
   }
   if (result && result>0) {
     const c = compute(result);
+    // 根据原料原始单位显示结果
+    const displayVal = isMlUnit ? (result / (r.density || 1)).toFixed(2) : result.toFixed(2);
+    const displayUnit = isMlUnit ? 'mL' : 'g';
     resultEl.style.display='block';
     resultEl.innerHTML=`<div style="margin-bottom:6px;">✅ 建议将 <strong>${r.name}</strong> 调整为：</div>
-      <div style="font-size:20px;font-weight:700;margin-bottom:6px;">${result.toFixed(4)} g</div>
-      <div style="font-size:12px;color:var(--text2);">验证 → R = ${c.rVal.toFixed(4)}，HSC = ${c.hsc.toFixed(2)}%</div>
-      <button class="btn btn-green btn-sm" style="margin-top:10px;" onclick="applyGoalSeek(${reagentId},${result.toFixed(4)})">✓ 应用此质量</button>`;
+      <div style="font-size:20px;font-weight:700;margin-bottom:6px;">${displayVal} ${displayUnit}</div>
+      <div style="font-size:12px;color:var(--text2);">验证 → R = ${c.rVal.toFixed(2)}，HSC = ${c.hsc.toFixed(2)}%</div>
+      <button class="btn btn-green btn-sm" style="margin-top:10px;" onclick="applyGoalSeek(${reagentId},${result.toFixed(2)})">✓ 应用此质量</button>`;
   } else toast('无法找到满足条件的解','error');
 }
 
 function applyGoalSeek(id, mass) {
   const r = reagents.find(x => x.id===id);
   if (!r) return;
-  r.mass = parseFloat(mass.toFixed(4)); r.eq = calcEq(r.mass, r.mw, r.f);
+  mass = parseFloat(mass);
+  // 根据原料单位更新对应值
+  if (r.unit === 'mL') {
+    r.vol = mass / (r.density || 1);
+    r.mass = mass;
+  } else {
+    r.mass = mass;
+  }
+  r.eq = calcEq(r.mass, r.mw, r.f);
   renderReagents(); updateSummary(); updateSolidContent(solidContent); updateGoalSeekReagents(); autoSave();
   toast('已应用','success');
   document.getElementById('gs-result').style.display='none';
@@ -2816,8 +2831,8 @@ async function saveCurrentToHistory() {
   const th    = calcEquivalents(false);
   const entry = {
     ...state,
-    rVal:       th.rVal.toFixed(3),
-    hsc:        th.hsc.toFixed(1),
+    rVal:       th.rVal.toFixed(2),
+    hsc:        th.hsc.toFixed(2),
     mainSystem: [...reagents.filter(r=>r.type==='iso').map(r=>r.name),...reagents.filter(r=>r.type==='polyol').map(r=>r.name)].join('/') || '—',
     savedAt:    new Date().toISOString()
   };
@@ -2866,14 +2881,14 @@ function renderReport(entry) {
   const actualSolidMass = (entry.reagents||[]).filter(r=>r.type!=='solvent').reduce((s,r)=>s+(parseFloat(r.actual)||0), 0);
   const water      = solidMass>0 ? solidMass*(100-(entry.solidContent||30))/(entry.solidContent||30) : 0;
   const aw         = parseFloat(entry.actualWater)||0;
-  const actualSC   = (actualSolidMass>0&&aw>0) ? (actualSolidMass/(actualSolidMass+aw)*100).toFixed(1)+'%' : '—';
+  const actualSC   = (actualSolidMass>0&&aw>0) ? (actualSolidMass/(actualSolidMass+aw)*100).toFixed(2)+'%' : '—';
 
   const reagentRows = (entry.reagents||[]).map(r => {
-    const thEq    = (r.f>0&&r.eq!=null) ? r.eq.toFixed(4) : '—';
+    const thEq    = (r.f>0&&r.eq!=null) ? r.eq.toFixed(2) : '—';
     const am      = parseFloat(r.actual)||0;
-    const acEq    = (r.f>0&&am>0) ? calcEq(am,r.mw,r.f).toFixed(4) : '—';
-    const thDisp  = r.unit==='mL'&&r.vol ? `${r.vol}mL (${r.mass.toFixed(3)}g)` : r.mass?`${r.mass}g`:'—';
-    const acDisp  = r.actual ? (r.unit==='mL'&&r.actualVol ? `${r.actualVol}mL (${am.toFixed(3)}g)` : `${r.actual}g`) : '—';
+    const acEq    = (r.f>0&&am>0) ? calcEq(am,r.mw,r.f).toFixed(2) : '—';
+    const thDisp  = r.unit==='mL'&&r.vol ? `${r.vol}mL (${r.mass.toFixed(2)}g)` : r.mass?`${r.mass}g`:'—';
+    const acDisp  = r.actual ? (r.unit==='mL'&&r.actualVol ? `${r.actualVol}mL (${am.toFixed(2)}g)` : `${r.actual}g`) : '—';
     return `<tr>
       <td class="r-name">${r.name}</td>
       <td><span class="type-badge ${TYPE_CLASS[r.type]||'type-other'}">${TYPE_NAME[r.type]||r.type}</span></td>
@@ -2888,14 +2903,14 @@ function renderReport(entry) {
 
   const rClass    = th.rVal<0.95?'r-bad':th.rVal>1.15?'r-warn':'r-good';
   const calcStats = [
-    {label:'R 值 (NCO/OH)', theory:th.rVal.toFixed(4), actual:hasActual?ac.rVal.toFixed(4):'—', class:rClass},
+    {label:'R 值 (NCO/OH)', theory:th.rVal.toFixed(2), actual:hasActual?ac.rVal.toFixed(2):'—', class:rClass},
     {label:'HSC 硬段含量',  theory:th.hsc.toFixed(2)+'%', actual:hasActual?ac.hsc.toFixed(2)+'%':'—', class:''},
-    {label:'NCO 当量',      theory:th.ncoEq.toFixed(4), actual:hasActual?ac.ncoEq.toFixed(4):'—', class:'r-cyan'},
-    {label:'OH 当量',       theory:th.ohEq.toFixed(4),  actual:hasActual?ac.ohEq.toFixed(4):'—',  class:'r-cyan'},
+    {label:'NCO 当量',      theory:th.ncoEq.toFixed(2), actual:hasActual?ac.ncoEq.toFixed(2):'—', class:'r-cyan'},
+    {label:'OH 当量',       theory:th.ohEq.toFixed(2),  actual:hasActual?ac.ohEq.toFixed(2):'—',  class:'r-cyan'},
     {label:'固含量',        theory:(entry.solidContent||30)+'%', actual:actualSC, class:''},
-    {label:'固体质量 (g)',  theory:solidMass.toFixed(3), actual:actualSolidMass>0?actualSolidMass.toFixed(3):'—', class:''},
-    {label:'加水量 (g)',    theory:water.toFixed(3),     actual:aw>0?aw.toFixed(3):'—', class:''},
-    {label:'乳液总质量 (g)',theory:(solidMass+water).toFixed(3), actual:(actualSolidMass>0&&aw>0)?(actualSolidMass+aw).toFixed(3):'—', class:''},
+    {label:'固体质量 (g)',  theory:solidMass.toFixed(2), actual:actualSolidMass>0?actualSolidMass.toFixed(2):'—', class:''},
+    {label:'加水量 (g)',    theory:water.toFixed(2),     actual:aw>0?aw.toFixed(2):'—', class:''},
+    {label:'乳液总质量 (g)',theory:(solidMass+water).toFixed(2), actual:(actualSolidMass>0&&aw>0)?(actualSolidMass+aw).toFixed(2):'—', class:''},
   ].map(s => `<div class="rpt-stat ${s.class}">
     <div class="rpt-stat-label">${s.label}</div>
     <div class="rpt-stat-theory">${s.theory}</div>
@@ -2965,8 +2980,8 @@ function renderReport(entry) {
           <tbody>${reagentRows}</tbody>
           <tfoot><tr>
             <td colspan="4">合计</td>
-            <td style="text-align:center;">${solidMass.toFixed(3)} g</td>
-            <td style="text-align:center;">${actualSolidMass>0?actualSolidMass.toFixed(3)+' g':'—'}</td>
+            <td style="text-align:center;">${solidMass.toFixed(2)} g</td>
+            <td style="text-align:center;">${actualSolidMass>0?actualSolidMass.toFixed(2)+' g':'—'}</td>
             <td colspan="2"></td>
           </tr></tfoot>
         </table>
@@ -3071,7 +3086,7 @@ async function exportToExcel() {
   ws1['!cols'] = [{wch:15},{wch:12},{wch:10},{wch:20},{wch:8},{wch:8},{wch:8},{wch:25},{wch:20}];
   XLSX.utils.book_append_sheet(wb,ws1,'实验汇总');
   const reagentRows = [['实验编号','原料名称','类型','单位','理论用量','实际用量','密度','分子量','官能度f','当量Eq']];
-  historyData.forEach(h => (h.reagents||[]).forEach(r => reagentRows.push([h.expId||'',r.name||'',r.type||'',r.unit||'g',r.unit==='mL'?(r.vol||''):(r.mass||''),r.unit==='mL'?(r.actualVol||''):(r.actual||''),r.density||'',r.mw||'',r.f||'',r.eq!=null?r.eq.toFixed(4):''])));
+  historyData.forEach(h => (h.reagents||[]).forEach(r => reagentRows.push([h.expId||'',r.name||'',r.type||'',r.unit||'g',r.unit==='mL'?(r.vol||''):(r.mass||''),r.unit==='mL'?(r.actualVol||''):(r.actual||''),r.density||'',r.mw||'',r.f||'',r.eq!=null?r.eq.toFixed(2):''])));
   const ws2 = XLSX.utils.aoa_to_sheet(reagentRows);
   XLSX.utils.book_append_sheet(wb,ws2,'原料明细');
   const jsonRows = [['实验编号','完整JSON数据']];
@@ -3141,7 +3156,7 @@ async function convertTxtToExcel() {
   allData.forEach(h => summaryRows.push([h.expId||'',h.expDate||'',h.expOperator||'',h.expNote||'',h.rVal||'',h.hsc||'',h.solidContent||'',h.mainSystem||'',h.savedAt?new Date(h.savedAt).toLocaleString('zh-CN'):'']));
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryRows), '实验汇总');
   const reagentRows = [['实验编号','原料名称','类型','单位','理论用量','实际用量','密度','分子量','官能度f','当量Eq']];
-  allData.forEach(h => (h.reagents||[]).forEach(r => reagentRows.push([h.expId||'',r.name||'',r.type||'',r.unit||'g',r.unit==='mL'?(r.vol||''):(r.mass||''),r.unit==='mL'?(r.actualVol||''):(r.actual||''),r.density||'',r.mw||'',r.f||'',r.eq!=null?r.eq.toFixed(4):''])));
+  allData.forEach(h => (h.reagents||[]).forEach(r => reagentRows.push([h.expId||'',r.name||'',r.type||'',r.unit||'g',r.unit==='mL'?(r.vol||''):(r.mass||''),r.unit==='mL'?(r.actualVol||''):(r.actual||''),r.density||'',r.mw||'',r.f||'',r.eq!=null?r.eq.toFixed(2):''])));
   XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(reagentRows), '原料明细');
   const jsonRows = [['实验编号','完整JSON数据']];
   allData.forEach(h => jsonRows.push([h.expId||'', JSON.stringify(h)]));
@@ -3183,7 +3198,7 @@ async function exportPDF() {
     const actualSolidMass = reagents.filter(r=>r.type!=='solvent').reduce((s,r)=>s+(parseFloat(r.actual)||0),0);
     const water        = solidMass>0 ? solidMass*(100-solidContent)/solidContent : 0;
     const awInput      = parseFloat(document.getElementById('sc-actual-water').value)||0;
-    const actualSC     = (actualSolidMass>0&&awInput>0) ? (actualSolidMass/(actualSolidMass+awInput)*100).toFixed(1)+'%' : '—';
+    const actualSC     = (actualSolidMass>0&&awInput>0) ? (actualSolidMass/(actualSolidMass+awInput)*100).toFixed(2)+'%' : '—';
     const PX_PER_MM=3.7795, CW_MM=180, CW_PX=Math.round(CW_MM*PX_PER_MM*1.5);
 
     async function renderBlock(html) {
@@ -3198,23 +3213,23 @@ async function exportPDF() {
     }
 
     const fRows = reagents.map((r,i) => {
-      const thEq = (r.f>0&&r.eq!=null)?r.eq.toFixed(4):'—';
+      const thEq = (r.f>0&&r.eq!=null)?r.eq.toFixed(2):'—';
       const am   = parseFloat(r.actual)||0;
-      const acEq = (r.f>0&&am>0)?calcEq(am,r.mw,r.f).toFixed(4):'—';
-      const thD  = r.unit==='mL'&&r.vol?`${r.vol}mL(${r.mass.toFixed(3)}g)`:`${r.mass}g`;
-      const acD  = r.actual?(r.unit==='mL'&&r.actualVol?`${r.actualVol}mL(${am.toFixed(3)}g)`:`${r.actual}g`):'—';
+      const acEq = (r.f>0&&am>0)?calcEq(am,r.mw,r.f).toFixed(2):'—';
+      const thD  = r.unit==='mL'&&r.vol?`${r.vol}mL(${r.mass.toFixed(2)}g)`:`${r.mass}g`;
+      const acD  = r.actual?(r.unit==='mL'&&r.actualVol?`${r.actualVol}mL(${am.toFixed(2)}g)`:`${r.actual}g`):'—';
       return `<tr style="background:${i%2?'#f8fafc':'#fff'}"><td style="padding:4px 5px;border:1px solid #e2e8f0;font-weight:600;">${r.name}</td><td style="padding:4px 5px;border:1px solid #e2e8f0;">${TYPE_NAME[r.type]||r.type}</td><td style="padding:4px 5px;border:1px solid #e2e8f0;text-align:center;">${r.mw}</td><td style="padding:4px 5px;border:1px solid #e2e8f0;text-align:center;">${r.f}</td><td style="padding:4px 5px;border:1px solid #e2e8f0;text-align:center;font-weight:600;">${thD}</td><td style="padding:4px 5px;border:1px solid #e2e8f0;text-align:center;">${acD}</td><td style="padding:4px 5px;border:1px solid #e2e8f0;text-align:center;">${thEq}</td><td style="padding:4px 5px;border:1px solid #e2e8f0;text-align:center;">${acEq}</td></tr>`;
     }).join('');
 
     const calcRows = [
-      ['R 值 (NCO/OH)', th.rVal.toFixed(4), hasActual?ac.rVal.toFixed(4):'—'],
-      ['OH 当量',       th.ohEq.toFixed(4),  hasActual?ac.ohEq.toFixed(4):'—'],
-      ['NCO 当量',      th.ncoEq.toFixed(4), hasActual?ac.ncoEq.toFixed(4):'—'],
+      ['R 值 (NCO/OH)', th.rVal.toFixed(2), hasActual?ac.rVal.toFixed(2):'—'],
+      ['OH 当量',       th.ohEq.toFixed(2),  hasActual?ac.ohEq.toFixed(2):'—'],
+      ['NCO 当量',      th.ncoEq.toFixed(2), hasActual?ac.ncoEq.toFixed(2):'—'],
       ['HSC 硬段含量',  th.hsc.toFixed(2)+'%', hasActual?ac.hsc.toFixed(2)+'%':'—'],
-      ['固体总质量',    solidMass.toFixed(3)+' g', actualSolidMass>0?actualSolidMass.toFixed(3)+' g':'—'],
-      ['加水量',        water.toFixed(3)+' g', awInput>0?awInput.toFixed(3)+' g':'—'],
+      ['固体总质量',    solidMass.toFixed(2)+' g', actualSolidMass>0?actualSolidMass.toFixed(2)+' g':'—'],
+      ['加水量',        water.toFixed(2)+' g', awInput>0?awInput.toFixed(2)+' g':'—'],
       ['固含量',        solidContent+'%', actualSC],
-      ['乳液总质量',    (solidMass+water).toFixed(3)+' g', (actualSolidMass>0&&awInput>0)?(actualSolidMass+awInput).toFixed(3)+' g':'—'],
+      ['乳液总质量',    (solidMass+water).toFixed(2)+' g', (actualSolidMass>0&&awInput>0)?(actualSolidMass+awInput).toFixed(2)+' g':'—'],
     ].map((row,i) => `<tr style="background:${i%2?'#f8fafc':'#fff'}"><td style="padding:4px 6px;border:1px solid #e2e8f0;font-weight:600;">${row[0]}</td><td style="padding:4px 6px;border:1px solid #e2e8f0;text-align:center;">${row[1]}</td><td style="padding:4px 6px;border:1px solid #e2e8f0;text-align:center;${row[2]&&row[2]!=='—'?'color:#16a34a;font-weight:600;':''}">${row[2]}</td></tr>`).join('');
 
     const stepRowsHTML = processSteps.map(step => {
@@ -3235,7 +3250,7 @@ async function exportPDF() {
     const sections = [
       `<div style="text-align:center;padding-bottom:12px;border-bottom:2px solid #e2e8f0;margin-bottom:16px;"><div style="font-size:38px;font-weight:700;color:#1e293b;">水性聚氨酯合成实验记录</div><div style="font-size:20px;color:#94a3b8;margin-top:4px;">WPU · ELN System</div></div>`,
       `<div style="${SH}">一、实验基本信息</div><table style="width:100%;border-collapse:collapse;font-size:23px;margin-bottom:4px;"><tr><td style="padding:4px 6px;background:#f0f4ff;font-weight:600;">实验编号</td><td style="padding:4px 6px;border-bottom:1px solid #e2e8f0;">${state.expId||'—'}</td><td style="padding:4px 6px;background:#f0f4ff;font-weight:600;">日期</td><td style="padding:4px 6px;border-bottom:1px solid #e2e8f0;">${state.expDate||'—'}</td></tr><tr><td style="padding:4px 6px;background:#f0f4ff;font-weight:600;">操作人</td><td colspan="3" style="padding:4px 6px;border-bottom:1px solid #e2e8f0;">${state.expOperator||'—'}</td></tr><tr><td style="padding:4px 6px;background:#f0f4ff;font-weight:600;">实验目的</td><td colspan="3" style="padding:4px 6px;">${state.expNote||'—'}</td></tr></table>`,
-      `<div style="${SH}">二、原料配方表</div><table style="width:100%;border-collapse:collapse;font-size:22px;"><thead><tr style="background:#1e40af;color:#fff;"><th style="padding:4px 5px;text-align:left;">原料</th><th style="padding:4px 5px;">类型</th><th style="padding:4px 5px;text-align:center;">MW</th><th style="padding:4px 5px;text-align:center;">f</th><th style="padding:4px 5px;text-align:center;">理论用量</th><th style="padding:4px 5px;text-align:center;">实际用量</th><th style="padding:4px 5px;text-align:center;">理论Eq</th><th style="padding:4px 5px;text-align:center;">实际Eq</th></tr></thead><tbody>${fRows}</tbody><tfoot><tr style="background:#e0e7ff;font-weight:700;"><td colspan="4" style="padding:4px 5px;border:1px solid #c7d2fe;">合计</td><td style="padding:4px 5px;border:1px solid #c7d2fe;text-align:center;">${solidMass.toFixed(3)} g</td><td style="padding:4px 5px;border:1px solid #c7d2fe;text-align:center;">${actualSolidMass>0?actualSolidMass.toFixed(3)+' g':'—'}</td><td colspan="2" style="padding:4px 5px;border:1px solid #c7d2fe;"></td></tr></tfoot></table>`,
+      `<div style="${SH}">二、原料配方表</div><table style="width:100%;border-collapse:collapse;font-size:22px;"><thead><tr style="background:#1e40af;color:#fff;"><th style="padding:4px 5px;text-align:left;">原料</th><th style="padding:4px 5px;">类型</th><th style="padding:4px 5px;text-align:center;">MW</th><th style="padding:4px 5px;text-align:center;">f</th><th style="padding:4px 5px;text-align:center;">理论用量</th><th style="padding:4px 5px;text-align:center;">实际用量</th><th style="padding:4px 5px;text-align:center;">理论Eq</th><th style="padding:4px 5px;text-align:center;">实际Eq</th></tr></thead><tbody>${fRows}</tbody><tfoot><tr style="background:#e0e7ff;font-weight:700;"><td colspan="4" style="padding:4px 5px;border:1px solid #c7d2fe;">合计</td><td style="padding:4px 5px;border:1px solid #c7d2fe;text-align:center;">${solidMass.toFixed(2)} g</td><td style="padding:4px 5px;border:1px solid #c7d2fe;text-align:center;">${actualSolidMass>0?actualSolidMass.toFixed(2)+' g':'—'}</td><td colspan="2" style="padding:4px 5px;border:1px solid #c7d2fe;"></td></tr></tfoot></table>`,
       `<div style="${SH}">三、当量计算结果</div><table style="width:100%;border-collapse:collapse;font-size:23px;"><thead><tr style="background:#f0f4ff;"><th style="padding:4px 6px;border:1px solid #dde3ec;text-align:left;">参数</th><th style="padding:4px 6px;border:1px solid #dde3ec;text-align:center;">理论值</th><th style="padding:4px 6px;border:1px solid #dde3ec;text-align:center;">实际值</th></tr></thead><tbody>${calcRows}</tbody></table>`,
       `<div style="${SH}">四、合成工艺操作记录</div><table style="width:100%;border-collapse:collapse;font-size:23px;"><thead><tr style="background:#f0f4ff;"><th style="padding:4px 6px;border:1px solid #dde3ec;text-align:left;width:100px;">步骤</th><th style="padding:4px 6px;border:1px solid #dde3ec;text-align:left;">记录内容</th></tr></thead><tbody>${stepRowsHTML}</tbody></table>`,
     ];
