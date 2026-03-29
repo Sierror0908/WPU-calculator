@@ -40,9 +40,7 @@
   --rs: 6px;
   --nav-w: 220px;
   --header-h: 52px;
-  /* 字体大小缩放变量 */
   --font-scale: 1;
-  /* 计算后的字体大小 */
   --f-xs: calc(9px * var(--font-scale));
   --f-sm: calc(10px * var(--font-scale));
   --f-base: calc(11px * var(--font-scale));
@@ -52,7 +50,6 @@
   --f-2xl: calc(16px * var(--font-scale));
   --f-3xl: calc(22px * var(--font-scale));
   --f-display: calc(32px * var(--font-scale));
-  /* 其他常用字体大小 */
   --f-15px: calc(15px * var(--font-scale));
   --f-17px: calc(17px * var(--font-scale));
   --f-18px: calc(18px * var(--font-scale));
@@ -518,6 +515,117 @@ input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--accent); c
 .step-body { padding: 16px; }
 .step-card.collapsed .step-body { display: none; }
 
+/* ── STEPS MANAGER ── */
+.step-manage-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px;
+  background: var(--bg3);
+  border: 1px solid var(--border2);
+  border-radius: var(--rs);
+  margin-bottom: 6px;
+}
+.step-manage-num {
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  color: #fff;
+  border-radius: 50%;
+  font-weight: 700;
+  font-size: var(--f-sm);
+  flex-shrink: 0;
+}
+.step-manage-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.step-manage-title,
+.step-manage-sub {
+  width: 100%;
+  padding: 6px 10px;
+  border: 1px solid var(--border2);
+  border-radius: var(--rs);
+  font-size: var(--f-sm);
+  background: var(--bg3);
+  color: var(--text);
+  font-family: var(--mono);
+}
+.step-manage-title { font-weight: 600; }
+.step-manage-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+/* ── REAGENT TAGS IN STEPS ── */
+.reagent-tags-container {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 10px;
+  background: var(--bg2);
+  border-radius: var(--rs);
+  border: 1px solid var(--border2);
+  min-height: 44px;
+}
+.reagent-tag {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: var(--surface);
+  border: 2px solid var(--border2);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all 0.15s;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.reagent-tag:hover { border-color: var(--accent); background: var(--accent-dim); }
+.reagent-tag.checked {
+  border-color: var(--green);
+  background: var(--green-dim);
+}
+.reagent-tag.checked .reagent-tag-name { color: var(--green); }
+.reagent-tag input[type="checkbox"] { display: none; }
+.reagent-tag-name {
+  font-weight: 600;
+  font-size: var(--f-sm);
+  transition: color 0.15s;
+}
+.reagent-tag-amount {
+  font-size: var(--f-xs);
+  color: var(--text3);
+  font-family: var(--mono);
+}
+/* type-border colors for tags */
+.reagent-tag.type-polyol { border-left-color: var(--cyan); }
+.reagent-tag.type-iso { border-left-color: var(--amber); }
+.reagent-tag.type-chain { border-left-color: var(--green); }
+.reagent-tag.type-solvent { border-left-color: var(--purple); }
+.reagent-tag.checked.type-polyol,
+.reagent-tag.checked.type-iso,
+.reagent-tag.checked.type-chain,
+.reagent-tag.checked.type-solvent { border-color: var(--green); }
+
+.selected-reagents-display {
+  padding: 8px 12px;
+  background: var(--green-dim);
+  border: 1px solid rgba(5,140,66,0.3);
+  border-radius: var(--rs);
+  font-size: var(--f-sm);
+  color: var(--green);
+  margin-bottom: 8px;
+  font-family: var(--mono);
+}
+
 /* ── GOAL SEEK ── */
 .gs-result {
   background: var(--green-dim);
@@ -574,9 +682,7 @@ input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--accent); c
   min-width: 200px;
   position: relative;
 }
-.search-input-wrap input {
-  padding-left: 32px;
-}
+.search-input-wrap input { padding-left: 32px; }
 .search-icon { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: var(--text3); font-size: var(--f-xl); pointer-events: none; }
 
 .db-table {
@@ -608,10 +714,7 @@ input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--accent); c
 }
 .db-table tbody tr:hover { background: var(--surface2); }
 .db-table tbody tr.selected { background: var(--accent-dim); }
-.db-table tbody td {
-  padding: 10px 12px;
-  color: var(--text2);
-}
+.db-table tbody td { padding: 10px 12px; color: var(--text2); }
 .db-table tbody td:first-child { color: var(--accent); font-weight: 700; }
 .db-r-good { color: var(--green) !important; font-weight: 600; }
 .db-r-warn { color: var(--amber) !important; font-weight: 600; }
@@ -727,6 +830,7 @@ input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--accent); c
 .rpt-step-title { font-weight: 600; font-size: var(--f-lg); margin-bottom: 4px; }
 .rpt-step-params { font-family: var(--mono); font-size: var(--f-base); color: var(--text3); margin-bottom: 4px; display: flex; gap: 12px; flex-wrap: wrap; }
 .rpt-step-obs { font-size: var(--f-md); color: var(--text2); padding: 6px 10px; background: var(--bg3); border-radius: var(--rs); margin-top: 4px; border-left: 2px solid var(--border2); }
+.rpt-step-reagents { font-size: var(--f-md); color: var(--green); padding: 6px 10px; background: var(--green-dim); border-radius: var(--rs); margin-top: 4px; border-left: 2px solid var(--green); }
 .rpt-step-empty { font-size: var(--f-md); color: var(--text3); font-style: italic; }
 
 .rpt-photos { display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px; }
@@ -850,8 +954,6 @@ input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--accent); c
   :root { --nav-w: 0px; }
   .sidebar { transform: translateX(-220px); transition: transform 0.28s; }
   .sidebar.open { transform: translateX(0); --nav-w: 220px; box-shadow: 2px 0 20px rgba(0,0,0,0.3); }
-
-  /* Sidebar overlay for mobile */
   .sidebar-overlay {
     display: none;
     position: fixed; inset: 0;
@@ -863,8 +965,6 @@ input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--accent); c
   .sidebar-overlay.show { display: block; opacity: 1; }
   .main { margin-left: 0; padding: 14px; }
   .mobile-menu-btn { display: flex !important; }
-
-  /* Header mobile layout */
   .header { flex-wrap: wrap; padding: 0 12px; height: auto; min-height: var(--header-h); gap: 8px; }
   .logo { font-size: var(--f-lg); flex-wrap: wrap; }
   .logo-sub { display: none; }
@@ -873,67 +973,41 @@ input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--accent); c
   .header-actions { margin-left: auto; gap: 6px; }
   .header-actions .btn { padding: 6px 10px; font-size: var(--f-base); }
   .theme-toggle { width: 30px; height: 30px; font-size: var(--f-lg); }
-
-  /* Mobile form grids */
   .form-grid { grid-template-columns: 1fr; }
   .form-grid-2 { grid-template-columns: 1fr; }
   .form-grid-3 { grid-template-columns: 1fr; }
   .form-group.span-2 { grid-column: span 1; }
-
-  /* Stats row mobile */
   .stats-row { flex-direction: column; }
   .stat-chip { width: 100%; }
-
-  /* Tables mobile */
   .db-table { font-size: var(--f-base); min-width: 600px; }
   .db-table thead th { padding: 8px 6px; }
   .db-table tbody td { padding: 8px 6px; }
-  .db-table th:nth-child(4), .db-table td:nth-child(4),  /* 主体系 */
-  .db-table th:nth-child(7), .db-table td:nth-child(7),  /* 固含% */
-  .db-table th:nth-child(8), .db-table td:nth-child(8) { /* 实验目的 */
-    display: none;
-  }
+  .db-table th:nth-child(4), .db-table td:nth-child(4),
+  .db-table th:nth-child(7), .db-table td:nth-child(7),
+  .db-table th:nth-child(8), .db-table td:nth-child(8) { display: none; }
   .rpt-table { font-size: var(--f-sm); }
   .rpt-table th { padding: 6px 4px; }
   .rpt-table td { padding: 6px 4px; }
-
-  /* Page header mobile */
   .page-header { flex-direction: column; align-items: flex-start; }
   .page-title-wrap { width: 100%; }
   .page-title { font-size: var(--f-18px); }
   .page-actions { width: 100%; margin-top: 12px; display: flex; flex-wrap: wrap; }
   .page-actions .btn { flex: 1; min-width: calc(50% - 4px); }
-
-  /* Database toolbar mobile */
   .db-toolbar { flex-direction: column; align-items: stretch; }
   .search-input-wrap { width: 100%; min-width: auto; }
   #db-sort { width: 100%; min-width: auto; }
-
-  /* Report toolbar mobile */
   .report-toolbar { flex-direction: column; align-items: stretch; gap: 8px; }
   #rpt-select { max-width: 100%; }
   .report-toolbar .btn { width: 100%; }
-
-  /* Import/Export page mobile */
   #page-export > div[style*="grid-template-columns:1fr 1fr"] { grid-template-columns: 1fr !important; }
-  #page-export > div > div[style*="display:flex;gap:8px;"] { flex-direction: column; }
-  #page-export > div > div > button[style*="flex:1;"] { width: 100%; }
-
-  /* Report viewer mobile */
   .report-content { padding: 16px 12px; }
   .rpt-info-grid { grid-template-columns: 1fr; }
   .rpt-stats-grid { grid-template-columns: 1fr; }
   .rpt-step-params { flex-direction: column; gap: 6px; }
-
-  /* Step cards mobile */
   .step-header { padding: 10px 12px; }
   .step-body { padding: 12px; }
-
-  /* Modal mobile */
   .modal { padding: 16px; max-height: 85vh; }
   .modal-title { font-size: var(--f-15px); }
-
-  /* Toast mobile */
   #toast { font-size: var(--f-base); padding: 8px 16px; max-width: 92vw; }
 }
 
@@ -967,7 +1041,6 @@ input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--accent); c
 <!-- LAYOUT -->
 <div class="layout">
 
-<!-- SIDEBAR OVERLAY (Mobile) -->
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
 
 <!-- SIDEBAR -->
@@ -1019,7 +1092,6 @@ input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--accent); c
     </div>
   </div>
 
-  <!-- 实验基本信息 -->
   <div class="card">
     <div class="card-title">实验基本信息</div>
     <div class="form-grid form-grid-3">
@@ -1042,7 +1114,6 @@ input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--accent); c
     </div>
   </div>
 
-  <!-- 添加原料 -->
   <div class="card">
     <div class="card-title">添加原料</div>
     <div style="margin-bottom:10px;">
@@ -1092,7 +1163,6 @@ input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--accent); c
     <button class="btn btn-primary btn-full" onclick="addReagent()">+ 加入配方</button>
   </div>
 
-  <!-- 配方表 + 汇总 -->
   <div class="card">
     <div class="card-title" style="justify-content:space-between;">
       <span style="display:flex;align-items:center;gap:8px;"><span style="display:block;width:3px;height:14px;background:var(--accent);border-radius:2px;box-shadow:0 0 6px var(--accent-glow);"></span>当前配方</span>
@@ -1105,7 +1175,6 @@ input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--accent); c
       </div>
     </div>
     <div class="divider"></div>
-    <!-- 当量统计 -->
     <div class="stats-row" id="summary-stats">
       <div class="stat-chip"><div class="stat-label">NCO 当量</div><div class="stat-value" id="s-nco-eq">—</div></div>
       <div class="stat-chip"><div class="stat-label">OH 当量</div><div class="stat-value" id="s-oh-eq">—</div></div>
@@ -1116,7 +1185,6 @@ input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--accent); c
     </div>
   </div>
 
-  <!-- 固含量 -->
   <div class="card">
     <div class="card-title">固含量 & 加水量</div>
     <div style="display:flex;align-items:baseline;gap:6px;margin-bottom:10px;">
@@ -1142,7 +1210,6 @@ input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--accent); c
     </div>
   </div>
 
-  <!-- 目标反推 -->
   <div class="card">
     <div class="card-title">目标反推 Goal Seek</div>
     <div class="form-grid form-grid-2">
@@ -1178,8 +1245,36 @@ input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--accent); c
     </div>
     <div class="page-actions">
       <span style="font-family:var(--mono);font-size:12px;color:var(--text3);">实验编号：<strong id="proc-exp-id" style="color:var(--accent);">—</strong></span>
+      <button class="btn btn-secondary btn-sm" onclick="toggleStepsManager()">⚙️ 管理步骤</button>
     </div>
   </div>
+
+  <!-- 步骤管理面板 -->
+  <div id="steps-manager" style="display:none;">
+    <div class="card">
+      <div class="card-title" style="justify-content:space-between;">
+        <span>⚙️ 工艺步骤管理</span>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-sm btn-secondary" onclick="resetProcessSteps()">🔄 重置默认</button>
+          <button class="btn btn-sm btn-ghost" onclick="toggleStepsManager()">关闭</button>
+        </div>
+      </div>
+      <div class="form-group" style="margin-bottom:12px;">
+        <label>添加新步骤</label>
+        <div style="display:flex;gap:8px;margin-bottom:8px;">
+          <input type="text" id="new-step-title" placeholder="步骤标题（如：⑦ 后处理）" style="flex:1;">
+          <input type="text" id="new-step-sub" placeholder="步骤说明（可选）" style="flex:1;">
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;">
+          <label class="check-row" style="margin:0;"><input type="checkbox" id="new-step-catalyst"> 催化剂提醒</label>
+          <button class="btn btn-primary btn-sm" onclick="addNewStepFromUI()">➕ 添加步骤</button>
+        </div>
+      </div>
+      <div style="border-top:1px solid var(--border);margin:12px 0;"></div>
+      <div id="steps-manager-list" style="display:flex;flex-direction:column;gap:0;max-height:320px;overflow-y:auto;"></div>
+    </div>
+  </div>
+
   <div id="process-steps"></div>
 </div>
 
@@ -1225,14 +1320,8 @@ input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--accent); c
     <table class="db-table" id="db-table">
       <thead>
         <tr>
-          <th>实验编号</th>
-          <th>日期</th>
-          <th>操作人</th>
-          <th>主体系</th>
-          <th>R 值</th>
-          <th>HSC%</th>
-          <th>固含%</th>
-          <th>实验目的</th>
+          <th>实验编号</th><th>日期</th><th>操作人</th><th>主体系</th>
+          <th>R 值</th><th>HSC%</th><th>固含%</th><th>实验目的</th>
           <th style="text-align:right;">操作</th>
         </tr>
       </thead>
@@ -1251,7 +1340,6 @@ input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--accent); c
       <div class="page-desc">从数据库选择实验，实时渲染完整实验报告</div>
     </div>
   </div>
-
   <div class="report-viewer" id="report-viewer">
     <div class="report-toolbar">
       <div class="report-exp-id" id="rpt-exp-id">请选择实验</div>
@@ -1279,7 +1367,6 @@ input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--accent); c
       <div class="page-desc">数据备份、迁移与批量处理工具</div>
     </div>
   </div>
-
   <div style="display:grid;gap:14px;grid-template-columns:1fr 1fr;">
     <div class="card">
       <div class="card-title">导出当前实验</div>
@@ -1326,12 +1413,10 @@ input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--accent); c
       <button class="btn btn-primary btn-sm" onclick="openPresetModal()">＋ 添加预设</button>
     </div>
   </div>
-
   <div class="card">
     <div class="card-title">内置预设</div>
     <div class="preset-grid" id="builtin-presets-display"></div>
   </div>
-
   <div class="card">
     <div class="card-title">自定义预设</div>
     <div id="custom-presets-list">
@@ -1343,7 +1428,6 @@ input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--accent); c
       <button class="btn btn-secondary" style="flex:1;" onclick="showPresetImportModal()">📥 导入预设 JSON</button>
     </div>
   </div>
-
   <div class="card">
     <div class="card-title">界面设置</div>
     <div class="form-group" style="margin-bottom:12px;">
@@ -1361,8 +1445,6 @@ input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--accent); c
 </div>
 
 <!-- ── MODALS ── -->
-
-<!-- Photo Caption Modal -->
 <div class="modal-overlay" id="photo-modal">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -1379,7 +1461,6 @@ input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--accent); c
   </div>
 </div>
 
-<!-- Custom Preset Modal -->
 <div class="modal-overlay" id="preset-modal">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -1419,7 +1500,6 @@ input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--accent); c
   </div>
 </div>
 
-<!-- Preset IO Modal -->
 <div class="modal-overlay" id="preset-io-modal">
   <div class="modal">
     <div class="modal-handle"></div>
@@ -1440,10 +1520,10 @@ input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--accent); c
 'use strict';
 
 // ═══════════════════════════════════════════════
-// INDEXED DB
+// INDEXED DB — 修复：添加 'config' store
 // ═══════════════════════════════════════════════
 const WPU_DB = {
-  dbName: 'WPU_Storage', version: 1, db: null,
+  dbName: 'WPU_Storage', version: 2, db: null,
   init() {
     return new Promise((res, rej) => {
       const req = indexedDB.open(this.dbName, this.version);
@@ -1451,8 +1531,9 @@ const WPU_DB = {
       req.onsuccess = () => { this.db = req.result; res(this.db); };
       req.onupgradeneeded = (e) => {
         const db = e.target.result;
-        if (!db.objectStoreNames.contains('current')) db.createObjectStore('current', {keyPath:'key'});
-        if (!db.objectStoreNames.contains('presets')) db.createObjectStore('presets', {keyPath:'key'});
+        if (!db.objectStoreNames.contains('current'))  db.createObjectStore('current',  {keyPath:'key'});
+        if (!db.objectStoreNames.contains('presets'))  db.createObjectStore('presets',  {keyPath:'key'});
+        if (!db.objectStoreNames.contains('config'))   db.createObjectStore('config',   {keyPath:'key'});
         if (!db.objectStoreNames.contains('history')) {
           const hs = db.createObjectStore('history', {keyPath:'expId'});
           hs.createIndex('savedAt','savedAt',{unique:false});
@@ -1465,7 +1546,7 @@ const WPU_DB = {
     return new Promise((res, rej) => {
       const tx = this.db.transaction(store,'readonly');
       const req = tx.objectStore(store).get(key);
-      req.onsuccess = () => res(store==='history' ? req.result||null : (req.result?req.result.value:null));
+      req.onsuccess = () => res(store==='history' ? req.result||null : (req.result ? req.result.value : null));
       req.onerror = () => rej(req.error);
     });
   },
@@ -1473,7 +1554,7 @@ const WPU_DB = {
     if (!this.db) await this.init();
     return new Promise((res, rej) => {
       const tx = this.db.transaction(store,'readwrite');
-      const req = store==='history' ? tx.objectStore(store).put(value) : tx.objectStore(store).put({key,value});
+      const req = store==='history' ? tx.objectStore(store).put(value) : tx.objectStore(store).put({key, value});
       req.onsuccess = () => res();
       req.onerror = () => rej(req.error);
     });
@@ -1491,7 +1572,7 @@ const WPU_DB = {
     return new Promise((res, rej) => {
       const tx = this.db.transaction(store,'readonly');
       const req = tx.objectStore(store).getAll();
-      req.onsuccess = () => res(req.result.map(i=>i.value||i));
+      req.onsuccess = () => res(req.result.map(i => i.value || i));
       req.onerror = () => rej(req.error);
     });
   },
@@ -1507,12 +1588,12 @@ const WPU_DB = {
     if (!this.db) await this.init();
     return new Promise((res) => {
       let total=0, done=0;
-      const stores=['current','presets','history'];
-      stores.forEach(name=>{
+      const stores=['current','presets','history','config'];
+      stores.forEach(name => {
         const tx = this.db.transaction(name,'readonly');
         const req = tx.objectStore(name).getAll();
-        req.onsuccess = () => { total+=JSON.stringify(req.result).length; done++; if(done===3) res(total); };
-        req.onerror = () => { done++; if(done===3) res(total); };
+        req.onsuccess = () => { total += JSON.stringify(req.result).length; done++; if(done===stores.length) res(total); };
+        req.onerror = () => { done++; if(done===stores.length) res(total); };
       });
     });
   }
@@ -1524,33 +1605,36 @@ WPU_DB.init().catch(console.error);
 // PRESETS DATA
 // ═══════════════════════════════════════════════
 const PRESETS = [
-  {name:'PCD-2000', type:'polyol', mw:2000,   f:2},
-  {name:'PTMEG-2000',type:'polyol',mw:2000,   f:2},
-  {name:'PCL-2000', type:'polyol', mw:2000,   f:2},
-  {name:'PEG-1000', type:'polyol', mw:1000,   f:2},
-  {name:'PET-2000', type:'polyol', mw:2000,   f:2},
-  {name:'IPDI',     type:'iso',    mw:222.28,  f:2},
-  {name:'HDI',      type:'iso',    mw:168.19,  f:2},
-  {name:'MDI',      type:'iso',    mw:250.25,  f:2},
-  {name:'DMPA',     type:'chain',  mw:134.13,  f:2},
-  {name:'BDO',      type:'chain',  mw:90.12,   f:2},
-  {name:'TMP',      type:'chain',  mw:134.17,  f:3},
-  {name:'EDA',      type:'chain',  mw:60.10,   f:2},
-  {name:'TEA',      type:'other',  mw:101.19,  f:0},
-  {name:'DBTDL',    type:'other',  mw:631.56,  f:0},
-  {name:'DMF',      type:'solvent',mw:73.09,   f:0},
+  {name:'PCD-2000',  type:'polyol', mw:2000,   f:2},
+  {name:'PTMEG-2000',type:'polyol', mw:2000,   f:2},
+  {name:'PCL-2000',  type:'polyol', mw:2000,   f:2},
+  {name:'PEG-1000',  type:'polyol', mw:1000,   f:2},
+  {name:'PET-2000',  type:'polyol', mw:2000,   f:2},
+  {name:'IPDI',      type:'iso',    mw:222.28,  f:2},
+  {name:'HDI',       type:'iso',    mw:168.19,  f:2},
+  {name:'MDI',       type:'iso',    mw:250.25,  f:2},
+  {name:'DMPA',      type:'chain',  mw:134.13,  f:2},
+  {name:'BDO',       type:'chain',  mw:90.12,   f:2},
+  {name:'TMP',       type:'chain',  mw:134.17,  f:3},
+  {name:'EDA',       type:'chain',  mw:60.10,   f:2},
+  {name:'TEA',       type:'other',  mw:101.19,  f:0},
+  {name:'DBTDL',     type:'other',  mw:631.56,  f:0},
+  {name:'DMF',       type:'solvent',mw:73.09,   f:0},
 ];
 
-const PROCESS_STEPS = [
-  {id:'s1', title:'① 脱水', sub:'原料预处理脱水除湿', catalyst:false},
-  {id:'s2', title:'② 预聚', sub:'多元醇与异氰酸酯预聚反应', catalyst:true},
-  {id:'s3', title:'③ 亲水扩链', sub:'加入亲水扩链剂（DMPA 等）', catalyst:false},
-  {id:'s4', title:'④ 小分子扩链', sub:'加入小分子扩链剂（BDO/EDA 等）', catalyst:false},
-  {id:'s5', title:'⑤ 中和', sub:'加入 TEA 中和，降至室温', catalyst:false},
-  {id:'s6', title:'⑥ 乳化分散', sub:'高速搅拌下加水乳化', catalyst:false},
+// 默认工艺步骤
+const DEFAULT_PROCESS_STEPS = [
+  {id:'s1', title:'步骤 1', sub:'', catalyst:false},
+  {id:'s2', title:'步骤 2', sub:'', catalyst:false},
+  {id:'s3', title:'步骤 3', sub:'', catalyst:false},
+  {id:'s4', title:'步骤 4', sub:'', catalyst:false},
+  {id:'s5', title:'步骤 5', sub:'', catalyst:false},
+  {id:'s6', title:'步骤 6', sub:'', catalyst:false},
 ];
 
-const TYPE_NAME = {polyol:'多元醇', iso:'异氰酸酯', chain:'扩链/亲水', solvent:'溶剂', other:'其他'};
+let processSteps = [...DEFAULT_PROCESS_STEPS];
+
+const TYPE_NAME  = {polyol:'多元醇', iso:'异氰酸酯', chain:'扩链/亲水', solvent:'溶剂', other:'其他'};
 const TYPE_CLASS = {polyol:'type-polyol', iso:'type-iso', chain:'type-chain', solvent:'type-solvent', other:'type-other'};
 
 // ═══════════════════════════════════════════════
@@ -1564,7 +1648,6 @@ let pendingPhotoData = null;
 let historyData = [];
 let selectedReportEntry = null;
 let batchTxtFiles = [];
-let dbSortState = 'date-desc';
 
 // ═══════════════════════════════════════════════
 // INIT
@@ -1578,10 +1661,15 @@ async function init() {
   const mm = String(now.getMonth()+1).padStart(2,'0');
   const dd = String(now.getDate()).padStart(2,'0');
   document.getElementById('exp-date').value = `${now.getFullYear()}-${mm}-${dd}`;
-  document.getElementById('exp-id').value = `${yy}${mm}${dd}-01`;
+  document.getElementById('exp-id').value   = `${yy}${mm}${dd}-01`;
+
+  await loadProcessSteps();
 
   const cached = await WPU_DB.get('current','state');
-  if (cached) { try { loadState(cached); toast('已恢复上次暂存','success'); } catch(e) {} }
+  if (cached) {
+    try { loadState(cached); toast('已恢复上次暂存','success'); }
+    catch(e) { console.error('恢复状态失败', e); }
+  }
 
   await renderPresetBtns();
   renderBuiltinPresetsDisplay();
@@ -1603,7 +1691,6 @@ function switchPage(name) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById(`page-${name}`).classList.add('active');
   document.querySelector(`[data-page="${name}"]`)?.classList.add('active');
-  // Close sidebar on mobile
   if (window.innerWidth < 768) {
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebar-overlay').classList.remove('show');
@@ -1611,29 +1698,24 @@ function switchPage(name) {
 }
 
 function toggleSidebar() {
-  const sidebar = document.getElementById('sidebar');
-  const overlay = document.getElementById('sidebar-overlay');
-  sidebar.classList.toggle('open');
-  overlay.classList.toggle('show');
+  document.getElementById('sidebar').classList.toggle('open');
+  document.getElementById('sidebar-overlay').classList.toggle('show');
 }
 
 // ═══════════════════════════════════════════════
-// THEME TOGGLE
+// THEME
 // ═══════════════════════════════════════════════
 function initTheme() {
   const saved = localStorage.getItem('wpu-theme') || 'light';
   document.documentElement.setAttribute('data-theme', saved);
   updateThemeBtn(saved);
 }
-
 function toggleTheme() {
-  const current = document.documentElement.getAttribute('data-theme') || 'light';
-  const next = current === 'dark' ? 'light' : 'dark';
+  const next = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', next);
   localStorage.setItem('wpu-theme', next);
   updateThemeBtn(next);
 }
-
 function updateThemeBtn(theme) {
   const btn = document.getElementById('theme-btn');
   if (btn) btn.textContent = theme === 'dark' ? '☀️' : '🌙';
@@ -1644,26 +1726,23 @@ function updateThemeBtn(theme) {
 // ═══════════════════════════════════════════════
 function initFontScale() {
   const saved = localStorage.getItem('wpu-font-scale') || '100';
-  const scale = parseInt(saved) / 100;
-  document.documentElement.style.setProperty('--font-scale', scale);
+  document.documentElement.style.setProperty('--font-scale', parseInt(saved)/100);
   const slider = document.getElementById('font-scale-slider');
-  const valueDisplay = document.getElementById('font-scale-value');
+  const label  = document.getElementById('font-scale-value');
   if (slider) slider.value = saved;
-  if (valueDisplay) valueDisplay.textContent = saved + '%';
+  if (label)  label.textContent = saved + '%';
 }
-
 function updateFontScale(value) {
-  const scale = parseInt(value) / 100;
-  document.documentElement.style.setProperty('--font-scale', scale);
+  document.documentElement.style.setProperty('--font-scale', parseInt(value)/100);
   localStorage.setItem('wpu-font-scale', value);
-  const valueDisplay = document.getElementById('font-scale-value');
-  if (valueDisplay) valueDisplay.textContent = value + '%';
+  const label = document.getElementById('font-scale-value');
+  if (label) label.textContent = value + '%';
 }
 
 function syncExpId() {
   const v = document.getElementById('exp-id').value || '—';
   document.getElementById('proc-exp-id').textContent = v;
-  document.getElementById('h-exp-id').textContent = v;
+  document.getElementById('h-exp-id').textContent    = v;
 }
 
 // ═══════════════════════════════════════════════
@@ -1704,7 +1783,7 @@ function renderBuiltinPresetsDisplay() {
   c.innerHTML = '';
   PRESETS.forEach(p => {
     const b = document.createElement('button');
-    b.className = `preset-pill`;
+    b.className = 'preset-pill';
     b.textContent = `${p.name} (MW:${p.mw},f:${p.f})`;
     b.style.cursor = 'default';
     c.appendChild(b);
@@ -1736,13 +1815,13 @@ function openPresetModal() {
 function closePresetModal() { document.getElementById('preset-modal').classList.remove('open'); }
 
 async function saveCustomPreset() {
-  const name = document.getElementById('cp-name').value.trim();
-  const type = document.getElementById('cp-type').value;
-  const mw = parseFloat(document.getElementById('cp-mw').value);
-  const f = parseFloat(document.getElementById('cp-f').value);
+  const name    = document.getElementById('cp-name').value.trim();
+  const type    = document.getElementById('cp-type').value;
+  const mw      = parseFloat(document.getElementById('cp-mw').value);
+  const f       = parseFloat(document.getElementById('cp-f').value);
   const density = document.getElementById('cp-density').value.trim();
-  if (!name) { toast('请输入原料名称','error'); return; }
-  if (isNaN(mw)||mw<=0) { toast('请输入有效分子量','error'); return; }
+  if (!name)           { toast('请输入原料名称','error'); return; }
+  if (isNaN(mw)||mw<=0){ toast('请输入有效分子量','error'); return; }
   const customs = await getCustomPresets();
   if (customs.some(p=>p.name===name)||PRESETS.some(p=>p.name===name)) { toast('该名称已存在','error'); return; }
   customs.push({name,type,mw,f,density:density?parseFloat(density):null});
@@ -1775,7 +1854,6 @@ async function exportPresets() {
   };
   document.getElementById('preset-io-modal').classList.add('open');
 }
-
 function showPresetImportModal() {
   document.getElementById('preset-io-title').textContent = '导入预设 JSON';
   document.getElementById('preset-io-text').value = '';
@@ -1811,8 +1889,8 @@ async function importPresetJSON() {
 function fillPreset(p) {
   document.getElementById('add-name').value = p.name;
   document.getElementById('add-type').value = p.type;
-  document.getElementById('add-mw').value = p.mw;
-  document.getElementById('add-f').value = p.f;
+  document.getElementById('add-mw').value   = p.mw;
+  document.getElementById('add-f').value    = p.f;
   const liquids = ['IPDI','HDI','MDI','BDO','TEA','EDA','DMF'];
   const isLiquid = liquids.some(l=>p.name.toUpperCase().includes(l)) || p.density;
   document.getElementById('add-unit').value = isLiquid ? 'mL' : 'g';
@@ -1821,74 +1899,101 @@ function fillPreset(p) {
     document.getElementById('add-density').value = p.density;
   } else {
     const d = {IPDI:1.062,HDI:1.05,MDI:1.23,BDO:1.017,TEA:0.726,EDA:0.899,DMF:0.944};
-    const dk = Object.keys(d).find(k=>p.name.toUpperCase().includes(k));
+    const dk = Object.keys(d).find(k => p.name.toUpperCase().includes(k));
     if (dk) document.getElementById('add-density').value = d[dk];
   }
   document.getElementById('add-mass').focus();
 }
 
 function calcEq(mass, mw, f) {
-  if (f===0||isNaN(f)||mw<=0) return null;
-  return mass*f/mw;
+  if (f===0 || isNaN(f) || mw<=0) return null;
+  return mass * f / mw;
 }
 
 function toggleDensityField() {
   const unit = document.getElementById('add-unit').value;
-  document.getElementById('add-density-group').style.display = unit==='mL'?'flex':'none';
+  document.getElementById('add-density-group').style.display = unit==='mL' ? 'flex' : 'none';
   document.getElementById('add-unit-label').textContent = unit;
 }
 
 function addReagent() {
-  const name = document.getElementById('add-name').value.trim();
-  const type = document.getElementById('add-type').value;
-  const mw = parseFloat(document.getElementById('add-mw').value);
-  const f = parseFloat(document.getElementById('add-f').value);
-  const unit = document.getElementById('add-unit').value;
+  const name    = document.getElementById('add-name').value.trim();
+  const type    = document.getElementById('add-type').value;
+  const mw      = parseFloat(document.getElementById('add-mw').value);
+  const f       = parseFloat(document.getElementById('add-f').value);
+  const unit    = document.getElementById('add-unit').value;
   const density = parseFloat(document.getElementById('add-density').value);
-  const rawAmt = parseFloat(document.getElementById('add-mass').value);
+  const rawAmt  = parseFloat(document.getElementById('add-mass').value);
 
-  if (!name) { toast('请输入原料名称','error'); return; }
-  if (isNaN(mw)||mw<=0) { toast('请输入有效分子量','error'); return; }
-  if (isNaN(f)||f<0) { toast('请输入有效官能度','error'); return; }
-  if (isNaN(rawAmt)||rawAmt<=0) { toast('请输入有效用量','error'); return; }
-  if (unit==='mL'&&(isNaN(density)||density<=0)) { toast('mL 单位请填写密度','error'); return; }
+  if (!name)                                           { toast('请输入原料名称','error'); return; }
+  if (isNaN(mw)||mw<=0)                                { toast('请输入有效分子量','error'); return; }
+  if (isNaN(f)||f<0)                                   { toast('请输入有效官能度','error'); return; }
+  if (isNaN(rawAmt)||rawAmt<=0)                        { toast('请输入有效用量','error'); return; }
+  if (unit==='mL'&&(isNaN(density)||density<=0))       { toast('mL 单位请填写密度','error'); return; }
 
   let mass, vol;
-  if (unit==='mL') { vol=rawAmt; mass=rawAmt*density; } else { mass=rawAmt; vol=null; }
+  if (unit==='mL') { vol=rawAmt; mass=rawAmt*density; }
+  else             { mass=rawAmt; vol=null; }
 
-  reagents.push({id:Date.now(),name,type,mw,f,unit,density:unit==='mL'?density:null,vol,mass,actual:'',actualVol:'',eq:calcEq(mass,mw,f)});
-  ['add-name','add-mw','add-mass','add-density'].forEach(id=>document.getElementById(id).value='');
-  document.getElementById('add-f').value='2';
-  document.getElementById('add-unit').value='g';
+  reagents.push({
+    id: Date.now(),
+    name, type, mw, f, unit,
+    density: unit==='mL' ? density : null,
+    vol, mass, actual:'', actualVol:'',
+    eq: calcEq(mass, mw, f)
+  });
+
+  ['add-name','add-mw','add-mass','add-density'].forEach(id => document.getElementById(id).value='');
+  document.getElementById('add-f').value    = '2';
+  document.getElementById('add-unit').value = 'g';
   toggleDensityField();
-  renderReagents(); updateSummary(); updateSolidContent(solidContent); updateGoalSeekReagents(); autoSave();
+
+  renderReagents();
+  updateSummary();
+  updateSolidContent(solidContent);
+  updateGoalSeekReagents();
+  // 更新工艺台的原料标签（不重建整个步骤，只刷新标签区域）
+  refreshAllReagentTags();
+  autoSave();
   toast(`${name} 已添加`,'success');
 }
 
 function removeReagent(id) {
-  reagents = reagents.filter(r=>r.id!==id);
-  renderReagents(); updateSummary(); updateSolidContent(solidContent); updateGoalSeekReagents(); autoSave();
+  reagents = reagents.filter(r => r.id !== id);
+  // 从所有步骤中移除该原料的勾选状态
+  Object.keys(stepData).forEach(sid => {
+    if (stepData[sid].addedReagents) {
+      stepData[sid].addedReagents = stepData[sid].addedReagents.filter(rid => rid !== id);
+    }
+  });
+  renderReagents();
+  updateSummary();
+  updateSolidContent(solidContent);
+  updateGoalSeekReagents();
+  refreshAllReagentTags();
+  autoSave();
 }
 
 function updateReagentField(id, field, val) {
-  const r = reagents.find(x=>x.id===id);
+  const r = reagents.find(x => x.id === id);
   if (!r) return;
-  if (field==='vol_or_mass') {
+  if (field === 'vol_or_mass') {
     const v = parseFloat(val);
-    if (!isNaN(v)&&v>0) {
-      if (r.unit==='mL'){r.vol=v;r.mass=v*(r.density||1);}else{r.mass=v;}
-      r.eq = calcEq(r.mass,r.mw,r.f);
+    if (!isNaN(v) && v>0) {
+      if (r.unit==='mL') { r.vol=v; r.mass=v*(r.density||1); } else { r.mass=v; }
+      r.eq = calcEq(r.mass, r.mw, r.f);
       const eqEl = document.getElementById('eq-'+id);
       if (eqEl) { eqEl.textContent = r.eq===null?'不参与当量':`Eq=${r.eq.toFixed(4)}`; eqEl.className='reagent-eq-badge '+(r.eq===null?'no-eq':'has-eq'); }
       updateSummary(); updateSolidContent(solidContent); autoSave();
     }
-  } else if (field==='actual_vol_or_mass') {
-    if (r.unit==='mL'){r.actualVol=val;const av=parseFloat(val);r.actual=(!isNaN(av)&&av>0&&r.density)?String((av*r.density).toFixed(4)):'';}else{r.actual=val;}
+  } else if (field === 'actual_vol_or_mass') {
+    if (r.unit==='mL') { r.actualVol=val; const av=parseFloat(val); r.actual=(!isNaN(av)&&av>0&&r.density)?String((av*r.density).toFixed(4)):''; }
+    else               { r.actual=val; }
     updateSummary(); autoSave();
-  } else if (field==='density') {
-    const v=parseFloat(val);if(!isNaN(v)&&v>0){r.density=v;if(r.unit==='mL'&&r.vol)r.mass=r.vol*v;r.eq=calcEq(r.mass,r.mw,r.f);updateSummary();updateSolidContent(solidContent);autoSave();}
-  } else if (field==='mw'||field==='f') {
-    const v=parseFloat(val);if(!isNaN(v)&&(field==='f'?v>=0:v>0)){r[field]=v;r.eq=calcEq(r.mass,r.mw,r.f);updateSummary();updateSolidContent(solidContent);autoSave();}
+  } else if (field === 'density') {
+    const v=parseFloat(val); if(!isNaN(v)&&v>0){r.density=v; if(r.unit==='mL'&&r.vol)r.mass=r.vol*v; r.eq=calcEq(r.mass,r.mw,r.f); updateSummary(); updateSolidContent(solidContent); autoSave();}
+  } else if (field==='mw' || field==='f') {
+    const v=parseFloat(val); if(!isNaN(v)&&(field==='f'?v>=0:v>0)){r[field]=v; r.eq=calcEq(r.mass,r.mw,r.f); updateSummary(); updateSolidContent(solidContent); autoSave();}
   }
 }
 
@@ -1899,7 +2004,7 @@ function renderReagents() {
     return;
   }
   el.innerHTML = reagents.map(r => {
-    const eqText = r.eq===null ? '不参与当量' : `Eq=${r.eq.toFixed(4)}`;
+    const eqText  = r.eq===null ? '不参与当量' : `Eq=${r.eq.toFixed(4)}`;
     const eqClass = r.eq===null ? 'no-eq' : 'has-eq';
     return `
     <div class="reagent-item">
@@ -1938,45 +2043,45 @@ function renderReagents() {
 function clearAll() {
   if (!confirm('确定清空所有原料？')) return;
   reagents = [];
-  renderReagents(); updateSummary(); updateSolidContent(solidContent); updateGoalSeekReagents(); autoSave();
+  renderReagents(); updateSummary(); updateSolidContent(solidContent); updateGoalSeekReagents(); refreshAllReagentTags(); autoSave();
 }
 
 // ═══════════════════════════════════════════════
 // EQUIVALENTS
 // ═══════════════════════════════════════════════
 function calcEquivalents(useActual=false) {
-  let ncoEq=0,ohEq=0,totalMass=0,isoMass=0,chainMass=0,polyolMass=0;
+  let ncoEq=0, ohEq=0, totalMass=0, isoMass=0, chainMass=0, polyolMass=0;
   reagents.forEach(r => {
     if (r.type==='solvent') return;
     const m = useActual ? (parseFloat(r.actual)||r.mass) : r.mass;
     totalMass += m;
     if (r.f===0) return;
-    const eq = m*r.f/r.mw;
-    if (r.type==='iso'){ncoEq+=eq;isoMass+=m;}
-    else if (r.type==='polyol'){ohEq+=eq;polyolMass+=m;}
-    else if (r.type==='chain'){ohEq+=eq;chainMass+=m;}
+    const eq = m * r.f / r.mw;
+    if (r.type==='iso')         { ncoEq+=eq; isoMass+=m; }
+    else if (r.type==='polyol') { ohEq+=eq;  polyolMass+=m; }
+    else if (r.type==='chain')  { ohEq+=eq;  chainMass+=m; }
   });
   const hardMass=isoMass+chainMass, polymerMass=hardMass+polyolMass;
-  return {ncoEq,ohEq,rVal:ohEq>0?ncoEq/ohEq:0,hsc:polymerMass>0?hardMass/polymerMass*100:0,totalMass,hardMass,polymerMass,isoMass,chainMass,polyolMass};
+  return {ncoEq, ohEq, rVal:ohEq>0?ncoEq/ohEq:0, hsc:polymerMass>0?hardMass/polymerMass*100:0, totalMass, hardMass, polymerMass, isoMass, chainMass, polyolMass};
 }
 
 function updateSummary() {
   const th = calcEquivalents(false);
   const ac = calcEquivalents(true);
-  const hasActual = reagents.some(r=>parseFloat(r.actual)>0);
+  const hasActual = reagents.some(r => parseFloat(r.actual)>0);
   const rClass = th.rVal<0.95?'bad':th.rVal>1.15?'warn':'good';
-  document.getElementById('s-total-mass').textContent = th.totalMass>0?`${th.totalMass.toFixed(2)} g`:'—';
-  document.getElementById('s-total-actual').textContent = hasActual?`${ac.totalMass.toFixed(2)} g`:'—';
-  document.getElementById('s-nco-eq').textContent = th.ncoEq>0?th.ncoEq.toFixed(4):'—';
-  document.getElementById('s-oh-eq').textContent = th.ohEq>0?th.ohEq.toFixed(4):'—';
+  document.getElementById('s-total-mass').textContent   = th.totalMass>0 ? `${th.totalMass.toFixed(2)} g` : '—';
+  document.getElementById('s-total-actual').textContent = hasActual ? `${ac.totalMass.toFixed(2)} g` : '—';
+  document.getElementById('s-nco-eq').textContent       = th.ncoEq>0 ? th.ncoEq.toFixed(4) : '—';
+  document.getElementById('s-oh-eq').textContent        = th.ohEq>0  ? th.ohEq.toFixed(4)  : '—';
   if (th.rVal>0) {
-    document.getElementById('s-r-val').textContent = hasActual&&ac.rVal>0?`${th.rVal.toFixed(3)} / ${ac.rVal.toFixed(3)}`:th.rVal.toFixed(3);
-    document.getElementById('s-r-val').className = `stat-value ${rClass}`;
-    document.getElementById('s-hsc').textContent = hasActual?`${th.hsc.toFixed(1)}% / ${ac.hsc.toFixed(1)}%`:`${th.hsc.toFixed(1)}%`;
+    document.getElementById('s-r-val').textContent  = hasActual&&ac.rVal>0 ? `${th.rVal.toFixed(3)} / ${ac.rVal.toFixed(3)}` : th.rVal.toFixed(3);
+    document.getElementById('s-r-val').className    = `stat-value ${rClass}`;
+    document.getElementById('s-hsc').textContent    = hasActual ? `${th.hsc.toFixed(1)}% / ${ac.hsc.toFixed(1)}%` : `${th.hsc.toFixed(1)}%`;
   } else {
-    document.getElementById('s-r-val').textContent = '—';
-    document.getElementById('s-r-val').className = 'stat-value';
-    document.getElementById('s-hsc').textContent = '—';
+    document.getElementById('s-r-val').textContent  = '—';
+    document.getElementById('s-r-val').className    = 'stat-value';
+    document.getElementById('s-hsc').textContent    = '—';
   }
 }
 
@@ -1987,24 +2092,24 @@ function updateSolidContent(val) {
   solidContent = parseFloat(val);
   document.getElementById('sc-slider').value = solidContent;
   document.getElementById('sc-pct').textContent = solidContent.toFixed(1);
-  const solidMass = reagents.filter(r=>r.type!=='solvent').reduce((s,r)=>s+r.mass,0);
-  if (solidMass>0) {
-    const water = solidMass*(100-solidContent)/solidContent;
+  const solidMass = reagents.filter(r => r.type!=='solvent').reduce((s,r) => s+r.mass, 0);
+  if (solidMass > 0) {
+    const water = solidMass * (100-solidContent) / solidContent;
     document.getElementById('sc-solid').textContent = `${solidMass.toFixed(2)} g`;
     document.getElementById('sc-water').textContent = `${water.toFixed(2)} g`;
     document.getElementById('sc-total').textContent = `${(solidMass+water).toFixed(2)} g`;
   } else {
-    ['sc-solid','sc-water','sc-total'].forEach(id=>document.getElementById(id).textContent='—');
+    ['sc-solid','sc-water','sc-total'].forEach(id => document.getElementById(id).textContent='—');
   }
   onActualWaterInput();
 }
 
 function onActualWaterInput() {
   const aw = parseFloat(document.getElementById('sc-actual-water').value);
-  const solidMass = reagents.filter(r=>r.type!=='solvent').reduce((s,r)=>s+r.mass,0);
-  const actualSolidMass = reagents.filter(r=>r.type!=='solvent').reduce((s,r)=>s+(parseFloat(r.actual)||0),0);
+  const solidMass       = reagents.filter(r=>r.type!=='solvent').reduce((s,r)=>s+r.mass, 0);
+  const actualSolidMass = reagents.filter(r=>r.type!=='solvent').reduce((s,r)=>s+(parseFloat(r.actual)||0), 0);
   const el = document.getElementById('sc-actual-pct');
-  const m = actualSolidMass>0?actualSolidMass:solidMass;
+  const m  = actualSolidMass>0 ? actualSolidMass : solidMass;
   el.textContent = (!isNaN(aw)&&aw>0&&m>0) ? (m/(m+aw)*100).toFixed(1)+'%' : '—';
   autoSave();
 }
@@ -2016,44 +2121,44 @@ function updateGoalSeekReagents() {
   const sel = document.getElementById('gs-reagent');
   const cur = sel.value;
   sel.innerHTML = '<option value="">— 选择要调整质量的原料 —</option>';
-  reagents.filter(r=>r.f>0).forEach(r=>{
-    const o=document.createElement('option');
-    o.value=r.id; o.textContent=`${r.name} (${r.mass}g)`;
+  reagents.filter(r => r.f>0).forEach(r => {
+    const o = document.createElement('option');
+    o.value = r.id; o.textContent = `${r.name} (${r.mass}g)`;
     sel.appendChild(o);
   });
-  if (cur) sel.value=cur;
+  if (cur) sel.value = cur;
 }
 
 function goalSeek() {
-  const target = document.getElementById('gs-target').value;
-  const goalVal = parseFloat(document.getElementById('gs-val').value);
+  const target    = document.getElementById('gs-target').value;
+  const goalVal   = parseFloat(document.getElementById('gs-val').value);
   const reagentId = parseInt(document.getElementById('gs-reagent').value);
-  const resultEl = document.getElementById('gs-result');
-  if (isNaN(goalVal)){toast('请输入目标值','error');return;}
-  if (!reagentId){toast('请选择要调整的原料','error');return;}
-  const r=reagents.find(x=>x.id===reagentId);
+  const resultEl  = document.getElementById('gs-result');
+  if (isNaN(goalVal))  { toast('请输入目标值','error'); return; }
+  if (!reagentId)      { toast('请选择要调整的原料','error'); return; }
+  const r = reagents.find(x => x.id===reagentId);
   if (!r) return;
-  const others=reagents.filter(x=>x.id!==reagentId);
+  const others = reagents.filter(x => x.id!==reagentId);
   function compute(mass) {
-    let nco=0,oh=0,tot=0,iso=0,chain=0;
-    [...others,{...r,mass}].forEach(x=>{
-      const m=x.mass;tot+=m;if(x.f===0)return;const eq=m*x.f/x.mw;
+    let nco=0, oh=0, tot=0, iso=0, chain=0;
+    [...others, {...r,mass}].forEach(x => {
+      const m=x.mass; tot+=m; if(x.f===0)return; const eq=m*x.f/x.mw;
       if(x.type==='iso'){nco+=eq;iso+=m;}else if(x.type==='polyol')oh+=eq;else if(x.type==='chain'){oh+=eq;chain+=m;}
     });
-    return {rVal:oh>0?nco/oh:0,hsc:tot>0?(iso+chain)/tot*100:0};
+    return {rVal:oh>0?nco/oh:0, hsc:tot>0?(iso+chain)/tot*100:0};
   }
-  let lo=0.001,hi=10000,result=null;
-  const getV=c=>target==='r'?c.rVal:c.hsc;
-  const vLo=getV(compute(lo)),vHi=getV(compute(hi));
-  if(!((vLo<=goalVal&&goalVal<=vHi)||(vHi<=goalVal&&goalVal<=vLo))){toast('目标值超出可解范围','error');return;}
-  for(let i=0;i<80;i++){
-    const mid=(lo+hi)/2,cv=getV(compute(mid));
-    if(Math.abs(cv-goalVal)<0.000001){result=mid;break;}
-    (cv-goalVal)*(getV(compute(lo))-goalVal)<0?hi=mid:lo=mid;
+  let lo=0.001, hi=10000, result=null;
+  const getV = c => target==='r' ? c.rVal : c.hsc;
+  const vLo=getV(compute(lo)), vHi=getV(compute(hi));
+  if (!((vLo<=goalVal&&goalVal<=vHi)||(vHi<=goalVal&&goalVal<=vLo))) { toast('目标值超出可解范围','error'); return; }
+  for (let i=0; i<80; i++) {
+    const mid=(lo+hi)/2, cv=getV(compute(mid));
+    if (Math.abs(cv-goalVal)<0.000001) { result=mid; break; }
+    (cv-goalVal)*(getV(compute(lo))-goalVal)<0 ? hi=mid : lo=mid;
     result=mid;
   }
-  if (result&&result>0) {
-    const c=compute(result);
+  if (result && result>0) {
+    const c = compute(result);
     resultEl.style.display='block';
     resultEl.innerHTML=`<div style="margin-bottom:6px;">✅ 建议将 <strong>${r.name}</strong> 调整为：</div>
       <div style="font-size:20px;font-weight:700;margin-bottom:6px;">${result.toFixed(4)} g</div>
@@ -2063,88 +2168,425 @@ function goalSeek() {
 }
 
 function applyGoalSeek(id, mass) {
-  const r=reagents.find(x=>x.id===id);
-  if(!r)return;
-  r.mass=parseFloat(mass.toFixed(4));r.eq=calcEq(r.mass,r.mw,r.f);
-  renderReagents();updateSummary();updateSolidContent(solidContent);updateGoalSeekReagents();autoSave();
+  const r = reagents.find(x => x.id===id);
+  if (!r) return;
+  r.mass = parseFloat(mass.toFixed(4)); r.eq = calcEq(r.mass, r.mw, r.f);
+  renderReagents(); updateSummary(); updateSolidContent(solidContent); updateGoalSeekReagents(); autoSave();
   toast('已应用','success');
   document.getElementById('gs-result').style.display='none';
 }
 
 // ═══════════════════════════════════════════════
-// PROCESS STEPS
+// PROCESS STEPS — 全部重写，修复所有 bug
 // ═══════════════════════════════════════════════
+
+// 加载保存的步骤配置
+async function loadProcessSteps() {
+  try {
+    const saved = await WPU_DB.get('config', 'processSteps');
+    if (saved && Array.isArray(saved) && saved.length > 0) {
+      processSteps = saved;
+    } else {
+      processSteps = DEFAULT_PROCESS_STEPS.map(s => ({...s}));
+    }
+  } catch(e) {
+    processSteps = DEFAULT_PROCESS_STEPS.map(s => ({...s}));
+  }
+}
+
+// 保存步骤配置到 IndexedDB
+async function saveProcessSteps() {
+  await WPU_DB.set('config', 'processSteps', processSteps);
+}
+
+// 重置为默认步骤
+async function resetProcessSteps() {
+  if (!confirm('确定要重置为默认步骤吗？当前步骤配置将丢失。')) return;
+  processSteps = DEFAULT_PROCESS_STEPS.map(s => ({...s}));
+  stepData = {};
+  await saveProcessSteps();
+  renderProcessSteps();
+  renderStepsManager();
+  toast('已重置为默认步骤','success');
+}
+
+// 切换管理面板
+function toggleStepsManager() {
+  const panel = document.getElementById('steps-manager');
+  const isHidden = panel.style.display === 'none';
+  panel.style.display = isHidden ? 'block' : 'none';
+  if (isHidden) renderStepsManager();
+}
+
+// ── 渲染步骤管理面板（修复：使用 oninput，避免失焦才触发）
+function renderStepsManager() {
+  const container = document.getElementById('steps-manager-list');
+  if (!container) return;
+
+  if (!processSteps.length) {
+    container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text3);font-size:12px;">暂无步骤，请在上方添加</div>';
+    return;
+  }
+
+  container.innerHTML = processSteps.map((step, idx) => `
+    <div class="step-manage-item" id="smi-${step.id}">
+      <div class="step-manage-num">${idx + 1}</div>
+      <div class="step-manage-info">
+        <input type="text" class="step-manage-title"
+          value="${escHtml(step.title)}"
+          placeholder="步骤标题"
+          oninput="updateStepConfig('${step.id}', 'title', this.value)">
+        <input type="text" class="step-manage-sub"
+          value="${escHtml(step.sub)}"
+          placeholder="步骤说明（可选）"
+          oninput="updateStepConfig('${step.id}', 'sub', this.value)">
+      </div>
+      <div class="step-manage-actions">
+        <label style="display:flex;align-items:center;gap:4px;font-size:11px;font-family:var(--mono);color:var(--text3);cursor:pointer;white-space:nowrap;">
+          <input type="checkbox" ${step.catalyst?'checked':''} onchange="updateStepConfig('${step.id}', 'catalyst', this.checked)">
+          催化剂
+        </label>
+        <button class="btn btn-sm btn-danger" onclick="deleteProcessStep('${step.id}')">✕</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// 修改步骤配置（实时更新，不重渲染整个工艺台）
+function updateStepConfig(id, field, value) {
+  const step = processSteps.find(s => s.id === id);
+  if (!step) return;
+  step[field] = value;
+  saveProcessSteps();
+  // 只更新工艺台对应步骤的标题/副标题，不重建整个列表
+  const card = document.getElementById(`scard-${id}`);
+  if (card) {
+    const titleEl = card.querySelector('.step-title');
+    const subEl   = card.querySelector('.step-sub');
+    if (titleEl && field==='title') titleEl.textContent = value;
+    if (subEl   && field==='sub')   subEl.textContent   = value;
+  }
+}
+
+// 删除步骤（修复：删后立即重渲染管理面板和工艺台）
+async function deleteProcessStep(id) {
+  if (!confirm('确定删除此步骤？该步骤的记录数据也会清除。')) return;
+  processSteps = processSteps.filter(s => s.id !== id);
+  delete stepData[id];
+  await saveProcessSteps();
+  renderProcessSteps();   // 重渲染工艺台
+  renderStepsManager();   // 重渲染管理面板（立即反映）
+  autoSave();
+  toast('步骤已删除');
+}
+
+// 从 UI 添加新步骤
+async function addNewStepFromUI() {
+  const titleInput    = document.getElementById('new-step-title');
+  const subInput      = document.getElementById('new-step-sub');
+  const catalystInput = document.getElementById('new-step-catalyst');
+
+  const title    = titleInput.value.trim();
+  const sub      = subInput.value.trim();
+  const catalyst = catalystInput.checked;
+
+  if (!title) { toast('请输入步骤标题','error'); return; }
+
+  const id = 'sc_' + Date.now();
+  processSteps.push({id, title, sub, catalyst});
+  await saveProcessSteps();
+
+  titleInput.value = '';
+  subInput.value   = '';
+  catalystInput.checked = false;
+
+  renderProcessSteps();
+  renderStepsManager();
+  toast('步骤已添加','success');
+}
+
+// ── 渲染工艺台全部步骤（记录折叠状态）
 function renderProcessSteps() {
   const container = document.getElementById('process-steps');
-  const collapsed = {};
-  PROCESS_STEPS.forEach(s=>{const c=document.getElementById(`scard-${s.id}`);if(c)collapsed[s.id]=c.classList.contains('collapsed');});
-  container.innerHTML='';
-  PROCESS_STEPS.forEach((step,idx)=>{
-    const data=stepData[step.id]||{};
-    const card=document.createElement('div');
-    const isCollapsed=collapsed[step.id]!==undefined?collapsed[step.id]:(idx>0);
-    card.className='step-card'+(isCollapsed?' collapsed':'');
-    card.id=`scard-${step.id}`;
-    // 兼容旧数据：检查addTime或startTime
-    const hasDone=!!((data.addTime||data.startTime)||data.obs||(data.photos&&data.photos.length));
-    card.innerHTML=`
+
+  // 记录当前折叠状态
+  const collapsedMap = {};
+  processSteps.forEach(s => {
+    const c = document.getElementById(`scard-${s.id}`);
+    if (c) collapsedMap[s.id] = c.classList.contains('collapsed');
+  });
+
+  container.innerHTML = '';
+
+  processSteps.forEach((step, idx) => {
+    const data       = stepData[step.id] || {};
+    const isCollapsed = collapsedMap[step.id] !== undefined ? collapsedMap[step.id] : (idx > 0);
+    const hasDone    = !!((data.addTime||data.startTime) || data.obs || (data.photos&&data.photos.length) || (data.addedReagents&&data.addedReagents.length));
+
+    const card = document.createElement('div');
+    card.className = 'step-card' + (isCollapsed ? ' collapsed' : '');
+    card.id = `scard-${step.id}`;
+
+    card.innerHTML = `
       <div class="step-header" onclick="toggleStep('${step.id}')">
         <div class="step-num${hasDone?' done':''}">0${idx+1}</div>
         <div style="flex:1;">
-          <div class="step-title">${step.title}</div>
-          <div class="step-sub">${step.sub}</div>
+          <div class="step-title">${escHtml(step.title)}</div>
+          ${step.sub?`<div class="step-sub">${escHtml(step.sub)}</div>`:''}
         </div>
         <div class="step-chevron">▼</div>
       </div>
-      <div class="step-body">${buildStepBody(step,data)}</div>`;
+      <div class="step-body">${buildStepBody(step, data)}</div>
+    `;
     container.appendChild(card);
   });
 }
 
+// ── 构建单个步骤体内容
 function buildStepBody(step, data) {
-  const sid=step.id;
-  const photos=data.photos||[];
-  const needCool=!!data.needCool;
-  // 兼容旧数据：如果有startTime但没有addTime，则用startTime填充
+  const sid    = step.id;
+  const photos = data.photos || [];
+  // 兼容旧数据
   const displayAddTime = data.addTime || data.startTime || '';
-  const catalystAlert=step.catalyst?`<div class="alert alert-amber"><div class="alert-icon">⚠️</div><div><strong>催化剂提醒：</strong>预聚反应通常需加入催化剂（如 DBTDL，用量约多元醇质量的 0.05–0.1%），请确认是否已添加。</div></div>`:'';
+  const catalystAlert  = step.catalyst
+    ? `<div class="alert alert-amber"><div class="alert-icon">⚠️</div><div><strong>催化剂提醒：</strong>预聚反应通常需加入催化剂（如 DBTDL，用量约多元醇质量的 0.05–0.1%），请确认是否已添加。</div></div>`
+    : '';
+
+  // 原料标签 — 包含常规原料和水
+  const addedReagents = (data.addedReagents || []).map(String);
+  const waterChecked = addedReagents.includes('water');
+  const reagentTags   = reagents.map(r => {
+      const ridStr    = String(r.id);
+      const isChecked = addedReagents.includes(ridStr);
+      const typeClass = r.type ? `type-${r.type}` : '';
+      const amtLabel  = r.unit==='mL'
+        ? ((r.vol||r.mass)||0).toFixed(2) + 'mL'
+        : (r.mass||0).toFixed(2) + 'g';
+      return `
+        <div class="reagent-tag ${isChecked?'checked':''} ${typeClass}"
+             onclick="toggleReagentTag('${sid}', '${ridStr}', this)">
+          <span class="reagent-tag-name">${escHtml(r.name)}</span>
+          <span class="reagent-tag-amount">${amtLabel}</span>
+          ${isChecked?'<span style="color:var(--green);font-size:10px;">✓</span>':''}
+        </div>`;
+    }).join('') +
+    (reagents.length ? '' : '<div style="font-size:12px;color:var(--text3);padding:8px;">暂无原料，请先在配方页添加</div>') +
+    // 水作为常驻标签
+    `<div class="reagent-tag ${waterChecked?'checked':''}" style="border-left-color:#3b82f6;" onclick="toggleReagentTag('${sid}', 'water', this)">
+      <span class="reagent-tag-name">💧 水</span>
+      ${waterChecked?'<span style="color:var(--green);font-size:10px;">✓</span>':''}
+    </div>`;
+
+  // 已选原料摘要
+  const selectedSummary = addedReagents.map(rid => {
+    if (rid === 'water') return '💧水';
+    const r = reagents.find(x => String(x.id) === rid);
+    if (!r) return null;
+    const amt = r.unit==='mL' ? ((r.vol||r.mass)||0).toFixed(2)+'mL' : (r.mass||0).toFixed(2)+'g';
+    return `${r.name}(${amt})`;
+  }).filter(Boolean).join(' + ');
+
   return `
     ${catalystAlert}
     <div class="form-grid form-grid-3" style="margin-bottom:10px;">
-      <div class="form-group"><label>反应温度 (°C)</label><input type="number" placeholder="80" value="${data.temp||''}" step="any" oninput="updateStep('${sid}','temp',this.value)"></div>
-      <div class="form-group"><label>搅拌转速 (rpm)</label><input type="number" placeholder="可选" value="${data.rpm||''}" step="any" oninput="updateStep('${sid}','rpm',this.value)"></div>
-      <div class="form-group"><label>加料时间</label><input type="time" value="${displayAddTime}" oninput="updateStep('${sid}','addTime',this.value)"></div>
-    </div>
-    <div class="check-row"><input type="checkbox" id="cool-${sid}" ${needCool?'checked':''} onchange="toggleCooling('${sid}',this.checked)"><label for="cool-${sid}">需要降温步骤</label></div>
-    <div id="cool-times-${sid}" style="display:${needCool?'block':'none'};">
-      <div class="form-grid form-grid-3" style="margin:8px 0;">
-        <div class="form-group"><label>降温开始</label><input type="time" value="${data.coolStart||''}" oninput="updateStep('${sid}','coolStart',this.value)"></div>
-        <div class="form-group"><label>目标温度 (°C)</label><input type="number" placeholder="40" value="${data.coolTargetTemp||''}" step="any" oninput="updateStep('${sid}','coolTargetTemp',this.value)"></div>
-        <div class="form-group"><label>降温完成</label><input type="time" value="${data.coolEnd||''}" oninput="updateStep('${sid}','coolEnd',this.value)"></div>
+      <div class="form-group">
+        <label>反应温度 (°C)</label>
+        <input type="number" placeholder="80" value="${data.temp||''}" step="any"
+          oninput="updateStep('${sid}','temp',this.value)">
+      </div>
+      <div class="form-group">
+        <label>搅拌转速 (rpm)</label>
+        <input type="number" placeholder="可选" value="${data.rpm||''}" step="any"
+          oninput="updateStep('${sid}','rpm',this.value)">
+      </div>
+      <div class="form-group">
+        <label>加料时间</label>
+        <input type="time" value="${displayAddTime}"
+          oninput="updateStep('${sid}','addTime',this.value)">
       </div>
     </div>
-    <div class="form-group" style="margin:10px 0;"><label>实验现象 / 操作备注</label><textarea placeholder="如：体系逐渐变粘，颜色微黄…" oninput="updateStep('${sid}','obs',this.value)">${data.obs||''}</textarea></div>
+
+    <div class="form-group" style="margin:10px 0;">
+      <label>本步骤加入的原料 <span style="color:var(--text3);font-weight:400;text-transform:none;letter-spacing:0;">(点击勾选)</span></label>
+      ${selectedSummary ? `<div class="selected-reagents-display">✓ ${selectedSummary}</div>` : ''}
+      <div class="reagent-tags-container" id="reagent-tags-${sid}">
+        ${reagentTags}
+      </div>
+    </div>
+
+    <div class="check-row">
+      <input type="checkbox" id="cool-${sid}" ${data.needCool?'checked':''}
+        onchange="toggleCooling('${sid}',this.checked)">
+      <label for="cool-${sid}">需要降温步骤</label>
+    </div>
+    <div id="cool-times-${sid}" style="display:${data.needCool?'block':'none'};">
+      <div class="form-grid form-grid-3" style="margin:8px 0;">
+        <div class="form-group">
+          <label>降温开始</label>
+          <input type="time" value="${data.coolStart||''}"
+            oninput="updateStep('${sid}','coolStart',this.value)">
+        </div>
+        <div class="form-group">
+          <label>目标温度 (°C)</label>
+          <input type="number" placeholder="40" value="${data.coolTargetTemp||''}" step="any"
+            oninput="updateStep('${sid}','coolTargetTemp',this.value)">
+        </div>
+        <div class="form-group">
+          <label>降温完成</label>
+          <input type="time" value="${data.coolEnd||''}"
+            oninput="updateStep('${sid}','coolEnd',this.value)">
+        </div>
+      </div>
+    </div>
+
+    <div class="form-group" style="margin:10px 0;">
+      <label>实验现象 / 操作备注</label>
+      <textarea placeholder="如：体系逐渐变粘，颜色微黄…"
+        oninput="updateStep('${sid}','obs',this.value)">${data.obs||''}</textarea>
+    </div>
+
     <div class="photo-area" onclick="triggerPhoto('${sid}')">
       <div style="font-size:20px;margin-bottom:3px;">📷</div>
       <div style="font-size:12px;color:var(--text3);">点击拍照或上传图片</div>
     </div>
-    <div class="photo-thumbs" id="thumbs-${sid}">
-      ${photos.map((p,i)=>`<div class="photo-thumb"><img src="${p.data}" alt="${p.caption}"><button class="photo-thumb-del" onclick="removePhoto('${sid}',${i})">✕</button><div class="photo-caption-chip">${p.caption}</div></div>`).join('')}
+    <div class="photo-thumbs">
+      ${photos.map((p,i)=>`
+        <div class="photo-thumb">
+          <img src="${p.data}" alt="${escHtml(p.caption)}">
+          <button class="photo-thumb-del" onclick="removePhoto('${sid}',${i})">✕</button>
+          <div class="photo-caption-chip">${escHtml(p.caption)}</div>
+        </div>`).join('')}
     </div>`;
 }
 
-function toggleStep(sid) { document.getElementById(`scard-${sid}`).classList.toggle('collapsed'); }
-function updateStep(sid, key, val) {
-  if(!stepData[sid])stepData[sid]={};
-  stepData[sid][key]=val;
-  const numEl=document.querySelector(`#scard-${sid} .step-num`);
-  if(numEl)numEl.classList.add('done');
+// ── 原料标签点击（修复：不重渲染整个工艺台，直接操作 DOM）
+function toggleReagentTag(sid, ridStr, tagEl) {
+  if (!stepData[sid]) stepData[sid] = {};
+  if (!stepData[sid].addedReagents) stepData[sid].addedReagents = [];
+
+  const arr     = stepData[sid].addedReagents.map(String);
+  const idx     = arr.indexOf(ridStr);
+  const checked = idx === -1;
+
+  if (checked) {
+    stepData[sid].addedReagents.push(ridStr);
+  } else {
+    stepData[sid].addedReagents = arr.filter(x => x !== ridStr);
+  }
+
+  // 刷新所有步骤的原料标签（使已选原料在其他步骤不显示）
+  refreshAllReagentTags();
+
+  // 更新摘要行
+  updateSelectedSummary(sid);
+
+  // 更新步骤卡片的"已完成"状态
+  const data = stepData[sid];
+  const hasDone = !!((data.addTime||data.startTime)||data.obs||(data.photos&&data.photos.length)||(data.addedReagents&&data.addedReagents.length));
+  const numEl = document.querySelector(`#scard-${sid} .step-num`);
+  if (numEl) numEl.classList.toggle('done', hasDone);
+
   autoSave();
 }
+
+// 更新步骤中的原料摘要显示
+function updateSelectedSummary(sid) {
+  const card = document.getElementById(`scard-${sid}`);
+  if (!card) return;
+  const tagsContainer = card.querySelector(`#reagent-tags-${sid}`);
+  if (!tagsContainer) return;
+
+  const addedReagents = (stepData[sid]?.addedReagents || []).map(String);
+  const summary = addedReagents.map(rid => {
+    if (rid === 'water') return '💧水';
+    const r = reagents.find(x => String(x.id) === rid);
+    if (!r) return null;
+    const amt = r.unit==='mL' ? ((r.vol||r.mass)||0).toFixed(2)+'mL' : (r.mass||0).toFixed(2)+'g';
+    return `${r.name}(${amt})`;
+  }).filter(Boolean).join(' + ');
+
+  let summaryEl = tagsContainer.previousElementSibling;
+  if (summaryEl && summaryEl.classList.contains('selected-reagents-display')) {
+    if (summary) summaryEl.textContent = '✓ ' + summary;
+    else summaryEl.remove();
+  } else if (summary) {
+    const div = document.createElement('div');
+    div.className = 'selected-reagents-display';
+    div.textContent = '✓ ' + summary;
+    tagsContainer.parentNode.insertBefore(div, tagsContainer);
+  }
+}
+
+// 刷新所有步骤中的原料标签（配方变化时调用）
+// 原料在某步骤被选中后，在其他步骤不显示
+function refreshAllReagentTags() {
+  // 收集所有步骤中已选的原料ID（包括水）
+  const allSelectedReagents = new Set();
+  processSteps.forEach(s => {
+    const added = (stepData[s.id]?.addedReagents || []).map(String);
+    added.forEach(rid => allSelectedReagents.add(rid));
+  });
+
+  processSteps.forEach(step => {
+    const container = document.getElementById(`reagent-tags-${step.id}`);
+    if (!container) return;
+    const data = stepData[step.id] || {};
+    const addedReagents = (data.addedReagents || []).map(String);
+
+    // 常规原料标签
+    const reagentHtml = reagents.map(r => {
+        const ridStr = String(r.id);
+        const isChecked = addedReagents.includes(ridStr);
+        // 如果原料已被其他步骤选中（且不是当前步骤），则不显示
+        if (allSelectedReagents.has(ridStr) && !addedReagents.includes(ridStr)) return '';
+
+        const typeClass = r.type ? `type-${r.type}` : '';
+        const amtLabel = r.unit==='mL'
+          ? ((r.vol||r.mass)||0).toFixed(2)+'mL'
+          : (r.mass||0).toFixed(2)+'g';
+        return `
+          <div class="reagent-tag ${isChecked?'checked':''} ${typeClass}"
+               onclick="toggleReagentTag('${step.id}', '${ridStr}', this)">
+            <span class="reagent-tag-name" style="${isChecked?'color:var(--green);':''}">${escHtml(r.name)}</span>
+            <span class="reagent-tag-amount">${amtLabel}</span>
+            ${isChecked?'<span class="reagent-tick" style="color:var(--green);font-size:10px;">✓</span>':''}
+          </div>`;
+      }).filter(x => x !== '').join('');
+
+    // 水作为常驻选项（如果已被其他步骤选中，则不显示）
+    const waterChecked = addedReagents.includes('water');
+    const waterHtml = (!allSelectedReagents.has('water') || waterChecked)
+      ? `<div class="reagent-tag ${waterChecked?'checked':''}" style="border-left-color:#3b82f6;" onclick="toggleReagentTag('${step.id}', 'water', this)">
+          <span class="reagent-tag-name">💧 水</span>
+          ${waterChecked?'<span style="color:var(--green);font-size:10px;">✓</span>':''}
+        </div>`
+      : '';
+
+    container.innerHTML = reagentHtml + (reagentHtml && !waterHtml ? '<div style="font-size:12px;color:var(--text3);padding:8px;">暂无原料，请先在配方页添加</div>' : '') + waterHtml;
+    if (!reagentHtml && !waterHtml) container.innerHTML = '<div style="font-size:12px;color:var(--text3);padding:8px;">暂无可选原料</div>';
+
+    updateSelectedSummary(step.id);
+  });
+}
+
+function toggleStep(sid) {
+  document.getElementById(`scard-${sid}`)?.classList.toggle('collapsed');
+}
+
+function updateStep(sid, key, val) {
+  if (!stepData[sid]) stepData[sid] = {};
+  stepData[sid][key] = val;
+  // 标记为已完成
+  const numEl = document.querySelector(`#scard-${sid} .step-num`);
+  if (numEl) numEl.classList.add('done');
+  autoSave();
+}
+
 function toggleCooling(sid, checked) {
-  if(!stepData[sid])stepData[sid]={};
-  stepData[sid].needCool=checked;
-  document.getElementById(`cool-times-${sid}`).style.display=checked?'block':'none';
+  if (!stepData[sid]) stepData[sid] = {};
+  stepData[sid].needCool = checked;
+  const el = document.getElementById(`cool-times-${sid}`);
+  if (el) el.style.display = checked ? 'block' : 'none';
   autoSave();
 }
 
@@ -2152,93 +2594,118 @@ function toggleCooling(sid, checked) {
 // PHOTOS
 // ═══════════════════════════════════════════════
 function triggerPhoto(sid) {
-  currentPhotoStep=sid;
-  document.getElementById('photo-file-input').value='';
+  currentPhotoStep = sid;
+  document.getElementById('photo-file-input').value = '';
   document.getElementById('photo-file-input').click();
 }
 function handlePhotoFile(input) {
-  const file=input.files[0]; if(!file)return;
-  compressImage(file, dataUrl=>{
-    pendingPhotoData=dataUrl;
-    document.getElementById('photo-preview').innerHTML=`<img src="${dataUrl}" style="max-width:100%;max-height:200px;object-fit:contain;border-radius:6px;">`;
-    document.getElementById('photo-caption-input').value='';
+  const file = input.files[0]; if(!file) return;
+  compressImage(file, dataUrl => {
+    pendingPhotoData = dataUrl;
+    document.getElementById('photo-preview').innerHTML = `<img src="${dataUrl}" style="max-width:100%;max-height:200px;object-fit:contain;border-radius:6px;">`;
+    document.getElementById('photo-caption-input').value = '';
     document.getElementById('photo-modal').classList.add('open');
   });
 }
 function confirmPhoto() {
-  const caption=document.getElementById('photo-caption-input').value.trim();
-  if(!caption){toast('请输入图片备注','error');return;}
-  if(!stepData[currentPhotoStep])stepData[currentPhotoStep]={};
-  if(!stepData[currentPhotoStep].photos)stepData[currentPhotoStep].photos=[];
-  stepData[currentPhotoStep].photos.push({data:pendingPhotoData,caption});
-  closePhotoModal(); renderProcessSteps(); autoSave(); toast('图片已添加','success');
+  const caption = document.getElementById('photo-caption-input').value.trim();
+  if (!caption) { toast('请输入图片备注','error'); return; }
+  if (!stepData[currentPhotoStep]) stepData[currentPhotoStep] = {};
+  if (!stepData[currentPhotoStep].photos) stepData[currentPhotoStep].photos = [];
+  stepData[currentPhotoStep].photos.push({data:pendingPhotoData, caption});
+  closePhotoModal();
+  renderProcessSteps();
+  autoSave();
+  toast('图片已添加','success');
 }
 function closePhotoModal() { document.getElementById('photo-modal').classList.remove('open'); pendingPhotoData=null; }
-function removePhoto(sid, idx) { if(stepData[sid]?.photos){stepData[sid].photos.splice(idx,1);renderProcessSteps();autoSave();} }
+function removePhoto(sid, idx) {
+  if (stepData[sid]?.photos) {
+    stepData[sid].photos.splice(idx,1);
+    renderProcessSteps();
+    autoSave();
+  }
+}
 function compressImage(file, cb) {
-  const reader=new FileReader();
-  reader.onload=e=>{
-    const img=new Image();
-    img.onload=()=>{
-      const MAX=1280;let w=img.width,h=img.height;
-      if(w>MAX){h=Math.round(h*MAX/w);w=MAX;}
-      const canvas=document.getElementById('compress-canvas');
-      canvas.width=w;canvas.height=h;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const MAX=1280; let w=img.width, h=img.height;
+      if (w>MAX) { h=Math.round(h*MAX/w); w=MAX; }
+      const canvas = document.getElementById('compress-canvas');
+      canvas.width=w; canvas.height=h;
       canvas.getContext('2d').drawImage(img,0,0,w,h);
       cb(canvas.toDataURL('image/jpeg',0.85));
     };
-    img.src=e.target.result;
+    img.src = e.target.result;
   };
   reader.readAsDataURL(file);
 }
 
 // ═══════════════════════════════════════════════
-// STATE SAVE/LOAD
+// HTML ESCAPE helper
+// ═══════════════════════════════════════════════
+function escHtml(str) {
+  return String(str||'')
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ═══════════════════════════════════════════════
+// STATE SAVE / LOAD
 // ═══════════════════════════════════════════════
 function getState() {
   return {
-    expId:document.getElementById('exp-id').value,
-    expDate:document.getElementById('exp-date').value,
-    expNote:document.getElementById('exp-note').value,
-    expOperator:document.getElementById('exp-operator').value,
-    reagents,solidContent,stepData,
-    actualWater:document.getElementById('sc-actual-water').value,
-    savedAt:new Date().toISOString()
+    expId:    document.getElementById('exp-id').value,
+    expDate:  document.getElementById('exp-date').value,
+    expNote:  document.getElementById('exp-note').value,
+    expOperator: document.getElementById('exp-operator').value,
+    reagents, solidContent, stepData,
+    processSteps: JSON.parse(JSON.stringify(processSteps)),
+    actualWater: document.getElementById('sc-actual-water').value,
+    savedAt: new Date().toISOString()
   };
 }
 
 function loadState(s) {
-  if(s.expId)document.getElementById('exp-id').value=s.expId;
-  if(s.expDate)document.getElementById('exp-date').value=s.expDate;
-  if(s.expNote)document.getElementById('exp-note').value=s.expNote;
-  if(s.expOperator)document.getElementById('exp-operator').value=s.expOperator;
-  if(s.reagents)reagents=s.reagents;
-  if(s.solidContent)solidContent=s.solidContent;
-  if(s.stepData)stepData=s.stepData;
-  const awEl=document.getElementById('sc-actual-water');if(awEl&&s.actualWater!==undefined)awEl.value=s.actualWater;
-  renderReagents();updateSummary();updateSolidContent(solidContent);
-  updateGoalSeekReagents();renderProcessSteps();syncExpId();
+  if (s.expId)       document.getElementById('exp-id').value        = s.expId;
+  if (s.expDate)     document.getElementById('exp-date').value      = s.expDate;
+  if (s.expNote)     document.getElementById('exp-note').value      = s.expNote;
+  if (s.expOperator) document.getElementById('exp-operator').value  = s.expOperator;
+  if (s.reagents)    reagents     = s.reagents;
+  if (s.solidContent !== undefined) solidContent = s.solidContent;
+  if (s.stepData)    stepData     = s.stepData;
+  if (s.processSteps && Array.isArray(s.processSteps)) {
+    processSteps = JSON.parse(JSON.stringify(s.processSteps));
+    saveProcessSteps();
+  }
+  const awEl = document.getElementById('sc-actual-water');
+  if (awEl && s.actualWater !== undefined) awEl.value = s.actualWater;
+  renderReagents(); updateSummary(); updateSolidContent(solidContent);
+  updateGoalSeekReagents(); renderProcessSteps(); syncExpId();
 }
 
-let _autoSave=null;
+let _autoSave = null;
 function autoSave() {
   clearTimeout(_autoSave);
-  _autoSave=setTimeout(()=>WPU_DB.set('current','state',getState()),700);
+  _autoSave = setTimeout(() => WPU_DB.set('current','state',getState()), 700);
 }
 function saveToCache() { WPU_DB.set('current','state',getState()); toast('已暂存到本地缓存','success'); }
 
 function newExperiment() {
-  if(!confirm('新建实验将清空当前数据，确认继续？\n（建议先存入数据库或导出 TXT）'))return;
-  reagents=[];solidContent=30;stepData={};
-  const now=new Date(),yy=String(now.getFullYear()).slice(2),mm=String(now.getMonth()+1).padStart(2,'0'),dd=String(now.getDate()).padStart(2,'0');
-  document.getElementById('exp-id').value=`${yy}${mm}${dd}-01`;
-  document.getElementById('exp-date').value=`${now.getFullYear()}-${mm}-${dd}`;
-  document.getElementById('exp-note').value='';document.getElementById('exp-operator').value='';
-  const awEl=document.getElementById('sc-actual-water');if(awEl)awEl.value='';
-  document.getElementById('sc-actual-pct').textContent='—';
+  if (!confirm('新建实验将清空当前数据，确认继续？\n（建议先存入数据库或导出 TXT）')) return;
+  reagents=[]; solidContent=30; stepData={};
+  const now=new Date(), yy=String(now.getFullYear()).slice(2), mm=String(now.getMonth()+1).padStart(2,'0'), dd=String(now.getDate()).padStart(2,'0');
+  document.getElementById('exp-id').value       = `${yy}${mm}${dd}-01`;
+  document.getElementById('exp-date').value     = `${now.getFullYear()}-${mm}-${dd}`;
+  document.getElementById('exp-note').value     = '';
+  document.getElementById('exp-operator').value = '';
+  const awEl = document.getElementById('sc-actual-water'); if (awEl) awEl.value='';
+  document.getElementById('sc-actual-pct').textContent = '—';
   WPU_DB.delete('current','state');
-  renderReagents();updateSummary();updateSolidContent(30);updateGoalSeekReagents();renderProcessSteps();syncExpId();
-  document.getElementById('gs-result').style.display='none';
+  renderReagents(); updateSummary(); updateSolidContent(30); updateGoalSeekReagents(); renderProcessSteps(); syncExpId();
+  document.getElementById('gs-result').style.display = 'none';
   switchPage('formula');
   toast('已新建实验','success');
 }
@@ -2248,10 +2715,8 @@ function newExperiment() {
 // ═══════════════════════════════════════════════
 async function loadHistory() {
   const items = await WPU_DB.getAll('history');
-  historyData = items.sort((a,b)=>new Date(b.savedAt)-new Date(a.savedAt));
-  renderDatabase();
-  updateHistoryBadge();
-  updateRptSelect();
+  historyData = items.sort((a,b) => new Date(b.savedAt) - new Date(a.savedAt));
+  renderDatabase(); updateHistoryBadge(); updateRptSelect();
   await updateStorageInfo();
 }
 
@@ -2264,16 +2729,16 @@ function updateRptSelect() {
   const cur = sel.value;
   sel.innerHTML = '<option value="">— 从数据库选择实验 —</option>';
   historyData.forEach(h => {
-    const o=document.createElement('option');
-    o.value=h.expId;
-    o.textContent=`${h.expId} · ${h.expDate} · ${h.expOperator||'—'}`;
+    const o = document.createElement('option');
+    o.value = h.expId;
+    o.textContent = `${h.expId} · ${h.expDate} · ${h.expOperator||'—'}`;
     sel.appendChild(o);
   });
-  if (cur) sel.value=cur;
+  if (cur) sel.value = cur;
 }
 
 function filterHistory() {
-  const q = document.getElementById('db-search').value.toLowerCase();
+  const q    = document.getElementById('db-search').value.toLowerCase();
   const sort = document.getElementById('db-sort').value;
   let filtered = historyData.filter(h =>
     (h.expId||'').toLowerCase().includes(q) ||
@@ -2283,11 +2748,11 @@ function filterHistory() {
   );
   const [field, dir] = sort.split('-');
   filtered.sort((a,b) => {
-    let av,bv;
-    if(field==='date'){av=new Date(a.savedAt||a.expDate);bv=new Date(b.savedAt||b.expDate);}
-    else if(field==='r'){av=parseFloat(a.rVal)||0;bv=parseFloat(b.rVal)||0;}
-    else if(field==='hsc'){av=parseFloat(a.hsc)||0;bv=parseFloat(b.hsc)||0;}
-    return dir==='desc'?bv-av:av-bv;
+    let av, bv;
+    if (field==='date') { av=new Date(a.savedAt||a.expDate); bv=new Date(b.savedAt||b.expDate); }
+    else if (field==='r') { av=parseFloat(a.rVal)||0; bv=parseFloat(b.rVal)||0; }
+    else if (field==='hsc') { av=parseFloat(a.hsc)||0; bv=parseFloat(b.hsc)||0; }
+    return dir==='desc' ? bv-av : av-bv;
   });
   renderDBTable(filtered);
 }
@@ -2296,10 +2761,7 @@ function renderDatabase() { filterHistory(); }
 
 function renderDBTable(data) {
   const tbody = document.getElementById('db-body');
-  if (!data.length) {
-    tbody.innerHTML='<tr><td colspan="9" class="db-empty">暂无记录</td></tr>';
-    return;
-  }
+  if (!data.length) { tbody.innerHTML='<tr><td colspan="9" class="db-empty">暂无记录</td></tr>'; return; }
   tbody.innerHTML = data.map(h => {
     const r=parseFloat(h.rVal);
     const rClass=isNaN(r)?'':r<0.95?'db-r-bad':r>1.15?'db-r-warn':'db-r-good';
@@ -2321,7 +2783,7 @@ function renderDBTable(data) {
 }
 
 async function viewReport(expId) {
-  const entry = historyData.find(h=>h.expId===expId);
+  const entry = historyData.find(h => h.expId===expId);
   if (!entry) return;
   selectedReportEntry = entry;
   renderReport(entry);
@@ -2336,7 +2798,7 @@ function loadReportFromSelect() {
 }
 
 async function loadFromHistory(expId) {
-  const entry = historyData.find(h=>h.expId===expId);
+  const entry = historyData.find(h => h.expId===expId);
   if (!entry) return;
   if (!confirm(`加载实验 ${expId} 将覆盖当前数据，确认？`)) return;
   loadState(entry);
@@ -2351,13 +2813,13 @@ function loadReportToEditor() {
 
 async function saveCurrentToHistory() {
   const state = getState();
-  const th = calcEquivalents(false);
+  const th    = calcEquivalents(false);
   const entry = {
     ...state,
-    rVal: th.rVal.toFixed(3),
-    hsc: th.hsc.toFixed(1),
+    rVal:       th.rVal.toFixed(3),
+    hsc:        th.hsc.toFixed(1),
     mainSystem: [...reagents.filter(r=>r.type==='iso').map(r=>r.name),...reagents.filter(r=>r.type==='polyol').map(r=>r.name)].join('/') || '—',
-    savedAt: new Date().toISOString()
+    savedAt:    new Date().toISOString()
   };
   await WPU_DB.set('history', entry.expId, entry);
   await loadHistory();
@@ -2368,25 +2830,25 @@ async function clearHistory() {
   if (!confirm('确定清空所有历史记录？')) return;
   await WPU_DB.clear('history');
   historyData=[];
-  renderDatabase();updateHistoryBadge();updateRptSelect();
+  renderDatabase(); updateHistoryBadge(); updateRptSelect();
   toast('历史已清空');
 }
 
 async function deleteHistoryItem(expId) {
   if (!confirm(`确定删除实验 ${expId}？`)) return;
   await WPU_DB.delete('history', expId);
-  historyData = historyData.filter(h=>h.expId!==expId);
-  renderDatabase();updateHistoryBadge();updateRptSelect();
+  historyData = historyData.filter(h => h.expId!==expId);
+  renderDatabase(); updateHistoryBadge(); updateRptSelect();
   toast('已删除');
 }
 
 async function updateStorageInfo() {
   const total = await WPU_DB.getStorageSize();
-  const mb = (total/1024/1024).toFixed(2);
-  const pct = Math.min(total/(100*1024*1024)*100, 100);
+  const mb    = (total/1024/1024).toFixed(2);
+  const pct   = Math.min(total/(100*1024*1024)*100, 100);
   document.getElementById('storage-used').textContent = `${mb} MB`;
   const fill = document.getElementById('storage-fill');
-  fill.style.width = pct+'%';
+  fill.style.width      = pct+'%';
   fill.style.background = pct>80?'var(--red)':pct>60?'var(--amber)':'var(--accent)';
 }
 
@@ -2395,84 +2857,89 @@ async function updateStorageInfo() {
 // ═══════════════════════════════════════════════
 function renderReport(entry) {
   document.getElementById('rpt-exp-id').textContent = entry.expId;
-  document.getElementById('rpt-meta').textContent = `${entry.expDate} · ${entry.expOperator||'—'} · ${entry.expNote||''}`;
+  document.getElementById('rpt-meta').textContent   = `${entry.expDate} · ${entry.expOperator||'—'} · ${entry.expNote||''}`;
 
-  const th = computeEquiv(entry.reagents||[], false);
-  const ac = computeEquiv(entry.reagents||[], true);
-  const hasActual = (entry.reagents||[]).some(r=>parseFloat(r.actual)>0);
-  const solidMass = (entry.reagents||[]).filter(r=>r.type!=='solvent').reduce((s,r)=>s+r.mass,0);
-  const actualSolidMass = (entry.reagents||[]).filter(r=>r.type!=='solvent').reduce((s,r)=>s+(parseFloat(r.actual)||0),0);
-  const water = solidMass>0?solidMass*(100-(entry.solidContent||30))/(entry.solidContent||30):0;
-  const aw = parseFloat(entry.actualWater)||0;
-  const actualSC = (actualSolidMass>0&&aw>0)?(actualSolidMass/(actualSolidMass+aw)*100).toFixed(1)+'%':'—';
+  const th         = computeEquiv(entry.reagents||[], false);
+  const ac         = computeEquiv(entry.reagents||[], true);
+  const hasActual  = (entry.reagents||[]).some(r => parseFloat(r.actual)>0);
+  const solidMass  = (entry.reagents||[]).filter(r=>r.type!=='solvent').reduce((s,r)=>s+r.mass, 0);
+  const actualSolidMass = (entry.reagents||[]).filter(r=>r.type!=='solvent').reduce((s,r)=>s+(parseFloat(r.actual)||0), 0);
+  const water      = solidMass>0 ? solidMass*(100-(entry.solidContent||30))/(entry.solidContent||30) : 0;
+  const aw         = parseFloat(entry.actualWater)||0;
+  const actualSC   = (actualSolidMass>0&&aw>0) ? (actualSolidMass/(actualSolidMass+aw)*100).toFixed(1)+'%' : '—';
 
-  // Reagent rows
-  const reagentRows = (entry.reagents||[]).map(r=>{
-    const thEq = (r.f>0&&r.eq!=null)?r.eq.toFixed(4):'—';
-    const am = parseFloat(r.actual)||0;
-    const acEq = (r.f>0&&am>0)?calcEq(am,r.mw,r.f).toFixed(4):'—';
-    const thDisplay = r.unit==='mL'&&r.vol?`${r.vol}mL (${r.mass.toFixed(3)}g)`:r.mass?`${r.mass}g`:'—';
-    const acDisplay = r.actual?(r.unit==='mL'&&r.actualVol?`${r.actualVol}mL (${am.toFixed(3)}g)`:`${r.actual}g`):'—';
+  const reagentRows = (entry.reagents||[]).map(r => {
+    const thEq    = (r.f>0&&r.eq!=null) ? r.eq.toFixed(4) : '—';
+    const am      = parseFloat(r.actual)||0;
+    const acEq    = (r.f>0&&am>0) ? calcEq(am,r.mw,r.f).toFixed(4) : '—';
+    const thDisp  = r.unit==='mL'&&r.vol ? `${r.vol}mL (${r.mass.toFixed(3)}g)` : r.mass?`${r.mass}g`:'—';
+    const acDisp  = r.actual ? (r.unit==='mL'&&r.actualVol ? `${r.actualVol}mL (${am.toFixed(3)}g)` : `${r.actual}g`) : '—';
     return `<tr>
       <td class="r-name">${r.name}</td>
       <td><span class="type-badge ${TYPE_CLASS[r.type]||'type-other'}">${TYPE_NAME[r.type]||r.type}</span></td>
       <td style="text-align:center;">${r.mw}</td>
       <td style="text-align:center;">${r.f}</td>
-      <td class="r-theory" style="text-align:center;">${thDisplay}</td>
-      <td class="r-actual" style="text-align:center;">${acDisplay}</td>
+      <td class="r-theory" style="text-align:center;">${thDisp}</td>
+      <td class="r-actual" style="text-align:center;">${acDisp}</td>
       <td class="r-eq" style="text-align:center;">${thEq}</td>
       <td class="r-eq" style="text-align:center;color:var(--green);">${acEq}</td>
     </tr>`;
   }).join('');
 
-  // Calc stats
-  const rVal = th.rVal;
-  const rClass = rVal<0.95?'r-bad':rVal>1.15?'r-warn':'r-good';
+  const rClass    = th.rVal<0.95?'r-bad':th.rVal>1.15?'r-warn':'r-good';
   const calcStats = [
     {label:'R 值 (NCO/OH)', theory:th.rVal.toFixed(4), actual:hasActual?ac.rVal.toFixed(4):'—', class:rClass},
-    {label:'HSC 硬段含量', theory:th.hsc.toFixed(2)+'%', actual:hasActual?ac.hsc.toFixed(2)+'%':'—', class:''},
-    {label:'NCO 当量', theory:th.ncoEq.toFixed(4), actual:hasActual?ac.ncoEq.toFixed(4):'—', class:'r-cyan'},
-    {label:'OH 当量', theory:th.ohEq.toFixed(4), actual:hasActual?ac.ohEq.toFixed(4):'—', class:'r-cyan'},
-    {label:'固含量', theory:(entry.solidContent||30)+'%', actual:actualSC, class:''},
-    {label:'固体质量 (g)', theory:solidMass.toFixed(3), actual:actualSolidMass>0?actualSolidMass.toFixed(3):'—', class:''},
-    {label:'加水量 (g)', theory:water.toFixed(3), actual:aw>0?aw.toFixed(3):'—', class:''},
-    {label:'乳液总质量 (g)', theory:(solidMass+water).toFixed(3), actual:(actualSolidMass>0&&aw>0)?(actualSolidMass+aw).toFixed(3):'—', class:''},
-  ].map(s=>`<div class="rpt-stat ${s.class}">
+    {label:'HSC 硬段含量',  theory:th.hsc.toFixed(2)+'%', actual:hasActual?ac.hsc.toFixed(2)+'%':'—', class:''},
+    {label:'NCO 当量',      theory:th.ncoEq.toFixed(4), actual:hasActual?ac.ncoEq.toFixed(4):'—', class:'r-cyan'},
+    {label:'OH 当量',       theory:th.ohEq.toFixed(4),  actual:hasActual?ac.ohEq.toFixed(4):'—',  class:'r-cyan'},
+    {label:'固含量',        theory:(entry.solidContent||30)+'%', actual:actualSC, class:''},
+    {label:'固体质量 (g)',  theory:solidMass.toFixed(3), actual:actualSolidMass>0?actualSolidMass.toFixed(3):'—', class:''},
+    {label:'加水量 (g)',    theory:water.toFixed(3),     actual:aw>0?aw.toFixed(3):'—', class:''},
+    {label:'乳液总质量 (g)',theory:(solidMass+water).toFixed(3), actual:(actualSolidMass>0&&aw>0)?(actualSolidMass+aw).toFixed(3):'—', class:''},
+  ].map(s => `<div class="rpt-stat ${s.class}">
     <div class="rpt-stat-label">${s.label}</div>
     <div class="rpt-stat-theory">${s.theory}</div>
-    ${s.actual&&s.actual!=='—'?`<div class="rpt-stat-actual">实际：${s.actual}</div>`:''}
+    ${s.actual&&s.actual!=='—' ? `<div class="rpt-stat-actual">实际：${s.actual}</div>` : ''}
   </div>`).join('');
 
-  // Process steps
-  const processStepsHTML = PROCESS_STEPS.map((step,idx)=>{
-    const d=(entry.stepData||{})[step.id]||{};
-    // 兼容旧数据：优先使用addTime，否则使用startTime
-    const addTime = d.addTime || d.startTime || '';
-    const hasDone=!!(addTime||d.obs);
-    const params=[d.temp?`🌡 ${d.temp}°C`:'',d.rpm?`⚙ ${d.rpm}rpm`:''].filter(Boolean);
-    const times=[addTime?`加料 ${addTime}`:'',d.needCool&&d.coolStart?`降温开始 ${d.coolStart}`:'',d.needCool&&d.coolTargetTemp?`→ ${d.coolTargetTemp}°C`:'',d.needCool&&d.coolEnd?`降温完成 ${d.coolEnd}`:''].filter(Boolean);
+  const steps = entry.processSteps || processSteps;
+  const processStepsHTML = steps.map((step,idx) => {
+    const d        = (entry.stepData||{})[step.id]||{};
+    const addTime  = d.addTime || d.startTime || '';
+    const hasDone  = !!(addTime || d.obs);
+    const params   = [d.temp?`🌡 ${d.temp}°C`:'', d.rpm?`⚙ ${d.rpm}rpm`:''].filter(Boolean);
+    const times    = [addTime?`加料 ${addTime}`:'', d.needCool&&d.coolStart?`降温开始 ${d.coolStart}`:'', d.needCool&&d.coolTargetTemp?`→ ${d.coolTargetTemp}°C`:'', d.needCool&&d.coolEnd?`降温完成 ${d.coolEnd}`:''].filter(Boolean);
+    const addedR   = (d.addedReagents||[]).map(rid => {
+      const r = (entry.reagents||[]).find(x => String(x.id) === String(rid));
+      return r ? `${r.name}(${r.unit==='mL'?((r.vol||r.mass)||0).toFixed(2)+'mL':(r.mass||0).toFixed(2)+'g'})` : '';
+    }).filter(Boolean);
+    // 水在 addedReagents 中
+    if ((d.addedReagents||[]).map(String).includes('water')) {
+      addedR.push(`💧水`);
+    }
+    const reagentsHtml = addedR.length ? `<div class="rpt-step-reagents">🧪 加入：${addedR.join(' + ')}</div>` : '';
     return `<div class="rpt-step">
       <div class="rpt-step-num${hasDone?' done':''}">0${idx+1}</div>
       <div class="rpt-step-content">
         <div class="rpt-step-title">${step.title}</div>
         ${params.length?`<div class="rpt-step-params">${params.join(' · ')}</div>`:''}
         ${times.length?`<div class="rpt-step-params">${times.join(' · ')}</div>`:''}
+        ${reagentsHtml}
         ${d.obs?`<div class="rpt-step-obs">${d.obs}</div>`:''}
-        ${!hasDone?'<div class="rpt-step-empty">（暂无记录）</div>':''}
+        ${!hasDone&&!reagentsHtml?'<div class="rpt-step-empty">（暂无记录）</div>':''}
       </div>
     </div>`;
   }).join('');
 
-  // Photos
   const allPhotos = [];
-  PROCESS_STEPS.forEach(step=>{((entry.stepData||{})[step.id]?.photos||[]).forEach(p=>allPhotos.push({stepTitle:step.title,...p}));});
-  const photosHTML = allPhotos.length?`
+  steps.forEach(step => ((entry.stepData||{})[step.id]?.photos||[]).forEach(p => allPhotos.push({stepTitle:step.title,...p})));
+  const photosHTML = allPhotos.length ? `
     <div class="rpt-section">
       <div class="rpt-section-title">📷 实验照片附录</div>
       <div class="rpt-photos">
-        ${allPhotos.map(p=>`<div class="rpt-photo"><img src="${p.data}" alt="${p.caption}"><div class="rpt-photo-cap"><strong>${p.stepTitle}</strong>：${p.caption}</div></div>`).join('')}
+        ${allPhotos.map(p=>`<div class="rpt-photo"><img src="${p.data}" alt="${escHtml(p.caption)}"><div class="rpt-photo-cap"><strong>${escHtml(p.stepTitle)}</strong>：${escHtml(p.caption)}</div></div>`).join('')}
       </div>
-    </div>`:'';
+    </div>` : '';
 
   document.getElementById('report-content').innerHTML = `
     <div class="rpt-section">
@@ -2486,7 +2953,6 @@ function renderReport(entry) {
         <div class="rpt-info-item"><div class="rpt-info-label">存档时间</div><div class="rpt-info-value">${entry.savedAt?new Date(entry.savedAt).toLocaleString('zh-CN'):'—'}</div></div>
       </div>
     </div>
-
     <div class="rpt-section">
       <div class="rpt-section-title">⚗️ 原料配方表</div>
       <div style="overflow-x:auto;">
@@ -2506,34 +2972,31 @@ function renderReport(entry) {
         </table>
       </div>
     </div>
-
     <div class="rpt-section">
       <div class="rpt-section-title">📐 当量计算结果</div>
       <div class="rpt-stats-grid">${calcStats}</div>
     </div>
-
     <div class="rpt-section">
       <div class="rpt-section-title">🧪 合成工艺操作记录</div>
       <div>${processStepsHTML}</div>
     </div>
-
     ${photosHTML}
   `;
 }
 
 function computeEquiv(rList, useActual) {
-  let ncoEq=0,ohEq=0,isoMass=0,chainMass=0,polyolMass=0;
-  rList.forEach(r=>{
-    if(r.type==='solvent')return;
-    const m=useActual?(parseFloat(r.actual)||r.mass):r.mass;
-    if(r.f===0)return;
-    const eq=m*r.f/r.mw;
-    if(r.type==='iso'){ncoEq+=eq;isoMass+=m;}
-    else if(r.type==='polyol'){ohEq+=eq;polyolMass+=m;}
-    else if(r.type==='chain'){ohEq+=eq;chainMass+=m;}
+  let ncoEq=0, ohEq=0, isoMass=0, chainMass=0, polyolMass=0;
+  rList.forEach(r => {
+    if (r.type==='solvent') return;
+    const m = useActual ? (parseFloat(r.actual)||r.mass) : r.mass;
+    if (r.f===0) return;
+    const eq = m * r.f / r.mw;
+    if (r.type==='iso')         { ncoEq+=eq; isoMass+=m; }
+    else if (r.type==='polyol') { ohEq+=eq;  polyolMass+=m; }
+    else if (r.type==='chain')  { ohEq+=eq;  chainMass+=m; }
   });
-  const hardMass=isoMass+chainMass,polymerMass=hardMass+polyolMass;
-  return {ncoEq,ohEq,rVal:ohEq>0?ncoEq/ohEq:0,hsc:polymerMass>0?hardMass/polymerMass*100:0};
+  const hardMass=isoMass+chainMass, polymerMass=hardMass+polyolMass;
+  return {ncoEq, ohEq, rVal:ohEq>0?ncoEq/ohEq:0, hsc:polymerMass>0?hardMass/polymerMass*100:0};
 }
 
 // ═══════════════════════════════════════════════
@@ -2542,56 +3005,56 @@ function computeEquiv(rList, useActual) {
 async function exportJSON() {
   await saveCurrentToHistory();
   const state = getState();
-  const th = calcEquivalents(false);
-  const solidMass = reagents.reduce((s,r)=>s+r.mass,0);
-  const pkg = {...state, calculated:{theory:{...th,water:solidMass*(100-solidContent)/solidContent,solidContent}}, exportedAt:new Date().toISOString()};
-  const blob = new Blob([JSON.stringify(pkg,null,2)],{type:'application/json'});
-  const url = URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download=`${state.expId||'exp'}.txt`;a.click();
+  const th    = calcEquivalents(false);
+  const solidMass = reagents.reduce((s,r)=>s+r.mass, 0);
+  const pkg   = {...state, calculated:{theory:{...th,water:solidMass*(100-solidContent)/solidContent,solidContent}}, exportedAt:new Date().toISOString()};
+  const blob  = new Blob([JSON.stringify(pkg,null,2)], {type:'application/json'});
+  const url   = URL.createObjectURL(blob);
+  const a     = document.createElement('a'); a.href=url; a.download=`${state.expId||'exp'}.txt`; a.click();
   URL.revokeObjectURL(url);
   toast('TXT 已导出','success');
 }
 
 async function exportAllHistory() {
-  if (!historyData.length){toast('暂无历史记录','error');return;}
-  const blob=new Blob([JSON.stringify(historyData,null,2)],{type:'application/json'});
-  const url=URL.createObjectURL(blob);
-  const a=document.createElement('a');a.href=url;a.download=`wpu_history_${new Date().toISOString().slice(0,10)}.txt`;a.click();
+  if (!historyData.length) { toast('暂无历史记录','error'); return; }
+  const blob = new Blob([JSON.stringify(historyData,null,2)], {type:'application/json'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a'); a.href=url; a.download=`wpu_history_${new Date().toISOString().slice(0,10)}.txt`; a.click();
   URL.revokeObjectURL(url);
   toast(`已导出 ${historyData.length} 条记录`,'success');
 }
 
 async function importAllHistory(input) {
-  const file=input.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=async e=>{
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async e => {
     try {
-      const data=JSON.parse(e.target.result);
-      if(!Array.isArray(data)){toast('格式错误','error');return;}
-      if(!confirm(`导入 ${data.length} 条记录？将合并到现有历史。`))return;
-      const existIds=new Set(historyData.map(h=>h.expId));
-      let added=0;
-      for(const entry of data){
-        if(entry.expId&&!existIds.has(entry.expId)){
-          await WPU_DB.set('history',entry.expId,entry);existIds.add(entry.expId);added++;
+      const data = JSON.parse(e.target.result);
+      if (!Array.isArray(data)) { toast('格式错误','error'); return; }
+      if (!confirm(`导入 ${data.length} 条记录？将合并到现有历史。`)) return;
+      const existIds = new Set(historyData.map(h=>h.expId));
+      let added = 0;
+      for (const entry of data) {
+        if (entry.expId && !existIds.has(entry.expId)) {
+          await WPU_DB.set('history', entry.expId, entry); existIds.add(entry.expId); added++;
         }
       }
-      await loadHistory();input.value='';
+      await loadHistory(); input.value='';
       toast(`已导入 ${added} 条记录`,'success');
-    }catch(err){toast('JSON 格式错误','error');}
+    } catch(err) { toast('JSON 格式错误','error'); }
   };
   reader.readAsText(file);
 }
 
 function importJSON(input) {
-  const file=input.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=e=>{
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
     try {
-      const state=JSON.parse(e.target.result);
-      if(!confirm(`导入实验 ${state.expId||'?'} 的数据？当前数据将被覆盖。`))return;
-      loadState(state);switchPage('formula');toast('数据已导入','success');
-    }catch(err){toast('JSON 格式错误','error');}
+      const state = JSON.parse(e.target.result);
+      if (!confirm(`导入实验 ${state.expId||'?'} 的数据？当前数据将被覆盖。`)) return;
+      loadState(state); switchPage('formula'); toast('数据已导入','success');
+    } catch(err) { toast('JSON 格式错误','error'); }
   };
   reader.readAsText(file);
 }
@@ -2600,58 +3063,53 @@ function importJSON(input) {
 // EXPORT: EXCEL
 // ═══════════════════════════════════════════════
 async function exportToExcel() {
-  if (!historyData.length){toast('暂无历史记录','error');return;}
-  const wb=XLSX.utils.book_new();
-  const summaryRows=[['实验编号','日期','操作人','备注','R值','HSC%','固含%','主体系','保存时间']];
-  historyData.forEach(h=>summaryRows.push([h.expId||'',h.expDate||'',h.expOperator||'',h.expNote||'',h.rVal||'',h.hsc||'',h.solidContent||'',h.mainSystem||'',h.savedAt?new Date(h.savedAt).toLocaleString('zh-CN'):'']));
-  const ws1=XLSX.utils.aoa_to_sheet(summaryRows);
-  ws1['!cols']=[{wch:15},{wch:12},{wch:10},{wch:20},{wch:8},{wch:8},{wch:8},{wch:25},{wch:20}];
+  if (!historyData.length) { toast('暂无历史记录','error'); return; }
+  const wb = XLSX.utils.book_new();
+  const summaryRows = [['实验编号','日期','操作人','备注','R值','HSC%','固含%','主体系','保存时间']];
+  historyData.forEach(h => summaryRows.push([h.expId||'',h.expDate||'',h.expOperator||'',h.expNote||'',h.rVal||'',h.hsc||'',h.solidContent||'',h.mainSystem||'',h.savedAt?new Date(h.savedAt).toLocaleString('zh-CN'):'']));
+  const ws1 = XLSX.utils.aoa_to_sheet(summaryRows);
+  ws1['!cols'] = [{wch:15},{wch:12},{wch:10},{wch:20},{wch:8},{wch:8},{wch:8},{wch:25},{wch:20}];
   XLSX.utils.book_append_sheet(wb,ws1,'实验汇总');
-  const reagentRows=[['实验编号','原料名称','类型','单位','理论用量','实际用量','密度','分子量','官能度f','当量Eq']];
-  historyData.forEach(h=>(h.reagents||[]).forEach(r=>reagentRows.push([h.expId||'',r.name||'',r.type||'',r.unit||'g',r.unit==='mL'?(r.vol||''):(r.mass||''),r.unit==='mL'?(r.actualVol||''):(r.actual||''),r.density||'',r.mw||'',r.f||'',r.eq!=null?r.eq.toFixed(4):''])));
-  const ws2=XLSX.utils.aoa_to_sheet(reagentRows);
+  const reagentRows = [['实验编号','原料名称','类型','单位','理论用量','实际用量','密度','分子量','官能度f','当量Eq']];
+  historyData.forEach(h => (h.reagents||[]).forEach(r => reagentRows.push([h.expId||'',r.name||'',r.type||'',r.unit||'g',r.unit==='mL'?(r.vol||''):(r.mass||''),r.unit==='mL'?(r.actualVol||''):(r.actual||''),r.density||'',r.mw||'',r.f||'',r.eq!=null?r.eq.toFixed(4):''])));
+  const ws2 = XLSX.utils.aoa_to_sheet(reagentRows);
   XLSX.utils.book_append_sheet(wb,ws2,'原料明细');
-  const jsonRows=[['实验编号','完整JSON数据']];
-  historyData.forEach(h=>{
-    const clean={...h};
-    if(clean.stepData)Object.keys(clean.stepData).forEach(sid=>{if(clean.stepData[sid].photos)clean.stepData[sid].photos=clean.stepData[sid].photos.map(p=>({caption:p.caption}));});
-    jsonRows.push([h.expId||'',JSON.stringify(clean)]);
+  const jsonRows = [['实验编号','完整JSON数据']];
+  historyData.forEach(h => {
+    const clean = {...h};
+    if (clean.stepData) Object.keys(clean.stepData).forEach(sid => { if (clean.stepData[sid].photos) clean.stepData[sid].photos = clean.stepData[sid].photos.map(p=>({caption:p.caption})); });
+    jsonRows.push([h.expId||'', JSON.stringify(clean)]);
   });
-  const ws3=XLSX.utils.aoa_to_sheet(jsonRows);ws3['!cols']=[{wch:15},{wch:200}];
+  const ws3 = XLSX.utils.aoa_to_sheet(jsonRows); ws3['!cols']=[{wch:15},{wch:200}];
   XLSX.utils.book_append_sheet(wb,ws3,'完整JSON');
-  XLSX.writeFile(wb,`wpu_history_${new Date().toISOString().slice(0,10)}.xlsx`);
+  XLSX.writeFile(wb, `wpu_history_${new Date().toISOString().slice(0,10)}.xlsx`);
   toast(`已导出 ${historyData.length} 条记录`,'success');
 }
 
 async function importFromExcel(input) {
-  const file=input.files[0];if(!file)return;
-  const reader=new FileReader();
-  reader.onload=async e=>{
+  const file = input.files[0]; if(!file) return;
+  const reader = new FileReader();
+  reader.onload = async e => {
     try {
-      const data=new Uint8Array(e.target.result);
-      const wb=XLSX.read(data,{type:'array'});
-      let records=[];
-      if(wb.SheetNames.includes('完整JSON')){
-        const rows=XLSX.utils.sheet_to_json(wb.Sheets['完整JSON'],{header:1});
-        for(let i=1;i<rows.length;i++){
-          if(!rows[i][0]||!rows[i][1])continue;
-          try{records.push({expId:rows[i][0],data:JSON.parse(rows[i][1])});}catch(e){}
+      const data = new Uint8Array(e.target.result);
+      const wb   = XLSX.read(data,{type:'array'});
+      let records = [];
+      if (wb.SheetNames.includes('完整JSON')) {
+        const rows = XLSX.utils.sheet_to_json(wb.Sheets['完整JSON'],{header:1});
+        for (let i=1; i<rows.length; i++) {
+          if (!rows[i][0]||!rows[i][1]) continue;
+          try { records.push({expId:rows[i][0], data:JSON.parse(rows[i][1])}); } catch(e) {}
         }
       }
-      if(!records.length){toast('未找到有效记录','error');return;}
-      const list=records.map((r,i)=>`${i+1}. ${r.expId} - ${r.data.expDate||''} ${r.data.expOperator||''} ${r.data.expNote||''}`).join('\n');
-      const choice=prompt(`找到 ${records.length} 条记录：\n\n${list}\n\n请输入编号 (1-${records.length})，或输入 'all' 生成全部：`);
-      if(!choice)return;
-      const indices=choice.toLowerCase()==='all'?records.map((_,i)=>i):choice.split(/[,，]/).map(s=>parseInt(s.trim())-1).filter(i=>i>=0&&i<records.length);
-      for(const i of indices){
-        loadState(records[i].data);
-        await new Promise(r=>setTimeout(r,100));
-        await exportPDF();
-        await new Promise(r=>setTimeout(r,500));
-      }
+      if (!records.length) { toast('未找到有效记录','error'); return; }
+      const list   = records.map((r,i)=>`${i+1}. ${r.expId} - ${r.data.expDate||''} ${r.data.expOperator||''} ${r.data.expNote||''}`).join('\n');
+      const choice = prompt(`找到 ${records.length} 条记录：\n\n${list}\n\n请输入编号 (1-${records.length})，或输入 'all' 生成全部：`);
+      if (!choice) return;
+      const indices = choice.toLowerCase()==='all' ? records.map((_,i)=>i) : choice.split(/[,，]/).map(s=>parseInt(s.trim())-1).filter(i=>i>=0&&i<records.length);
+      for (const i of indices) { loadState(records[i].data); await new Promise(r=>setTimeout(r,100)); await exportPDF(); await new Promise(r=>setTimeout(r,500)); }
       toast(`已生成 ${indices.length} 个 PDF`,'success');
       input.value='';
-    }catch(err){toast('Excel 解析错误：'+err.message,'error');}
+    } catch(err) { toast('Excel 解析错误：'+err.message,'error'); }
   };
   reader.readAsArrayBuffer(file);
 }
@@ -2660,38 +3118,38 @@ async function importFromExcel(input) {
 // BATCH TXT → EXCEL
 // ═══════════════════════════════════════════════
 function selectBatchTxtFiles() {
-  const input=document.createElement('input');
-  input.type='file';input.multiple=true;input.accept='.txt,.json';
-  input.onchange=e=>{
-    batchTxtFiles=Array.from(e.target.files);
-    const el=document.getElementById('batch-file-count');
-    if(el)el.textContent=`已选择 ${batchTxtFiles.length} 个文件`;
+  const input = document.createElement('input');
+  input.type='file'; input.multiple=true; input.accept='.txt,.json';
+  input.onchange = e => {
+    batchTxtFiles = Array.from(e.target.files);
+    const el = document.getElementById('batch-file-count');
+    if (el) el.textContent = `已选择 ${batchTxtFiles.length} 个文件`;
     toast(`已选择 ${batchTxtFiles.length} 个文件`,'success');
   };
   input.click();
 }
 
 async function convertTxtToExcel() {
-  if(!batchTxtFiles.length){toast('请先选择文件','error');return;}
-  const allData=[];
-  for(const file of batchTxtFiles){
-    try{allData.push(JSON.parse(await file.text()));}catch(e){console.error(`解析 ${file.name} 失败`);}
+  if (!batchTxtFiles.length) { toast('请先选择文件','error'); return; }
+  const allData = [];
+  for (const file of batchTxtFiles) {
+    try { allData.push(JSON.parse(await file.text())); } catch(e) { console.error(`解析 ${file.name} 失败`); }
   }
-  if(!allData.length){toast('没有成功解析任何文件','error');return;}
-  const wb=XLSX.utils.book_new();
-  const summaryRows=[['实验编号','日期','操作人','备注','R值','HSC%','固含%','主体系','保存时间']];
-  allData.forEach(h=>summaryRows.push([h.expId||'',h.expDate||'',h.expOperator||'',h.expNote||'',h.rVal||'',h.hsc||'',h.solidContent||'',h.mainSystem||'',h.savedAt?new Date(h.savedAt).toLocaleString('zh-CN'):'']));
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(summaryRows),'实验汇总');
-  const reagentRows=[['实验编号','原料名称','类型','单位','理论用量','实际用量','密度','分子量','官能度f','当量Eq']];
-  allData.forEach(h=>(h.reagents||[]).forEach(r=>reagentRows.push([h.expId||'',r.name||'',r.type||'',r.unit||'g',r.unit==='mL'?(r.vol||''):(r.mass||''),r.unit==='mL'?(r.actualVol||''):(r.actual||''),r.density||'',r.mw||'',r.f||'',r.eq!=null?r.eq.toFixed(4):''])));
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(reagentRows),'原料明细');
-  const jsonRows=[['实验编号','完整JSON数据']];
-  allData.forEach(h=>jsonRows.push([h.expId||'',JSON.stringify(h)]));
-  XLSX.utils.book_append_sheet(wb,XLSX.utils.aoa_to_sheet(jsonRows),'完整JSON');
-  XLSX.writeFile(wb,`wpu_batch_${new Date().toISOString().slice(0,10)}.xlsx`);
+  if (!allData.length) { toast('没有成功解析任何文件','error'); return; }
+  const wb = XLSX.utils.book_new();
+  const summaryRows = [['实验编号','日期','操作人','备注','R值','HSC%','固含%','主体系','保存时间']];
+  allData.forEach(h => summaryRows.push([h.expId||'',h.expDate||'',h.expOperator||'',h.expNote||'',h.rVal||'',h.hsc||'',h.solidContent||'',h.mainSystem||'',h.savedAt?new Date(h.savedAt).toLocaleString('zh-CN'):'']));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(summaryRows), '实验汇总');
+  const reagentRows = [['实验编号','原料名称','类型','单位','理论用量','实际用量','密度','分子量','官能度f','当量Eq']];
+  allData.forEach(h => (h.reagents||[]).forEach(r => reagentRows.push([h.expId||'',r.name||'',r.type||'',r.unit||'g',r.unit==='mL'?(r.vol||''):(r.mass||''),r.unit==='mL'?(r.actualVol||''):(r.actual||''),r.density||'',r.mw||'',r.f||'',r.eq!=null?r.eq.toFixed(4):''])));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(reagentRows), '原料明细');
+  const jsonRows = [['实验编号','完整JSON数据']];
+  allData.forEach(h => jsonRows.push([h.expId||'', JSON.stringify(h)]));
+  XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(jsonRows), '完整JSON');
+  XLSX.writeFile(wb, `wpu_batch_${new Date().toISOString().slice(0,10)}.xlsx`);
   toast(`已将 ${allData.length} 条记录转为 Excel`,'success');
-  batchTxtFiles=[];
-  const el=document.getElementById('batch-file-count');if(el)el.textContent='';
+  batchTxtFiles = [];
+  const el = document.getElementById('batch-file-count'); if (el) el.textContent='';
 }
 
 // ═══════════════════════════════════════════════
@@ -2699,69 +3157,82 @@ async function convertTxtToExcel() {
 // ═══════════════════════════════════════════════
 async function exportCurrentPDF() {
   if (!selectedReportEntry) { toast('请先在报告页选择实验','error'); return; }
-  const origReagents=[...reagents], origSC=solidContent, origStepData=JSON.parse(JSON.stringify(stepData));
+  const origReagents     = [...reagents];
+  const origSC           = solidContent;
+  const origStepData     = JSON.parse(JSON.stringify(stepData));
+  const origProcessSteps = JSON.parse(JSON.stringify(processSteps));
   loadState(selectedReportEntry);
+  if (selectedReportEntry.processSteps) processSteps = JSON.parse(JSON.stringify(selectedReportEntry.processSteps));
   await exportPDF();
-  reagents=origReagents; solidContent=origSC; stepData=origStepData;
+  reagents     = origReagents;
+  solidContent = origSC;
+  stepData     = origStepData;
+  processSteps = origProcessSteps;
+  renderProcessSteps();
 }
 
 async function exportPDF() {
-  const btn=document.getElementById('pdf-btn');
-  if(btn){btn.disabled=true;btn.textContent='⏳ 生成中…';}
+  const btn = document.getElementById('pdf-btn');
+  if (btn) { btn.disabled=true; btn.textContent='⏳ 生成中…'; }
   try {
-    const state=getState();
+    const state = getState();
     await saveCurrentToHistory();
-    const th=calcEquivalents(false),ac=calcEquivalents(true);
-    const hasActual=reagents.some(r=>parseFloat(r.actual)>0);
-    const solidMass=reagents.filter(r=>r.type!=='solvent').reduce((s,r)=>s+r.mass,0);
-    const actualSolidMass=reagents.filter(r=>r.type!=='solvent').reduce((s,r)=>s+(parseFloat(r.actual)||0),0);
-    const water=solidMass>0?solidMass*(100-solidContent)/solidContent:0;
-    const awInput=parseFloat(document.getElementById('sc-actual-water').value)||0;
-    const actualSC=(actualSolidMass>0&&awInput>0)?(actualSolidMass/(actualSolidMass+awInput)*100).toFixed(1)+'%':'—';
-    const PX_PER_MM=3.7795,CW_MM=180,CW_PX=Math.round(CW_MM*PX_PER_MM*1.5);
+    const th = calcEquivalents(false), ac = calcEquivalents(true);
+    const hasActual    = reagents.some(r => parseFloat(r.actual)>0);
+    const solidMass    = reagents.filter(r=>r.type!=='solvent').reduce((s,r)=>s+r.mass,0);
+    const actualSolidMass = reagents.filter(r=>r.type!=='solvent').reduce((s,r)=>s+(parseFloat(r.actual)||0),0);
+    const water        = solidMass>0 ? solidMass*(100-solidContent)/solidContent : 0;
+    const awInput      = parseFloat(document.getElementById('sc-actual-water').value)||0;
+    const actualSC     = (actualSolidMass>0&&awInput>0) ? (actualSolidMass/(actualSolidMass+awInput)*100).toFixed(1)+'%' : '—';
+    const PX_PER_MM=3.7795, CW_MM=180, CW_PX=Math.round(CW_MM*PX_PER_MM*1.5);
 
     async function renderBlock(html) {
-      const div=document.createElement('div');
-      div.style.cssText=`position:fixed;left:-9999px;top:0;width:${CW_PX}px;font-family:'Noto Sans SC',sans-serif;font-size:26px;color:#1e293b;line-height:1.5;background:#ffffff;box-sizing:border-box;`;
-      div.innerHTML=html;
+      const div = document.createElement('div');
+      div.style.cssText = `position:fixed;left:-9999px;top:0;width:${CW_PX}px;font-family:'Noto Sans SC',sans-serif;font-size:26px;color:#1e293b;line-height:1.5;background:#ffffff;box-sizing:border-box;`;
+      div.innerHTML = html;
       document.body.appendChild(div);
       await document.fonts.ready;
-      const canvas=await html2canvas(div,{scale:2,backgroundColor:'#ffffff',logging:false,useCORS:true,allowTaint:true});
+      const canvas = await html2canvas(div,{scale:2,backgroundColor:'#ffffff',logging:false,useCORS:true,allowTaint:true});
       document.body.removeChild(div);
       return canvas;
     }
 
-    const fRows=reagents.map((r,i)=>{
-      const thEq=(r.f>0&&r.eq!=null)?r.eq.toFixed(4):'—';
-      const am=parseFloat(r.actual)||0;
-      const acEq=(r.f>0&&am>0)?calcEq(am,r.mw,r.f).toFixed(4):'—';
-      const thD=r.unit==='mL'&&r.vol?`${r.vol}mL(${r.mass.toFixed(3)}g)`:`${r.mass}g`;
-      const acD=r.actual?(r.unit==='mL'&&r.actualVol?`${r.actualVol}mL(${am.toFixed(3)}g)`:`${r.actual}g`):'—';
+    const fRows = reagents.map((r,i) => {
+      const thEq = (r.f>0&&r.eq!=null)?r.eq.toFixed(4):'—';
+      const am   = parseFloat(r.actual)||0;
+      const acEq = (r.f>0&&am>0)?calcEq(am,r.mw,r.f).toFixed(4):'—';
+      const thD  = r.unit==='mL'&&r.vol?`${r.vol}mL(${r.mass.toFixed(3)}g)`:`${r.mass}g`;
+      const acD  = r.actual?(r.unit==='mL'&&r.actualVol?`${r.actualVol}mL(${am.toFixed(3)}g)`:`${r.actual}g`):'—';
       return `<tr style="background:${i%2?'#f8fafc':'#fff'}"><td style="padding:4px 5px;border:1px solid #e2e8f0;font-weight:600;">${r.name}</td><td style="padding:4px 5px;border:1px solid #e2e8f0;">${TYPE_NAME[r.type]||r.type}</td><td style="padding:4px 5px;border:1px solid #e2e8f0;text-align:center;">${r.mw}</td><td style="padding:4px 5px;border:1px solid #e2e8f0;text-align:center;">${r.f}</td><td style="padding:4px 5px;border:1px solid #e2e8f0;text-align:center;font-weight:600;">${thD}</td><td style="padding:4px 5px;border:1px solid #e2e8f0;text-align:center;">${acD}</td><td style="padding:4px 5px;border:1px solid #e2e8f0;text-align:center;">${thEq}</td><td style="padding:4px 5px;border:1px solid #e2e8f0;text-align:center;">${acEq}</td></tr>`;
     }).join('');
 
-    const calcRows=[
-      ['R 值 (NCO/OH)',th.rVal.toFixed(4),hasActual?ac.rVal.toFixed(4):'—'],
-      ['OH 当量',th.ohEq.toFixed(4),hasActual?ac.ohEq.toFixed(4):'—'],
-      ['NCO 当量',th.ncoEq.toFixed(4),hasActual?ac.ncoEq.toFixed(4):'—'],
-      ['HSC 硬段含量',th.hsc.toFixed(2)+'%',hasActual?ac.hsc.toFixed(2)+'%':'—'],
-      ['固体总质量',solidMass.toFixed(3)+' g',actualSolidMass>0?actualSolidMass.toFixed(3)+' g':'—'],
-      ['加水量',water.toFixed(3)+' g',awInput>0?awInput.toFixed(3)+' g':'—'],
-      ['固含量',solidContent+'%',actualSC],
-      ['乳液总质量',(solidMass+water).toFixed(3)+' g',(actualSolidMass>0&&awInput>0)?(actualSolidMass+awInput).toFixed(3)+' g':'—'],
-    ].map((row,i)=>`<tr style="background:${i%2?'#f8fafc':'#fff'}"><td style="padding:4px 6px;border:1px solid #e2e8f0;font-weight:600;">${row[0]}</td><td style="padding:4px 6px;border:1px solid #e2e8f0;text-align:center;">${row[1]}</td><td style="padding:4px 6px;border:1px solid #e2e8f0;text-align:center;${row[2]&&row[2]!=='—'?'color:#16a34a;font-weight:600;':''}">${row[2]}</td></tr>`).join('');
+    const calcRows = [
+      ['R 值 (NCO/OH)', th.rVal.toFixed(4), hasActual?ac.rVal.toFixed(4):'—'],
+      ['OH 当量',       th.ohEq.toFixed(4),  hasActual?ac.ohEq.toFixed(4):'—'],
+      ['NCO 当量',      th.ncoEq.toFixed(4), hasActual?ac.ncoEq.toFixed(4):'—'],
+      ['HSC 硬段含量',  th.hsc.toFixed(2)+'%', hasActual?ac.hsc.toFixed(2)+'%':'—'],
+      ['固体总质量',    solidMass.toFixed(3)+' g', actualSolidMass>0?actualSolidMass.toFixed(3)+' g':'—'],
+      ['加水量',        water.toFixed(3)+' g', awInput>0?awInput.toFixed(3)+' g':'—'],
+      ['固含量',        solidContent+'%', actualSC],
+      ['乳液总质量',    (solidMass+water).toFixed(3)+' g', (actualSolidMass>0&&awInput>0)?(actualSolidMass+awInput).toFixed(3)+' g':'—'],
+    ].map((row,i) => `<tr style="background:${i%2?'#f8fafc':'#fff'}"><td style="padding:4px 6px;border:1px solid #e2e8f0;font-weight:600;">${row[0]}</td><td style="padding:4px 6px;border:1px solid #e2e8f0;text-align:center;">${row[1]}</td><td style="padding:4px 6px;border:1px solid #e2e8f0;text-align:center;${row[2]&&row[2]!=='—'?'color:#16a34a;font-weight:600;':''}">${row[2]}</td></tr>`).join('');
 
-    const stepRowsHTML=PROCESS_STEPS.map(step=>{
-      const d=stepData[step.id]||{};
-      const params=[d.temp?`温度 ${d.temp}°C`:'',d.rpm?`转速 ${d.rpm}rpm`:''].filter(Boolean).join('，');
-      // 兼容旧数据：优先使用addTime，否则使用startTime
-      const addTime = d.addTime || d.startTime || '';
-      const times=[addTime?`加料 ${addTime}`:'',d.needCool&&d.coolStart?`降温开始 ${d.coolStart}`:'',d.needCool&&d.coolEnd?`降温完成 ${d.coolEnd}`:''].filter(Boolean).join(' · ');
-      return `<tr><td style="padding:4px 6px;border:1px solid #e2e8f0;font-weight:700;vertical-align:top;white-space:nowrap;">${step.title}</td><td style="padding:4px 6px;border:1px solid #e2e8f0;line-height:1.7;font-size:22px;">${params?`<div>${params}</div>`:''} ${times?`<div>${times}</div>`:''} ${d.obs?`<div>${d.obs}</div>`:''} ${!params&&!times&&!d.obs?'<span style="color:#94a3b8;">（暂无记录）</span>':''}</td></tr>`;
+    const stepRowsHTML = processSteps.map(step => {
+      const d = stepData[step.id]||{};
+      const params   = [d.temp?`温度 ${d.temp}°C`:'', d.rpm?`转速 ${d.rpm}rpm`:''].filter(Boolean).join('，');
+      const addTime  = d.addTime || d.startTime || '';
+      const times    = [addTime?`加料 ${addTime}`:'', d.needCool&&d.coolStart?`降温开始 ${d.coolStart}`:'', d.needCool&&d.coolEnd?`降温完成 ${d.coolEnd}`:''].filter(Boolean).join(' · ');
+      const addedR   = (d.addedReagents||[]).map(rid => {
+        if (rid === 'water') return '💧水';
+        const r = reagents.find(x => String(x.id)===String(rid));
+        return r ? `${r.name}(${r.unit==='mL'?((r.vol||r.mass)||0).toFixed(2)+'mL':(r.mass||0).toFixed(2)+'g'})` : '';
+      }).filter(Boolean);
+      const reagentsStr = addedR.length ? `<div style="color:#059669;font-weight:500;">🧪 加入：${addedR.join(' + ')}</div>` : '';
+      return `<tr><td style="padding:4px 6px;border:1px solid #e2e8f0;font-weight:700;vertical-align:top;white-space:nowrap;">${step.title}</td><td style="padding:4px 6px;border:1px solid #e2e8f0;line-height:1.7;font-size:22px;">${params?`<div>${params}</div>`:''} ${times?`<div>${times}</div>`:''} ${reagentsStr} ${d.obs?`<div>${d.obs}</div>`:''} ${!params&&!times&&!d.obs&&!reagentsStr?'<span style="color:#94a3b8;">（暂无记录）</span>':''}</td></tr>`;
     }).join('');
 
-    const SH=`font-weight:700;font-size:28px;color:#1e40af;border-left:5px solid #2563eb;padding-left:10px;margin-bottom:14px;`;
-    const sections=[
+    const SH = `font-weight:700;font-size:28px;color:#1e40af;border-left:5px solid #2563eb;padding-left:10px;margin-bottom:14px;`;
+    const sections = [
       `<div style="text-align:center;padding-bottom:12px;border-bottom:2px solid #e2e8f0;margin-bottom:16px;"><div style="font-size:38px;font-weight:700;color:#1e293b;">水性聚氨酯合成实验记录</div><div style="font-size:20px;color:#94a3b8;margin-top:4px;">WPU · ELN System</div></div>`,
       `<div style="${SH}">一、实验基本信息</div><table style="width:100%;border-collapse:collapse;font-size:23px;margin-bottom:4px;"><tr><td style="padding:4px 6px;background:#f0f4ff;font-weight:600;">实验编号</td><td style="padding:4px 6px;border-bottom:1px solid #e2e8f0;">${state.expId||'—'}</td><td style="padding:4px 6px;background:#f0f4ff;font-weight:600;">日期</td><td style="padding:4px 6px;border-bottom:1px solid #e2e8f0;">${state.expDate||'—'}</td></tr><tr><td style="padding:4px 6px;background:#f0f4ff;font-weight:600;">操作人</td><td colspan="3" style="padding:4px 6px;border-bottom:1px solid #e2e8f0;">${state.expOperator||'—'}</td></tr><tr><td style="padding:4px 6px;background:#f0f4ff;font-weight:600;">实验目的</td><td colspan="3" style="padding:4px 6px;">${state.expNote||'—'}</td></tr></table>`,
       `<div style="${SH}">二、原料配方表</div><table style="width:100%;border-collapse:collapse;font-size:22px;"><thead><tr style="background:#1e40af;color:#fff;"><th style="padding:4px 5px;text-align:left;">原料</th><th style="padding:4px 5px;">类型</th><th style="padding:4px 5px;text-align:center;">MW</th><th style="padding:4px 5px;text-align:center;">f</th><th style="padding:4px 5px;text-align:center;">理论用量</th><th style="padding:4px 5px;text-align:center;">实际用量</th><th style="padding:4px 5px;text-align:center;">理论Eq</th><th style="padding:4px 5px;text-align:center;">实际Eq</th></tr></thead><tbody>${fRows}</tbody><tfoot><tr style="background:#e0e7ff;font-weight:700;"><td colspan="4" style="padding:4px 5px;border:1px solid #c7d2fe;">合计</td><td style="padding:4px 5px;border:1px solid #c7d2fe;text-align:center;">${solidMass.toFixed(3)} g</td><td style="padding:4px 5px;border:1px solid #c7d2fe;text-align:center;">${actualSolidMass>0?actualSolidMass.toFixed(3)+' g':'—'}</td><td colspan="2" style="padding:4px 5px;border:1px solid #c7d2fe;"></td></tr></tfoot></table>`,
@@ -2769,82 +3240,88 @@ async function exportPDF() {
       `<div style="${SH}">四、合成工艺操作记录</div><table style="width:100%;border-collapse:collapse;font-size:23px;"><thead><tr style="background:#f0f4ff;"><th style="padding:4px 6px;border:1px solid #dde3ec;text-align:left;width:100px;">步骤</th><th style="padding:4px 6px;border:1px solid #dde3ec;text-align:left;">记录内容</th></tr></thead><tbody>${stepRowsHTML}</tbody></table>`,
     ];
 
-    const canvases=[];
-    for(const html of sections) canvases.push(await renderBlock(html));
+    const canvases = [];
+    for (const html of sections) canvases.push(await renderBlock(html));
 
-    const {jsPDF}=window.jspdf;
-    const pdf=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
-    const PW=210,PH=297,ML=15,MR=15,MT=16,MB=14,CW=PW-ML-MR;
-    let pageY=MT;
+    const {jsPDF} = window.jspdf;
+    const pdf = new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+    const PW=210, PH=297, ML=15, MR=15, MT=16, MB=14, CW=PW-ML-MR;
+    let pageY = MT;
 
-    function mmFromCanvas(c){return c.height/c.width*CW;}
-    function addBlock(canvas,gap=4){
-      const hMM=mmFromCanvas(canvas);
-      if(pageY+hMM>PH-MB&&pageY>MT+4){pdf.addPage();pageY=MT;}
+    function mmFromCanvas(c) { return c.height/c.width*CW; }
+    function addBlock(canvas,gap=4) {
+      const hMM = mmFromCanvas(canvas);
+      if (pageY+hMM>PH-MB && pageY>MT+4) { pdf.addPage(); pageY=MT; }
       pdf.addImage(canvas.toDataURL('image/jpeg',0.95),'JPEG',ML,pageY,CW,hMM);
-      pageY+=hMM+gap;
+      pageY += hMM+gap;
     }
     addBlock(canvases[0]);
-    for(let i=1;i<canvases.length;i++) addBlock(canvases[i],4);
+    for (let i=1; i<canvases.length; i++) addBlock(canvases[i],4);
 
-    // Photos
-    const allPhotos=[];
-    PROCESS_STEPS.forEach(step=>(stepData[step.id]?.photos||[]).forEach(p=>allPhotos.push({stepTitle:step.title,...p})));
-    if(allPhotos.length){
-      const titleC=await renderBlock(`<div style="${SH}">五、实验照片附录</div>`);
+    const allPhotos = [];
+    processSteps.forEach(step => (stepData[step.id]?.photos||[]).forEach(p => allPhotos.push({stepTitle:step.title,...p})));
+    if (allPhotos.length) {
+      const titleC = await renderBlock(`<div style="${SH}">五、实验照片附录</div>`);
       addBlock(titleC,4);
-      const photoW=(CW-4)/2,photoH=50;
-      for(let i=0;i<allPhotos.length;i+=2){
-        if(pageY+photoH+18>PH-MB&&pageY>MT+10){pdf.addPage();pageY=MT;}
-        const row=allPhotos.slice(i,i+2);
-        for(let j=0;j<row.length;j++){
-          const p=row[j],x=ML+j*(photoW+4);
+      const photoW=( CW-4)/2, photoH=50;
+      for (let i=0; i<allPhotos.length; i+=2) {
+        if (pageY+photoH+18>PH-MB && pageY>MT+10) { pdf.addPage(); pageY=MT; }
+        const row = allPhotos.slice(i,i+2);
+        for (let j=0; j<row.length; j++) {
+          const p=row[j], x=ML+j*(photoW+4);
           pdf.addImage(p.data,'JPEG',x,pageY,photoW,photoH);
-          const capDiv=document.createElement('div');
+          const capDiv = document.createElement('div');
           capDiv.style.cssText=`position:fixed;left:-9999px;top:0;width:${photoW*3.78}px;font-family:'Noto Sans SC',sans-serif;font-size:12px;color:#475569;background:#fff;`;
-          capDiv.textContent=`[${p.stepTitle}] ${p.caption}`;
+          capDiv.textContent = `[${p.stepTitle}] ${p.caption}`;
           document.body.appendChild(capDiv);
           await document.fonts.ready;
-          const capC=await html2canvas(capDiv,{scale:2,backgroundColor:'#fff'});
+          const capC = await html2canvas(capDiv,{scale:2,backgroundColor:'#fff'});
           document.body.removeChild(capDiv);
-          const capH=capC.height/capC.width*photoW;
+          const capH = capC.height/capC.width*photoW;
           pdf.addImage(capC,'PNG',x,pageY+photoH+2,photoW,capH);
         }
-        pageY+=photoH+16;
+        pageY += photoH+16;
       }
     }
 
-    const totalPages=pdf.getNumberOfPages();
-    const exportTime=new Date().toLocaleString('zh-CN');
-    for(let i=1;i<=totalPages;i++){
+    const totalPages  = pdf.getNumberOfPages();
+    const exportTime  = new Date().toLocaleString('zh-CN');
+    for (let i=1; i<=totalPages; i++) {
       pdf.setPage(i);
-      pdf.setFontSize(7.5);pdf.setFont('helvetica','normal');pdf.setTextColor(160);
-      pdf.text(`WPU·ELN  ${exportTime}`,ML,PH-6);
-      pdf.text(`${i}/${totalPages}`,PW-MR,PH-6,{align:'right'});
-      pdf.setDrawColor(210);pdf.setLineWidth(0.2);
-      pdf.line(ML,PH-9,PW-MR,PH-9);pdf.setTextColor(0);
+      pdf.setFontSize(7.5); pdf.setFont('helvetica','normal'); pdf.setTextColor(160);
+      pdf.text(`WPU·ELN  ${exportTime}`, ML, PH-6);
+      pdf.text(`${i}/${totalPages}`, PW-MR, PH-6, {align:'right'});
+      pdf.setDrawColor(210); pdf.setLineWidth(0.2);
+      pdf.line(ML,PH-9,PW-MR,PH-9); pdf.setTextColor(0);
     }
     pdf.save(`${state.expId||'experiment'}.pdf`);
     toast('PDF 已生成','success');
-  } catch(err){console.error(err);toast('PDF 生成失败: '+err.message,'error');}
-  finally{if(btn){btn.disabled=false;btn.textContent='📑 生成 PDF 报告';}}
+  } catch(err) {
+    console.error(err); toast('PDF 生成失败: '+err.message,'error');
+  } finally {
+    if (btn) { btn.disabled=false; btn.textContent='📑 生成 PDF 报告'; }
+  }
 }
 
 // ═══════════════════════════════════════════════
 // TOAST
 // ═══════════════════════════════════════════════
 let _toastT;
-function toast(msg,type=''){
-  const el=document.getElementById('toast');
-  el.textContent=msg;el.className=`show${type?' '+type:''}`;
-  clearTimeout(_toastT);_toastT=setTimeout(()=>el.className='',2400);
+function toast(msg, type='') {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.className   = `show${type?' '+type:''}`;
+  clearTimeout(_toastT);
+  _toastT = setTimeout(() => el.className='', 2400);
 }
 
 // ═══════════════════════════════════════════════
 // MODAL CLOSE ON OVERLAY
 // ═══════════════════════════════════════════════
-['photo-modal','preset-modal','preset-io-modal'].forEach(id=>{
-  document.getElementById(id).addEventListener('click',e=>{if(e.target===e.currentTarget)e.currentTarget.classList.remove('open');});
+['photo-modal','preset-modal','preset-io-modal'].forEach(id => {
+  document.getElementById(id).addEventListener('click', e => {
+    if (e.target===e.currentTarget) e.currentTarget.classList.remove('open');
+  });
 });
 
 // ═══════════════════════════════════════════════
