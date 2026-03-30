@@ -1372,15 +1372,19 @@ input[type=checkbox] { width: 14px; height: 14px; accent-color: var(--accent); c
     <div class="card">
       <div class="card-title">导出当前实验</div>
       <div style="display:flex;flex-direction:column;gap:8px;">
-        <button class="btn btn-primary btn-full" onclick="exportJSON()">📄 导出 TXT 数据包</button>
+        <button class="btn btn-primary btn-full" onclick="copyToClipboard()">📋 复制到剪贴板</button>
+        <button class="btn btn-secondary btn-full" onclick="exportJSON()">📄 导出 TXT 数据包</button>
         <button class="btn btn-amber btn-full" id="pdf-btn" onclick="exportPDF()">📑 生成 PDF 报告</button>
       </div>
-      <div class="hint" style="margin-top:8px;">TXT 可用于历史复用；PDF 包含配方表、当量结果、工艺记录。</div>
+      <div class="hint" style="margin-top:8px;">复制后可通过微信/QQ等传输；TXT 可用于历史复用；PDF 包含完整报告。</div>
     </div>
     <div class="card">
       <div class="card-title">导入实验数据</div>
-      <input type="file" id="import-file" accept=".txt,.json" style="display:none;" onchange="importJSON(this)">
-      <button class="btn btn-secondary btn-full" onclick="document.getElementById('import-file').click()" style="margin-bottom:8px;">📂 选择 TXT 导入</button>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button class="btn btn-green btn-full" onclick="pasteFromClipboard()">📥 粘贴导入</button>
+        <input type="file" id="import-file" accept=".txt,.json" style="display:none;" onchange="importJSON(this)">
+        <button class="btn btn-secondary btn-full" onclick="document.getElementById('import-file').click()">📂 选择 TXT 导入</button>
+      </div>
       <div class="hint">导入后将覆盖当前配方，可在此基础上继续实验。</div>
     </div>
     <div class="card">
@@ -3029,6 +3033,38 @@ async function exportJSON() {
   const a     = document.createElement('a'); a.href=url; a.download=`${state.expId||'exp'}.txt`; a.click();
   URL.revokeObjectURL(url);
   toast('TXT 已导出','success');
+}
+
+// 复制当前实验到剪贴板
+async function copyToClipboard() {
+  try {
+    await saveCurrentToHistory();
+    const state = getState();
+    const th    = calcEquivalents(false);
+    const solidMass = reagents.reduce((s,r)=>s+r.mass, 0);
+    const pkg   = {...state, calculated:{theory:{...th,water:solidMass*(100-solidContent)/solidContent,solidContent}}, exportedAt:new Date().toISOString()};
+    const json  = JSON.stringify(pkg, null, 2);
+    await navigator.clipboard.writeText(json);
+    toast(`已复制：${state.expId||'实验'}`,'success');
+  } catch(err) {
+    toast('复制失败：' + err.message,'error');
+  }
+}
+
+// 从剪贴板粘贴导入
+async function pasteFromClipboard() {
+  try {
+    const text = await navigator.clipboard.readText();
+    if (!text.trim()) { toast('剪贴板为空','error'); return; }
+    const state = JSON.parse(text);
+    if (!state.expId && !state.reagents) { toast('剪贴板内容格式不正确','error'); return; }
+    if (!confirm(`导入实验 ${state.expId||'?'} 的数据？当前数据将被覆盖。`)) return;
+    loadState(state);
+    switchPage('formula');
+    toast('数据已导入','success');
+  } catch(err) {
+    toast('粘贴失败：' + err.message,'error');
+  }
 }
 
 async function exportAllHistory() {
