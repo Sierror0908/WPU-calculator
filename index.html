@@ -78,10 +78,23 @@ body { background: var(--bg); color: var(--text); font-family: var(--sans); font
 .nav-icon { font-size: var(--f-base); flex-shrink: 0; }
 .nav-badge { margin-left: auto; background: var(--red); color: #fff; font-family: var(--sans); font-size: var(--f-xs); font-weight: 700; padding: 2px 6px; border-radius: 10px; min-width: 18px; text-align: center; }
 .nav-divider { height: 1px; background: var(--border); margin: 12px 16px; }
-.main { margin-left: var(--nav-w); flex: 1; padding: 28px; min-width: 0; }
-.page { display: none; }
-.page.active { display: block; animation: fadeIn 0.2s ease; }
+.main { margin-left: var(--nav-w); flex: 1; padding: 0; min-width: 0; display: flex; flex-direction: column; }
+.page { display: none; flex: 1; overflow-y: auto; padding: 28px; }
+.page.active { display: flex; flex-direction: column; animation: fadeIn 0.2s ease; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ── EXPERIMENT TABS ── */
+.exp-tabs { display: flex; align-items: center; gap: 4px; padding: 12px 16px 0; background: var(--bg2); border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; }
+.exp-tabs::-webkit-scrollbar { display: none; }
+.exp-tab { display: flex; align-items: center; gap: 8px; padding: 10px 16px; background: var(--bg3); border: 1px solid var(--border); border-radius: var(--rs) var(--rs) 0 0; cursor: pointer; transition: all 0.15s; user-select: none; white-space: nowrap; position: relative; min-width: 120px; max-width: 200px; }
+.exp-tab:hover { background: var(--bg2); }
+.exp-tab.active { background: var(--surface); border-color: var(--border); border-bottom-color: var(--surface); color: var(--accent); font-weight: 600; }
+.exp-tab-name { flex: 1; overflow: hidden; text-overflow: ellipsis; font-size: var(--f-sm); }
+.exp-tab-close { width: 18px; height: 18px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--text3); font-size: var(--f-xs); transition: all 0.15s; flex-shrink: 0; }
+.exp-tab-close:hover { background: var(--red-dim); color: var(--red); }
+.exp-tab-new { padding: 10px 14px; background: var(--accent-dim); border: 1px dashed var(--accent); border-radius: var(--rs) var(--rs) 0 0; color: var(--accent); font-size: var(--f-sm); cursor: pointer; transition: all 0.15s; white-space: nowrap; }
+.exp-tab-new:hover { background: var(--accent); color: #fff; }
+.exp-tab-unsaved { font-style: italic; opacity: 0.8; }
 
 /* ── PAGE HEADER ── */
 .page-header { margin-bottom: 24px; display: flex; align-items: flex-start; gap: 16px; flex-wrap: wrap; }
@@ -416,6 +429,10 @@ input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--accent); c
 </nav>
 
 <main class="main">
+<!-- 实验标签页栏（仅在实验操作页面显示） -->
+<div class="exp-tabs" id="exp-tabs" style="display:none;">
+  <!-- 标签页将由 JavaScript 动态生成 -->
+</div>
 
 <!-- ═══ PAGE: 配方设计 ═══ -->
 <div class="page active" id="page-formula">
@@ -968,6 +985,11 @@ const TYPE_CLASS = {polyol:'type-polyol',iso:'type-iso',chain:'type-chain',solve
 // ═══════════════════════════════════════════════
 // STATE
 // ═══════════════════════════════════════════════
+// 多实验管理
+let experiments    = [];  // 存储多个实验的数据
+let currentExpId   = null;  // 当前激活的实验 ID
+
+// 当前实验的状态（为了兼容现有代码）
 let reagents       = [];
 let solidContent   = 30;
 let stepData       = {};
@@ -979,6 +1001,186 @@ let currentPhotoStep = null;
 let pendingPhotoData = null;
 // 折叠状态独立跟踪（避免依赖 DOM 查询）
 let stepCollapsed  = {};
+
+// ═══════════════════════════════════════════════
+// MULTI-EXPERIMENT MANAGEMENT
+// ═══════════════════════════════════════════════
+
+// 初始化多实验管理
+function initExperiments() {
+  const saved = localStorage.getItem('wpu-experiments');
+  if (saved) {
+    try {
+      experiments = JSON.parse(saved);
+    } catch(e) {
+      experiments = [];
+    }
+  }
+
+  const savedCurrentId = localStorage.getItem('wpu-current-exp-id');
+  if (savedCurrentId && experiments.find(e => e.id === savedCurrentId)) {
+    currentExpId = savedCurrentId;
+  }
+
+  // 如果没有实验，创建一个默认实验
+  if (experiments.length === 0) {
+    createNewExperiment(false);
+  } else if (!currentExpId || !experiments.find(e => e.id === currentExpId)) {
+    currentExpId = experiments[0].id;
+  }
+
+  // 从当前实验加载数据
+  loadCurrentExperimentData();
+  renderExpTabs();
+}
+
+// 创建新实验
+function createNewExperiment(switchToIt = true) {
+  const now = new Date();
+  const yy = String(now.getFullYear()).slice(2);
+  const mm = String(now.getMonth() + 1).padStart(2, '0');
+  const dd = String(now.getDate()).padStart(2, '0');
+  const expId = `${yy}${mm}${dd}-${String(experiments.length + 1).padStart(2, '0')}`;
+
+  // 先保存当前实验的数据
+  if (currentExpId) {
+    saveCurrentExperiment();
+  }
+
+  const newExp = {
+    id: 'exp_' + Date.now(),
+    expId: expId,
+    expDate: `${now.getFullYear()}-${mm}-${dd}`,
+    expOperator: '',
+    expNote: '',
+    reagents: [],
+    solidContent: 30,
+    stepData: {},
+    processSteps: DEFAULT_PROCESS_STEPS.map(s => ({...s})),
+    stepCollapsed: {},
+    createdAt: now.toISOString()
+  };
+
+  experiments.push(newExp);
+  currentExpId = newExp.id;
+
+  saveExperiments();
+  if (switchToIt) {
+    loadCurrentExperimentData();
+    renderExpTabs();
+  }
+
+  return newExp;
+}
+
+// 切换到指定实验
+function switchToExperiment(expId) {
+  if (expId === currentExpId) return;
+
+  // 先保存当前实验的数据
+  saveCurrentExperiment();
+
+  currentExpId = expId;
+  localStorage.setItem('wpu-current-exp-id', expId);
+
+  loadCurrentExperimentData();
+  renderExpTabs();
+  toast('已切换到实验 ' + experiments.find(e => e.id === expId)?.expId, 'success');
+}
+
+// 关闭实验
+function closeExperiment(expId, e) {
+  e?.stopPropagation();
+
+  if (experiments.length <= 1) {
+    toast('至少保留一个实验', 'warn');
+    return;
+  }
+
+  const exp = experiments.find(e => e.id === expId);
+  if (!exp) return;
+
+  // 如果关闭的是当前实验，需要先切换
+  if (expId === currentExpId) {
+    const idx = experiments.findIndex(e => e.id === expId);
+    const nextExp = experiments[idx + 1] || experiments[idx - 1];
+    switchToExperiment(nextExp.id);
+  }
+
+  experiments = experiments.filter(e => e.id !== expId);
+  saveExperiments();
+  renderExpTabs();
+}
+
+// 保存当前实验的数据到 experiments 数组
+function saveCurrentExperiment() {
+  if (!currentExpId) return;
+
+  const exp = experiments.find(e => e.id === currentExpId);
+  if (!exp) return;
+
+  exp.reagents = [...reagents];
+  exp.solidContent = solidContent;
+  exp.stepData = {...stepData};
+  exp.processSteps = [...processSteps];
+  exp.stepCollapsed = {...stepCollapsed};
+  exp.expId = document.getElementById('exp-id')?.value || exp.expId;
+  exp.expDate = document.getElementById('exp-date')?.value || exp.expDate;
+  exp.expOperator = document.getElementById('exp-operator')?.value || exp.expOperator;
+  exp.expNote = document.getElementById('exp-note')?.value || exp.expNote;
+  exp.updatedAt = new Date().toISOString();
+
+  saveExperiments();
+}
+
+// 从当前实验加载数据到全局变量
+function loadCurrentExperimentData() {
+  const exp = experiments.find(e => e.id === currentExpId);
+  if (!exp) return;
+
+  reagents = [...(exp.reagents || [])];
+  solidContent = exp.solidContent ?? 30;
+  stepData = {...(exp.stepData || {})};
+  processSteps = [...(exp.processSteps || DEFAULT_PROCESS_STEPS.map(s => ({...s})))];
+  stepCollapsed = {...(exp.stepCollapsed || {})};
+
+  // 更新 UI
+  document.getElementById('exp-id').value = exp.expId || '';
+  document.getElementById('exp-date').value = exp.expDate || '';
+  document.getElementById('exp-operator').value = exp.expOperator || '';
+  document.getElementById('exp-note').value = exp.expNote || '';
+  syncExpId();
+
+  renderReagents();
+  updateSummary();
+  updateSolidContent(solidContent);
+  updateGoalSeekReagents();
+  renderProcessSteps();
+  refreshAllReagentTags();
+}
+
+// 保存实验列表到 localStorage
+function saveExperiments() {
+  localStorage.setItem('wpu-experiments', JSON.stringify(experiments));
+  localStorage.setItem('wpu-current-exp-id', currentExpId);
+}
+
+// 渲染实验标签页
+function renderExpTabs() {
+  const container = document.getElementById('exp-tabs');
+  if (!container) return;
+
+  let html = experiments.map(exp => `
+    <div class="exp-tab ${exp.id === currentExpId ? 'active' : ''}" onclick="switchToExperiment('${exp.id}')">
+      <span class="exp-tab-name ${!exp.expId ? 'exp-tab-unsaved' : ''}">${escHtml(exp.expId || '未命名实验')}</span>
+      <span class="exp-tab-close" onclick="closeExperiment('${exp.id}', event)">✕</span>
+    </div>
+  `).join('');
+
+  html += `<div class="exp-tab-new" onclick="createNewExperiment()">＋ 新建实验</div>`;
+
+  container.innerHTML = html;
+}
 
 // ═══════════════════════════════════════════════
 // HELPERS
@@ -1034,12 +1236,8 @@ async function init() {
   initTheme();
   initFontScale();
 
-  const now = new Date();
-  const yy = String(now.getFullYear()).slice(2);
-  const mm = String(now.getMonth()+1).padStart(2,'0');
-  const dd = String(now.getDate()).padStart(2,'0');
-  document.getElementById('exp-date').value = `${now.getFullYear()}-${mm}-${dd}`;
-  document.getElementById('exp-id').value   = `${yy}${mm}${dd}-01`;
+  // 初始化多实验管理
+  initExperiments();
 
   await loadProcessStepsFromDB();
 
@@ -1052,13 +1250,10 @@ async function init() {
   await renderPresetBtns();
   renderBuiltinPresetsDisplay();
   renderCustomPresetsList();
-  renderReagents();
-  updateSummary();
-  updateSolidContent(solidContent);
-  updateGoalSeekReagents();
-  renderProcessSteps();
-  await loadHistory();
-  syncExpId();
+
+  // 恢复上次所在的页面
+  const savedPage = localStorage.getItem('wpu-current-page') || 'formula';
+  switchPage(savedPage);
 
   // 初始化输入框实时验证
   initInputValidation();
@@ -1100,6 +1295,15 @@ function switchPage(name) {
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   document.getElementById(`page-${name}`).classList.add('active');
   document.querySelector(`[data-page="${name}"]`)?.classList.add('active');
+
+  // 保存当前页面
+  localStorage.setItem('wpu-current-page', name);
+
+  // 控制标签页栏显示（只在实验操作页面显示）
+  const expTabs = document.getElementById('exp-tabs');
+  const isExpPage = name === 'formula' || name === 'process';
+  expTabs.style.display = isExpPage ? 'flex' : 'none';
+
   if (window.innerWidth < 768) {
     document.getElementById('sidebar').classList.remove('open');
     document.getElementById('sidebar-overlay').classList.remove('show');
@@ -2100,30 +2304,21 @@ function loadState(s) {
 let _autoSaveTimer = null;
 function autoSave() {
   clearTimeout(_autoSaveTimer);
-  _autoSaveTimer = setTimeout(() => WPU_DB.set('current','state', getState()), 500);
+  _autoSaveTimer = setTimeout(() => {
+    WPU_DB.set('current','state', getState());
+    // 同时保存到当前实验
+    saveCurrentExperiment();
+  }, 500);
 }
-function saveToCache() { WPU_DB.set('current','state', getState()); toast('已暂存到本地缓存','success'); }
+function saveToCache() {
+  WPU_DB.set('current','state', getState());
+  saveCurrentExperiment();
+  toast('已暂存到本地缓存','success');
+}
 
 function newExperiment() {
   if (!confirm('新建实验将清空当前数据，确认继续？\n（建议先存入数据库或导出 TXT）')) return;
-  reagents = []; solidContent = 30; stepData = {}; stepCollapsed = {};
-  const now = new Date();
-  const yy = String(now.getFullYear()).slice(2);
-  const mm = String(now.getMonth()+1).padStart(2,'0');
-  const dd = String(now.getDate()).padStart(2,'0');
-  document.getElementById('exp-id').value       = `${yy}${mm}${dd}-01`;
-  document.getElementById('exp-date').value     = `${now.getFullYear()}-${mm}-${dd}`;
-  document.getElementById('exp-note').value     = '';
-  document.getElementById('exp-operator').value = '';
-  document.getElementById('sc-actual-water').value = '';
-  document.getElementById('sc-actual-pct').textContent = '—';
-  document.getElementById('gs-result').style.display  = 'none';
-  WPU_DB.delete('current','state');
-  renderReagents(); updateSummary(); updateSolidContent(30); updateGoalSeekReagents(); renderProcessSteps(); syncExpId();
-  // 更新所有输入框验证状态
-  document.querySelectorAll('input[type="text"], input[type="number"], textarea, select, input[type="time"]').forEach(updateInputEmptyState);
-  switchPage('formula');
-  toast('已新建实验','success');
+  createNewExperiment(true);
 }
 
 // ═══════════════════════════════════════════════
