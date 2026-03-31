@@ -1723,6 +1723,13 @@ function openAddStepModal() {
 // ── 渲染工艺台
 function renderProcessSteps() {
   const container = document.getElementById('process-steps');
+
+  // 移除旧的事件监听器（如果存在）
+  const oldHandler = container._processStepsHandler;
+  if (oldHandler) {
+    container.removeEventListener('click', oldHandler);
+  }
+
   const frag      = document.createDocumentFragment();
 
   processSteps.forEach((step, idx) => {
@@ -1754,7 +1761,7 @@ function renderProcessSteps() {
 
     const body = document.createElement('div');
     body.className = 'step-body';
-    body.innerHTML = buildStepBody(step, data);
+    body.innerHTML = buildStepBody(step, data, idx);
 
     // 事件委托：工艺台输入框
     body.addEventListener('input', e => {
@@ -1799,18 +1806,20 @@ function renderProcessSteps() {
   container.appendChild(frag);
 
   // 顶层委托：原料标签点击、删除步骤
-  container.addEventListener('click', e => {
+  const handler = (e) => {
     const tag = e.target.closest('.reagent-tag');
     if (tag) toggleReagentTag(tag.dataset.sid, tag.dataset.rid, tag);
     const delBtn = e.target.closest('button[data-action="delete-step"]');
     if (delBtn) deleteProcessStep(delBtn.dataset.id);
-  });
+  };
+  container.addEventListener('click', handler);
+  container._processStepsHandler = handler;
 
   // 更新所有输入框验证状态
   container.querySelectorAll('input, select, textarea').forEach(updateInputEmptyState);
 }
 
-function buildStepBody(step, data) {
+function buildStepBody(step, data, stepIdx) {
   const sid    = step.id;
   const photos = data.photos || [];
   const addTime = data.addTime || '';
@@ -1822,16 +1831,38 @@ function buildStepBody(step, data) {
   const addedReagents = (data.addedReagents || []).map(String);
   const waterChecked  = addedReagents.includes('water');
 
-  const reagentTagsHtml = reagents.map(r => {
+  // 收集之前步骤中已使用的原料
+  const usedInPreviousSteps = new Set();
+  for (let i = 0; i < stepIdx; i++) {
+    const prevStepId = processSteps[i]?.id;
+    if (prevStepId && stepData[prevStepId]?.addedReagents) {
+      stepData[prevStepId].addedReagents.forEach(r => usedInPreviousSteps.add(r));
+    }
+  }
+
+  // 如果没有原料，显示提示
+  const noReagentsHint = reagents.length === 0
+    ? `<div style="padding:12px;background:var(--amber-dim);border:1px solid var(--amber);border-radius:var(--rs);color:var(--amber);font-size:var(--f-xs);margin-bottom:8px;">💡 提示：请先在<strong>配方设计</strong>页面添加原料</div>`
+    : '';
+
+  const reagentTagsHtml = noReagentsHint + reagents.map(r => {
     const ridStr    = String(r.id);
     const isChecked = addedReagents.includes(ridStr);
+    const isUsed    = usedInPreviousSteps.has(ridStr);
     const typeClass = r.type ? `type-${r.type}` : '';
     const amtLabel  = r.unit === 'mL'
       ? ((r.vol || r.mass) || 0).toFixed(2) + 'mL'
       : (r.mass || 0).toFixed(2) + 'g';
-    return `<div class="reagent-tag ${isChecked?'checked':''} ${typeClass}" data-sid="${sid}" data-rid="${ridStr}">
+
+    // 如果在之前步骤已使用，添加禁用样式
+    const disabledClass = isUsed ? 'disabled' : '';
+    const disabledStyle = isUsed ? 'opacity:0.4;pointer-events:none;cursor:not-allowed;' : '';
+    const usedBadge = isUsed ? '<span style="font-size:var(--f-xs);color:var(--text3);margin-left:4px;">(已用)</span>' : '';
+
+    return `<div class="reagent-tag ${isChecked?'checked':''} ${typeClass} ${disabledClass}" data-sid="${sid}" data-rid="${ridStr}" style="${disabledStyle}">
       <span class="reagent-tag-name">${escHtml(r.name)}</span>
       <span class="reagent-tag-amount">${amtLabel}</span>
+      ${usedBadge}
       ${isChecked?'<span style="color:var(--green);font-size:var(--f-xs);">✓</span>':''}
     </div>`;
   }).join('') +
@@ -1888,6 +1919,12 @@ function buildStepBody(step, data) {
 
 // ── 原料标签切换
 function toggleReagentTag(sid, ridStr, tagEl) {
+  // 如果标签已禁用（在之前步骤已使用），不允许操作
+  if (tagEl.classList.contains('disabled')) {
+    toast('该原料已在之前的步骤中使用', 'warn');
+    return;
+  }
+
   if (!stepData[sid]) stepData[sid] = {};
   if (!stepData[sid].addedReagents) stepData[sid].addedReagents = [];
 
