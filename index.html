@@ -645,7 +645,6 @@ input[type=checkbox] { width: 16px; height: 16px; accent-color: var(--accent); c
         <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()">📂 文件导入实验</button>
         <input type="file" id="history-import-file" accept=".txt,.json" style="display:none;" onchange="importAllHistory(this)">
         <button class="btn btn-secondary" onclick="document.getElementById('history-import-file').click()">📥 批量导入历史</button>
-        <button class="btn btn-primary" onclick="syncFromGitHub()">🔄 GitHub 同步</button>
       </div>
     </div>
   </div>
@@ -949,20 +948,26 @@ WPU_DB.init().catch(console.error);
 // ═══════════════════════════════════════════════
 const BUILTIN_PRESETS = [
   {name:'PCD-2000',   type:'polyol', mw:2000,   f:2},
+  {name:'PCD-1000',   type:'polyol', mw:1000,   f:2},
   {name:'PTMEG-2000', type:'polyol', mw:2000,   f:2},
   {name:'PCL-2000',   type:'polyol', mw:2000,   f:2},
+  {name:'PPG-2000',   type:'polyol', mw:2000,   f:2},
+  {name:'PEG-2000',   type:'polyol', mw:2000,   f:2},
   {name:'PEG-1000',   type:'polyol', mw:1000,   f:2},
   {name:'PET-2000',   type:'polyol', mw:2000,   f:2},
   {name:'IPDI',       type:'iso',    mw:222.28,  f:2},
   {name:'HDI',        type:'iso',    mw:168.19,  f:2},
   {name:'MDI',        type:'iso',    mw:250.25,  f:2},
   {name:'DMPA',       type:'chain',  mw:134.13,  f:2},
+  {name:'DMBA',       type:'chain',  mw:160.17,  f:2},
   {name:'BDO',        type:'chain',  mw:90.12,   f:2},
   {name:'TMP',        type:'chain',  mw:134.17,  f:3},
   {name:'EDA',        type:'chain',  mw:60.10,   f:2},
   {name:'TEA',        type:'other',  mw:101.19,  f:0},
+  {name:'T9',         type:'other',  mw:632.32,  f:0},
   {name:'DBTDL',      type:'other',  mw:631.56,  f:0},
   {name:'DMF',        type:'solvent',mw:73.09,   f:0},
+  {name:'丙酮',       type:'solvent',mw:58.08,   f:0},
 ];
 
 const DEFAULT_PROCESS_STEPS = [
@@ -1241,9 +1246,8 @@ async function init() {
 
   await loadProcessStepsFromDB();
 
-  // 加载历史数据并自动同步 GitHub
+  // 加载历史数据
   await loadHistory();
-  await syncFromGitHub();
 
   const cached = await WPU_DB.get('current','state');
   if (cached) {
@@ -2420,10 +2424,58 @@ function loadReportFromSelect() {
 async function loadFromHistory(expId) {
   const entry = historyData.find(h => h.expId === expId);
   if (!entry) return;
-  if (!confirm(`加载实验 ${expId} 将覆盖当前数据，确认？`)) return;
-  loadState(entry);
+
+  // 检查是否已存在相同实验 ID
+  const existingExp = experiments.find(e => e.expId === expId);
+  let finalExpId = expId;
+
+  if (existingExp) {
+    const choice = confirm(
+      `实验编号 ${expId} 已存在！\n\n` +
+      `点击"确定"保留已存在的实验，新加载的实验将使用新编号\n` +
+      `点击"取消"保留新加载的实验，删除已存在的实验`
+    );
+    if (!choice) {
+      // 删除已存在的实验，保留新的
+      experiments = experiments.filter(e => e.expId !== expId);
+    } else {
+      // 生成新的实验编号
+      const now = new Date();
+      const yy = String(now.getFullYear()).slice(2);
+      const mm = String(now.getMonth() + 1).padStart(2, '0');
+      const dd = String(now.getDate()).padStart(2, '0');
+      let counter = experiments.length + 1;
+      do {
+        finalExpId = `${yy}${mm}${dd}-${String(counter).padStart(2, '0')}`;
+        counter++;
+      } while (experiments.find(e => e.expId === finalExpId));
+    }
+  }
+
+  // 创建新实验
+  const now = new Date();
+  const newExp = {
+    id: 'exp_' + Date.now(),
+    expId: finalExpId,
+    expDate: entry.expDate || `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`,
+    expOperator: entry.expOperator || '',
+    expNote: entry.expNote || '',
+    reagents: [...(entry.reagents || [])],
+    solidContent: entry.solidContent ?? 30,
+    stepData: {...(entry.stepData || {})},
+    processSteps: Array.isArray(entry.processSteps) ? JSON.parse(JSON.stringify(entry.processSteps)) : DEFAULT_PROCESS_STEPS.map(s => ({...s})),
+    stepCollapsed: {...(entry.stepCollapsed || {})},
+    actualWater: entry.actualWater || '',
+    createdAt: now.toISOString()
+  };
+
+  experiments.push(newExp);
+  saveExperiments();
+
+  // 切换到新实验
+  switchToExperiment(newExp.id);
   switchPage('formula');
-  toast('配方已加载','success');
+  toast(`实验 ${finalExpId} 已加载到新标签页`,'success');
 }
 
 function loadReportToEditor() {
@@ -2760,23 +2812,6 @@ async function exportAllHistory() {
     URL.revokeObjectURL(a.href);
     toast(`已导出 ${historyData.length} 条记录`,'success');
   }
-}
-
-async function syncFromGitHub() {
-  try {
-    toast('正在从 GitHub 同步…');
-    const res  = await fetch('https://raw.githubusercontent.com/Sierr0r/WPU-calculator/main/history.txt?t='+Date.now());
-    if (!res.ok) throw new Error('文件不存在或网络错误');
-    const data = JSON.parse(await res.text());
-    if (!Array.isArray(data)) throw new Error('格式错误');
-    const existIds = new Set(historyData.map(h=>h.expId));
-    let added = 0;
-    for (const entry of data) {
-      if (entry.expId && !existIds.has(entry.expId)) { await WPU_DB.set('history',entry.expId,entry); existIds.add(entry.expId); added++; }
-    }
-    await loadHistory();
-    toast(`同步完成，新增 ${added} 条记录`,'success');
-  } catch(err) { toast('同步失败：' + err.message,'error'); }
 }
 
 async function importAllHistory(input) {
