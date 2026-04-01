@@ -2690,15 +2690,15 @@ async function exportJSON() {
   // 实验编号为空时使用日期作为文件名
   const expId = (state.expId || state.expDate || 'exp').replace(/[\/\\:*?"<>|]/g, '-');
   const fileName = `${expId}实验数据.txt`;
-  // 使用 text/plain 类型，否则安卓会忽略文件名
-  const blob = new Blob([json], {type: 'text/plain;charset=utf-8'});
   const isAndroid = /Android/i.test(navigator.userAgent);
   const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
   const isMobile = isAndroid || isIOS;
 
+  // 使用 File 对象代替 Blob（包含元数据，优先级更高）
+  const file = new File([json], fileName, { type: 'application/octet-stream' });
+
   // 移动端优先使用分享功能
   if (navigator.share && navigator.canShare && isMobile) {
-    const file = new File([blob], fileName, { type: 'text/plain' });
     try {
       await navigator.share({
         title: `实验数据 - ${state.expId}`,
@@ -2718,49 +2718,23 @@ async function exportJSON() {
 
   // 尝试下载
   try {
-    if (isMobile) {
-      // Android: 使用 data URL，因为 blob URL 的 download 属性被忽略
-      if (isAndroid) {
-        const dataUrl = 'data:text/plain;charset=utf-8,' + encodeURIComponent(json);
-        const a = document.createElement('a');
-        a.href = dataUrl;
-        a.download = fileName;
-        a.setAttribute('download', fileName);
-        // 不要用 display:none，用定位移出屏幕
-        a.style.position = 'fixed';
-        a.style.left = '-9999px';
-        a.style.top = '0';
-        document.body.appendChild(a);
-        a.click();
-        // 不立即清理，等待下载完成
-        setTimeout(() => {
-          if (document.body.contains(a)) {
-            document.body.removeChild(a);
-          }
-        }, 5000);
-      } else {
-        // iOS: 使用 blob URL
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.setAttribute('download', fileName);
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => {
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        }, 3000);
-      }
-    } else {
-      // 桌面端
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = fileName;
-      a.click();
-      URL.revokeObjectURL(a.href);
-    }
-    toast(isMobile ? '文件已下载' : 'TXT 已导出','success');
+    // 使用 URL.createObjectURL，始终优于 data URL
+    const url = URL.createObjectURL(file);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+
+    // 必须挂载到 DOM，否则某些移动端浏览器视为不安全操作
+    document.body.appendChild(a);
+    a.click();
+
+    // 延长清理时间，确保系统下载器完成
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 10000);
+
+    toast('文件已下载','success');
     return;
   } catch (err) {
     console.error('下载失败:', err);
@@ -2768,7 +2742,7 @@ async function exportJSON() {
 
   // 下载失败，使用复制模式
   showCopyModal(`📋 导出实验数据 - ${state.expId||'当前实验'}`, json);
-  toast('分享和下载均失败，请复制后发送');
+  toast('下载失败，请复制后发送');
 }
 
 async function copyToClipboard() {
@@ -2825,13 +2799,13 @@ async function exportAllHistory() {
   if (!historyData.length) { toast('暂无历史记录','error'); return; }
   const json = JSON.stringify(historyData, null, 2);
   const fileName = 'history.txt';
-  // 使用 text/plain 类型，否则安卓会忽略文件名
-  const blob = new Blob([json], {type: 'text/plain;charset=utf-8'});
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+  // 使用 File 对象代替 Blob
+  const file = new File([json], fileName, { type: 'application/octet-stream' });
 
   // 移动端优先使用分享功能
   if (navigator.share && navigator.canShare && isMobile) {
-    const file = new File([blob], fileName, { type: 'text/plain' });
     try {
       await navigator.share({
         title: `实验历史记录 (${historyData.length}条)`,
@@ -2851,47 +2825,17 @@ async function exportAllHistory() {
 
   // 尝试下载
   try {
-    const isAndroid = /Android/i.test(navigator.userAgent);
-    if (isMobile) {
-      if (isAndroid) {
-        // Android: 使用 data URL，因为 blob URL 的 download 属性被忽略
-        const dataUrl = 'data:text/plain;charset=utf-8,' + encodeURIComponent(json);
-        const a = document.createElement('a');
-        a.href = dataUrl;
-        a.download = fileName;
-        a.setAttribute('download', fileName);
-        a.style.position = 'fixed';
-        a.style.left = '-9999px';
-        a.style.top = '0';
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => {
-          if (document.body.contains(a)) {
-            document.body.removeChild(a);
-          }
-        }, 5000);
-      } else {
-        // iOS: 使用 blob URL
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.setAttribute('download', fileName);
-        a.style.display = 'none';
-        document.body.appendChild(a);
-        a.click();
-        setTimeout(() => {
-          document.body.removeChild(a);
-          URL.revokeObjectURL(url);
-        }, 3000);
-      }
-    } else {
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = fileName;
-      a.click();
-      URL.revokeObjectURL(a.href);
-    }
-    toast(isMobile ? '文件已下载' : `已导出 ${historyData.length} 条记录`,'success');
+    const url = URL.createObjectURL(file);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 10000);
+    toast('文件已下载','success');
     return;
   } catch (err) {
     console.error('下载失败:', err);
@@ -2899,7 +2843,7 @@ async function exportAllHistory() {
 
   // 下载失败，使用复制模式
   showCopyModal(`📋 导出历史记录 (${historyData.length}条)`, json);
-  toast('分享和下载均失败，请复制后发送');
+  toast('下载失败，请复制后发送');
 }
 
 async function importAllHistory(input) {
@@ -3194,70 +3138,36 @@ async function exportPDF() {
           toast('已取消分享');
         } else {
           // 分享失败，尝试下载
-          const isAndroid = /Android/i.test(navigator.userAgent);
-          if (isAndroid) {
-            // Android 直接使用 jsPDF.save()
-            try {
-              pdf.save(fileName);
-              toast('文件已下载','success');
-            } catch (err) {
-              console.error('jsPDF save 失败:', err);
-              toast('PDF 下载失败，请尝试分享功能','error');
-            }
-          } else {
-            // iOS: 尝试 blob 下载
-            try {
-              const url = URL.createObjectURL(pdfBlob);
-              const a = document.createElement('a');
-              a.href = url;
-              a.setAttribute('download', fileName);
-              a.style.display = 'none';
-              document.body.appendChild(a);
-              a.click();
-              setTimeout(() => {
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-              }, 3000);
-              toast('文件已下载','success');
-            } catch (e2) {
-              console.error('blob 下载也失败:', e2);
-              toast('下载失败，请尝试分享功能','error');
-            }
-          }
-        }
-      }
-    } else {
-      // 无分享功能，直接保存
-      if (isMobile) {
-        const isAndroid = /Android/i.test(navigator.userAgent);
-        if (isAndroid) {
-          // Android 直接使用 jsPDF.save()
-          try {
-            pdf.save(fileName);
-            toast('文件已下载','success');
-          } catch (err) {
-            console.error('jsPDF save 失败:', err);
-            toast('PDF 下载失败','error');
-          }
-        } else {
-          // iOS: 尝试 blob 下载
-          const url = URL.createObjectURL(pdfBlob);
+          // 使用 File 对象包含元数据
+          const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
+          const url = URL.createObjectURL(pdfFile);
           const a = document.createElement('a');
           a.href = url;
-          a.setAttribute('download', fileName);
-          a.style.display = 'none';
+          a.download = fileName;
           document.body.appendChild(a);
           a.click();
           setTimeout(() => {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-          }, 3000);
+          }, 10000);
           toast('文件已下载','success');
         }
-      } else {
-        pdf.save(fileName);
-        toast('PDF 已生成','success');
       }
+    } else {
+      // 无分享功能，直接保存
+      // 使用 File 对象包含元数据
+      const pdfFile = new File([pdfBlob], fileName, { type: 'application/pdf' });
+      const url = URL.createObjectURL(pdfFile);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 10000);
+      toast('文件已下载','success');
     }
   } catch(err) {
     console.error(err); toast('PDF 生成失败: '+err.message,'error');
