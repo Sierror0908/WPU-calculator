@@ -2718,14 +2718,22 @@ async function exportJSON() {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = fileName;
+    a.style.display = 'none';
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(a.href);
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+    }, 100);
     toast(isMobile ? '文件已下载' : 'TXT 已导出','success');
-  } catch {
-    // 下载失败，使用复制模式
-    showCopyModal(`📋 导出实验数据 - ${state.expId||'当前实验'}`, json);
-    toast('分享和下载均失败，请复制后发送');
+    return;
+  } catch (err) {
+    console.error('下载失败:', err);
   }
+
+  // 下载失败，使用复制模式
+  showCopyModal(`📋 导出实验数据 - ${state.expId||'当前实验'}`, json);
+  toast('分享和下载均失败，请复制后发送');
 }
 
 async function copyToClipboard() {
@@ -2810,14 +2818,22 @@ async function exportAllHistory() {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = fileName;
+    a.style.display = 'none';
+    document.body.appendChild(a);
     a.click();
-    URL.revokeObjectURL(a.href);
+    setTimeout(() => {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(a.href);
+    }, 100);
     toast(isMobile ? '文件已下载' : `已导出 ${historyData.length} 条记录`,'success');
-  } catch {
-    // 下载失败，使用复制模式
-    showCopyModal(`📋 导出历史记录 (${historyData.length}条)`, json);
-    toast('分享和下载均失败，请复制后发送');
+    return;
+  } catch (err) {
+    console.error('下载失败:', err);
   }
+
+  // 下载失败，使用复制模式
+  showCopyModal(`📋 导出历史记录 (${historyData.length}条)`, json);
+  toast('分享和下载均失败，请复制后发送');
 }
 
 async function importAllHistory(input) {
@@ -3115,10 +3131,16 @@ async function exportPDF() {
             const a = document.createElement('a');
             a.href = url;
             a.download = fileName;
+            a.style.display = 'none';
+            document.body.appendChild(a);
             a.click();
-            URL.revokeObjectURL(url);
+            setTimeout(() => {
+              document.body.removeChild(a);
+              URL.revokeObjectURL(url);
+            }, 100);
             toast('文件已下载','success');
-          } catch {
+          } catch (err) {
+            console.error('下载失败:', err);
             // 下载也失败，jsPDF兜底
             pdf.save(fileName);
             toast('分享和下载失败，已尝试直接保存','success');
@@ -3132,8 +3154,13 @@ async function exportPDF() {
         const a = document.createElement('a');
         a.href = url;
         a.download = fileName;
+        a.style.display = 'none';
+        document.body.appendChild(a);
         a.click();
-        URL.revokeObjectURL(url);
+        setTimeout(() => {
+          document.body.removeChild(a);
+          URL.revokeObjectURL(url);
+        }, 100);
         toast('文件已下载','success');
       } else {
         pdf.save(fileName);
