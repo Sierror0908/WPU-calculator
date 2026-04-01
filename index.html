@@ -2732,7 +2732,7 @@ async function exportJSON() {
       setTimeout(() => {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-      }, 1000);
+      }, 3000);
     } else {
       // 桌面端
       const a = document.createElement('a');
@@ -2844,7 +2844,7 @@ async function exportAllHistory() {
       setTimeout(() => {
         document.body.removeChild(a);
         URL.revokeObjectURL(url);
-      }, 1000);
+      }, 3000);
     } else {
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
@@ -3173,7 +3173,7 @@ async function exportPDF() {
               setTimeout(() => {
                 document.body.removeChild(a);
                 URL.revokeObjectURL(url);
-              }, 1000);
+              }, 3000);
               toast('文件已下载','success');
             } catch (e2) {
               console.error('blob 下载也失败:', e2);
@@ -3202,7 +3202,7 @@ async function exportPDF() {
           setTimeout(() => {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
-          }, 1000);
+          }, 3000);
           toast('文件已下载','success');
         }
       } else {
