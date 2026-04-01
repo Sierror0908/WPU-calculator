@@ -2689,9 +2689,12 @@ async function exportJSON() {
   const json  = JSON.stringify(buildExportPkg(), null, 2);
   const fileName = `${state.expId||'exp'}实验数据.txt`;
   const blob = new Blob([json], {type: 'application/json'});
+  const isAndroid = /Android/i.test(navigator.userAgent);
+  const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+  const isMobile = isAndroid || isIOS;
 
   // 移动端优先使用分享功能
-  if (navigator.share && navigator.canShare && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+  if (navigator.share && navigator.canShare && isMobile) {
     const file = new File([blob], fileName, { type: 'text/plain' });
     try {
       await navigator.share({
@@ -2700,27 +2703,28 @@ async function exportJSON() {
         files: [file]
       });
       toast('已分享','success');
+      return;
     } catch(e) {
-      if (e.name !== 'AbortError') {
-        // 分享失败或不支持，回退到复制模式
-        showCopyModal(`📋 导出实验数据 - ${state.expId||'当前实验'}`, json);
-        toast('分享不可用，请复制后发送');
-      } else {
+      if (e.name === 'AbortError') {
         toast('已取消分享');
+        return;
       }
+      // 分享失败，尝试下载
     }
-  } else if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-    // 移动端但无分享功能，使用复制模式
-    showCopyModal(`📋 导出实验数据 - ${state.expId||'当前实验'}`, json);
-    toast('请复制后发送给其他设备');
-  } else {
-    // 桌面端直接下载
+  }
+
+  // 尝试下载
+  try {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = fileName;
     a.click();
     URL.revokeObjectURL(a.href);
-    toast('TXT 已导出','success');
+    toast(isMobile ? '文件已下载' : 'TXT 已导出','success');
+  } catch {
+    // 下载失败，使用复制模式
+    showCopyModal(`📋 导出实验数据 - ${state.expId||'当前实验'}`, json);
+    toast('分享和下载均失败，请复制后发送');
   }
 }
 
@@ -2779,9 +2783,10 @@ async function exportAllHistory() {
   const json = JSON.stringify(historyData, null, 2);
   const fileName = 'history.txt';
   const blob = new Blob([json], {type: 'application/json'});
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
   // 移动端优先使用分享功能
-  if (navigator.share && navigator.canShare && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+  if (navigator.share && navigator.canShare && isMobile) {
     const file = new File([blob], fileName, { type: 'text/plain' });
     try {
       await navigator.share({
@@ -2790,27 +2795,28 @@ async function exportAllHistory() {
         files: [file]
       });
       toast('已分享','success');
+      return;
     } catch(e) {
-      if (e.name !== 'AbortError') {
-        // 分享失败，回退到复制模式
-        showCopyModal(`📋 导出历史记录 (${historyData.length}条)`, json);
-        toast('分享不可用，请复制后发送');
-      } else {
+      if (e.name === 'AbortError') {
         toast('已取消分享');
+        return;
       }
+      // 分享失败，尝试下载
     }
-  } else if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
-    // 移动端但无分享功能，使用复制模式
-    showCopyModal(`📋 导出历史记录 (${historyData.length}条)`, json);
-    toast('请复制后发送给其他设备');
-  } else {
-    // 桌面端直接下载
+  }
+
+  // 尝试下载
+  try {
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
     a.download = fileName;
     a.click();
     URL.revokeObjectURL(a.href);
-    toast(`已导出 ${historyData.length} 条记录`,'success');
+    toast(isMobile ? '文件已下载' : `已导出 ${historyData.length} 条记录`,'success');
+  } catch {
+    // 下载失败，使用复制模式
+    showCopyModal(`📋 导出历史记录 (${historyData.length}条)`, json);
+    toast('分享和下载均失败，请复制后发送');
   }
 }
 
@@ -3087,9 +3093,10 @@ async function exportPDF() {
 
     const fileName = `${state.expId||'experiment'}实验记录.pdf`;
     const pdfBlob = pdf.output('blob');
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
     // 移动端优先使用分享功能
-    if (navigator.share && /iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+    if (navigator.share && isMobile) {
       const file = new File([pdfBlob], fileName, { type: 'application/pdf' });
       try {
         await navigator.share({
@@ -3099,22 +3106,39 @@ async function exportPDF() {
         });
         toast('已分享','success');
       } catch(e) {
-        if (e.name !== 'AbortError') {
-          // 用户取消分享，则保存文件
-          const url = URL.createObjectURL(pdfBlob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = fileName;
-          a.click();
-          URL.revokeObjectURL(url);
-          toast('PDF 已生成','success');
-        } else {
+        if (e.name === 'AbortError') {
           toast('已取消分享');
+        } else {
+          // 分享失败，尝试下载
+          try {
+            const url = URL.createObjectURL(pdfBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            a.click();
+            URL.revokeObjectURL(url);
+            toast('文件已下载','success');
+          } catch {
+            // 下载也失败，jsPDF兜底
+            pdf.save(fileName);
+            toast('分享和下载失败，已尝试直接保存','success');
+          }
         }
       }
     } else {
-      pdf.save(fileName);
-      toast('PDF 已生成','success');
+      // 无分享功能，直接保存
+      if (isMobile) {
+        const url = URL.createObjectURL(pdfBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = fileName;
+        a.click();
+        URL.revokeObjectURL(url);
+        toast('文件已下载','success');
+      } else {
+        pdf.save(fileName);
+        toast('PDF 已生成','success');
+      }
     }
   } catch(err) {
     console.error(err); toast('PDF 生成失败: '+err.message,'error');
