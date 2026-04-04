@@ -479,6 +479,46 @@ body {
 .btn-icon { padding: 8px; }
 
 /* ════════════════════════════════
+   DRAG & DROP ZONE
+════════════════════════════════ */
+.drop-zone {
+  border: 2px dashed var(--border2);
+  border-radius: var(--r);
+  padding: 24px;
+  text-align: center;
+  background: var(--surface2);
+  transition: all .2s;
+  cursor: pointer;
+  position: relative;
+}
+.drop-zone:hover {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+.drop-zone.dragover {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  transform: scale(1.01);
+  box-shadow: 0 4px 12px var(--accent-glow);
+}
+.drop-zone-text {
+  font-size: var(--f-md);
+  color: var(--text2);
+  pointer-events: none;
+}
+.drop-zone-sub {
+  font-size: var(--f-xs);
+  color: var(--text3);
+  margin-top: 4px;
+  pointer-events: none;
+}
+.drop-zone-icon {
+  font-size: var(--f-2xl);
+  margin-bottom: 8px;
+  pointer-events: none;
+}
+
+/* ════════════════════════════════
    FORMS
 ════════════════════════════════ */
 .form-grid       { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; margin-bottom: 16px; }
@@ -1476,9 +1516,17 @@ input.inRequired, textarea.inRequired, select.inRequired {
           <div class="card-chevron">▼</div>
         </div>
         <div class="card-body">
-          <div class="form-grid form-grid-3">
+          <!-- 拖放导入区域 -->
+          <div class="drop-zone" id="drop-zone">
+            <div class="drop-zone-icon">📁</div>
+            <div class="drop-zone-text">拖放文件到此处导入</div>
+            <div class="drop-zone-sub">支持 .txt, .json 格式（单个实验）或（批量历史）</div>
+            <input type="file" id="drag-drop-file" accept=".txt,.json" style="display:none;">
+          </div>
+
+          <div class="form-grid form-grid-3" style="margin-top:12px;">
             <button class="btn btn-secondary" onclick="pasteFromClipboard()">📥 粘贴导入实验</button>
-            <input type="file" id="import-file"         accept=".txt,.json" style="display:none;">
+            <input type="file" id="import-file" accept=".txt,.json" style="display:none;">
             <button class="btn btn-secondary" onclick="document.getElementById('import-file').click()">📂 文件导入实验</button>
             <input type="file" id="history-import-file" accept=".txt,.json" style="display:none;">
             <button class="btn btn-secondary" onclick="document.getElementById('history-import-file').click()">📥 批量导入历史</button>
@@ -2027,6 +2075,44 @@ function bindStaticEvents() {
   document.getElementById('import-file').addEventListener('change', e => importJSON(e.target));
   document.getElementById('history-import-file').addEventListener('change', e => importAllHistory(e.target));
 
+  // Drag & Drop import
+  const dropZone = document.getElementById('drop-zone');
+  const dragDropFile = document.getElementById('drag-drop-file');
+
+  // 点击拖放区域触发文件选择
+  dropZone.addEventListener('click', () => dragDropFile.click());
+
+  // 拖放区域事件处理
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dropZone.classList.add('dragover');
+  });
+
+  dropZone.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dropZone.classList.remove('dragover');
+  });
+
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dropZone.classList.remove('dragover');
+
+    const files = e.dataTransfer?.files;
+    if (files && files.length > 0) {
+      handleDroppedFile(files[0]);
+    }
+  });
+
+  // 文件选择器事件处理
+  dragDropFile.addEventListener('change', (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      handleDroppedFile(e.target.files[0]);
+    }
+  });
+
   // Report page
   document.getElementById('rpt-select').addEventListener('change', loadReportFromSelect);
 
@@ -2323,6 +2409,29 @@ function syncExpId() {
   const v = document.getElementById('exp-id').value || '—';
   document.getElementById('proc-exp-id').textContent = v;
   document.getElementById('h-exp-id').textContent    = v;
+
+  // 实时更新当前标签页的实验编号显示
+  updateCurrentTabName(v);
+}
+
+// 更新当前标签页的实验编号显示
+function updateCurrentTabName(expId) {
+  if (!currentExpId) return;
+  const exp = experiments.find(e => e.id === currentExpId);
+  if (exp) {
+    exp.expId = expId === '—' ? '' : expId;
+    // 更新当前标签页的显示文本（不重新渲染整个标签栏）
+    const tabsContainer = document.getElementById('exp-tabs');
+    const tabs = tabsContainer.querySelectorAll('.exp-tab');
+    const activeTab = Array.from(tabs).find(tab => tab.classList.contains('active'));
+    if (activeTab) {
+      const nameSpan = activeTab.querySelector('.exp-tab-name');
+      if (nameSpan) {
+        nameSpan.textContent = exp.expId || '未命名实验';
+        nameSpan.classList.toggle('unsaved', !exp.expId);
+      }
+    }
+  }
 }
 
 /* ════════════════════════════════════════════════════
@@ -3882,6 +3991,59 @@ async function importAllHistory(input) {
     input.value = '';
     toast(`已导入 ${added} 条记录`, 'success');
   } catch { toast('JSON 格式错误', 'error'); }
+}
+
+// 处理拖放或选择的文件
+function handleDroppedFile(file) {
+  const fileName = file.name.toLowerCase();
+  if (!fileName.endsWith('.txt') && !fileName.endsWith('.json')) {
+    toast('仅支持 .txt 和 .json 格式文件', 'error');
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+
+      // 判断是单个实验还是批量历史
+      if (Array.isArray(data)) {
+        // 批量历史
+        if (!confirm(`导入 ${data.length} 条历史记录？将合并到现有历史。`)) return;
+        importHistoryArray(data);
+      } else if (data.expId || data.reagents || data.steps) {
+        // 单个实验
+        if (!confirm(`导入实验 ${data.expId || '?'} 的数据？`)) return;
+        loadState(data);
+        switchPage('formula');
+        toast('数据已导入', 'success');
+      } else {
+        toast('无法识别的文件格式', 'error');
+      }
+    } catch (err) {
+      toast('JSON 格式错误：' + err.message, 'error');
+    }
+  };
+  reader.readAsText(file);
+}
+
+// 导入历史数组（从批量导入或拖放导入）
+async function importHistoryArray(data) {
+  if (!Array.isArray(data)) return;
+
+  const existIds = new Set(historyData.map(h => h.expId));
+  let added = 0;
+
+  for (const entry of data) {
+    if (entry.expId && !existIds.has(entry.expId)) {
+      await WPU_DB.set('history', entry.expId, entry);
+      existIds.add(entry.expId);
+      added++;
+    }
+  }
+
+  await loadHistoryData();
+  toast(`已导入 ${added} 条记录`, 'success');
 }
 
 function importJSON(input) {
