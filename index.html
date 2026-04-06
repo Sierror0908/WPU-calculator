@@ -699,6 +699,7 @@ input.inRequired, textarea.inRequired, select.inRequired {
 .type-polyol { background: var(--cyan-dim);               color: var(--cyan); }
 .type-iso    { background: var(--amber-dim);              color: var(--amber); }
 .type-chain  { background: var(--green-dim);              color: var(--green); }
+.type-amine  { background: rgba(139,92,246,.15);          color: #8b5cf6; }
 .type-hydro  { background: rgba(249,115,22,.15);          color: #f97316; }
 .type-solvent{ background: var(--purple-dim);             color: var(--purple); }
 .type-other  { background: var(--bg3); border: 1px solid var(--border); color: var(--text3); }
@@ -1368,7 +1369,8 @@ input.inRequired, textarea.inRequired, select.inRequired {
               <select id="add-type">
                 <option value="polyol">多元醇</option>
                 <option value="iso">异氰酸酯</option>
-                <option value="chain">扩链剂</option>
+                <option value="chain">扩链剂(醇类)</option>
+                <option value="amine">扩链剂(胺类)</option>
                 <option value="hydro">亲水剂</option>
                 <option value="solvent">溶剂</option>
                 <option value="other">其他</option>
@@ -1711,7 +1713,7 @@ input.inRequired, textarea.inRequired, select.inRequired {
     <div class="modal-title">➕ 添加自定义预设</div>
     <div class="form-grid">
       <div class="form-group span-2"><label for="cp-name">原料名称 *</label><input type="text" id="cp-name" placeholder="如：PPG-2000"></div>
-      <div class="form-group"><label for="cp-type">类型 *</label><select id="cp-type"><option value="polyol">多元醇</option><option value="iso">异氰酸酯</option><option value="chain">扩链剂</option><option value="hydro">亲水剂</option><option value="solvent">溶剂</option><option value="other">其他</option></select></div>
+      <div class="form-group"><label for="cp-type">类型 *</label><select id="cp-type"><option value="polyol">多元醇</option><option value="iso">异氰酸酯</option><option value="chain">扩链剂(醇类)</option><option value="amine">扩链剂(胺类)</option><option value="hydro">亲水剂</option><option value="solvent">溶剂</option><option value="other">其他</option></select></div>
       <div class="form-group"><label for="cp-mw">分子量 (g/mol) *</label><input type="number" id="cp-mw" placeholder="如 2000" step="any"></div>
       <div class="form-group"><label for="cp-f">官能度 f</label><input type="number" id="cp-f" value="2" step="1" min="0"></div>
       <div class="form-group"><label for="cp-density">密度 (g/mL)</label><input type="number" id="cp-density" placeholder="可选" step="any"></div>
@@ -1876,7 +1878,7 @@ const BUILTIN_PRESETS = Object.freeze([
   { name: 'DMBA',       type: 'hydro',   mw: 148.16, f: 2 },
   { name: 'BDO',        type: 'chain',   mw:  90.12, f: 2 },
   { name: 'TMP',        type: 'chain',   mw: 134.17, f: 3 },
-  { name: 'EDA',        type: 'chain',   mw:  60.10, f: 2 },
+  { name: 'EDA',        type: 'amine',   mw:  60.10, f: 2 },
   { name: 'TEA',        type: 'other',   mw: 101.19, f: 0 },
   { name: 'T9',         type: 'other',   mw: 632.32, f: 0 },
   { name: 'DBTDL',      type: 'other',   mw: 631.56, f: 0 },
@@ -1891,8 +1893,8 @@ const DEFAULT_PROCESS_STEPS = Object.freeze(
 const DENSITY_MAP = Object.freeze({ HDI: 1.05, MDI: 1.23, BDO: 1.017, TEA: 0.726, EDA: 0.899, DMF: 0.944 });
 const ML_KEYWORDS = Object.freeze(['HDI', 'MDI', 'BDO', 'TEA', 'EDA', 'DMF']);
 
-const TYPE_NAME  = Object.freeze({ polyol: '多元醇', iso: '异氰酸酯', chain: '扩链剂', hydro: '亲水剂', solvent: '溶剂', other: '其他' });
-const TYPE_CLASS = Object.freeze({ polyol: 'type-polyol', iso: 'type-iso', chain: 'type-chain', hydro: 'type-hydro', solvent: 'type-solvent', other: 'type-other' });
+const TYPE_NAME  = Object.freeze({ polyol: '多元醇', iso: '异氰酸酯', chain: '扩链剂(醇类)', amine: '扩链剂(胺类)', hydro: '亲水剂', solvent: '溶剂', other: '其他' });
+const TYPE_CLASS = Object.freeze({ polyol: 'type-polyol', iso: 'type-iso', chain: 'type-chain', amine: 'type-amine', hydro: 'type-hydro', solvent: 'type-solvent', other: 'type-other' });
 
 /* ════════════════════════════════════════════════════
    SECTION 3 — Application State
@@ -1944,11 +1946,14 @@ function fmt(n, d = 2) {
 
 /** Calculate equivalents (NCO, OH, R-value, HSC, etc.) from a reagent list.
  *  @param {boolean} useActual — when true, use r.actual mass instead of r.mass
+ *
+ *  NOTE: 胺类扩链剂(amine)与NCO反应但不计入OH当量，因为它们含有氨基(-NH2)而非羟基(-OH)
+ *        R值 = NCO当量 / OH当量，仅计算羟基的当量
  */
 function calcEquiv(rList, useActual = false) {
   let ncoEq = 0, ohEq = 0;
-  let isoMass = 0, chainMass = 0, hydroMass = 0, polyolMass = 0, totalMass = 0;
-  let chainEq = 0, hydroEq = 0;
+  let isoMass = 0, chainMass = 0, amineMass = 0, hydroMass = 0, polyolMass = 0, totalMass = 0;
+  let chainEq = 0, amineEq = 0, hydroEq = 0;
 
   for (const r of rList) {
     if (r.type === 'solvent') continue;
@@ -1960,14 +1965,17 @@ function calcEquiv(rList, useActual = false) {
     const eq = m * r.f / r.mw;
 
     switch (r.type) {
-      case 'iso':    ncoEq += eq; isoMass   += m; break;
-      case 'polyol': ohEq  += eq; polyolMass += m; break;
-      case 'chain':  ohEq  += eq; chainMass  += m; chainEq += eq; break;
-      case 'hydro':  ohEq  += eq; hydroMass  += m; hydroEq += eq; break;
+      case 'iso':    ncoEq    += eq; isoMass    += m; break;
+      case 'polyol': ohEq     += eq; polyolMass += m; break;
+      case 'chain':  ohEq     += eq; chainMass  += m; chainEq  += eq; break;
+      case 'amine':  // 胺类扩链剂与NCO反应但不计入OH当量（无羟基）
+                     ncoEq    -= eq; // 消耗NCO但不增加OH
+                     amineMass += m; amineEq   += eq; break;
+      case 'hydro':  ohEq     += eq; hydroMass  += m; hydroEq += eq; break;
     }
   }
 
-  const hardMass    = isoMass + chainMass + hydroMass;
+  const hardMass    = isoMass + chainMass + amineMass + hydroMass;
   const polymerMass = hardMass + polyolMass;
   const solidMass   = rList
     .filter(r => r.type !== 'solvent')
@@ -1975,8 +1983,8 @@ function calcEquiv(rList, useActual = false) {
 
   return {
     ncoEq, ohEq, totalMass,
-    isoMass, chainMass, hydroMass, polyolMass, hardMass, polymerMass,
-    chainEq, hydroEq,
+    isoMass, chainMass, amineMass, hydroMass, polyolMass, hardMass, polymerMass,
+    chainEq, amineEq, hydroEq,
     rVal:     ohEq > 0 ? ncoEq / ohEq : 0,
     hsc:      polymerMass > 0 ? (hardMass / polymerMass) * 100 : 0,
     hydroPct: solidMass   > 0 ? (hydroMass / solidMass) * 100 : 0,
@@ -3501,7 +3509,15 @@ function loadState(s) {
   if (s.expDate)     document.getElementById('exp-date').value      = s.expDate;
   if (s.expNote)     document.getElementById('exp-note').value      = s.expNote;
   if (s.expOperator) document.getElementById('exp-operator').value  = s.expOperator;
-  if (Array.isArray(s.reagents))    reagents     = s.reagents;
+  if (Array.isArray(s.reagents)) {
+    // 数据迁移：将历史数据中类型为'chain'的EDA自动转换为'amine'类型
+    reagents = s.reagents.map(r => {
+      if (r.name === 'EDA' && r.type === 'chain') {
+        return { ...r, type: 'amine' };
+      }
+      return r;
+    });
+  }
   if (s.solidContent !== undefined) solidContent = s.solidContent;
   if (s.stepData && typeof s.stepData === 'object') stepData = s.stepData;
   if (Array.isArray(s.processSteps) && s.processSteps.length) {
@@ -3648,13 +3664,21 @@ async function loadFromHistory(expId) {
   }
 
   const now = new Date();
+  // 数据迁移：将历史数据中类型为'chain'的EDA自动转换为'amine'类型
+  const migratedReagents = (entry.reagents || []).map(r => {
+    if (r.name === 'EDA' && r.type === 'chain') {
+      return { ...r, type: 'amine' };
+    }
+    return r;
+  });
+
   const newExp = {
     id: `exp_${Date.now()}`,
     expId: finalId,
     expDate:     entry.expDate     || `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`,
     expOperator: entry.expOperator || '',
     expNote:     entry.expNote     || '',
-    reagents:    JSON.parse(JSON.stringify(entry.reagents || [])),
+    reagents:    migratedReagents,
     solidContent: entry.solidContent ?? 30,
     stepData:    JSON.parse(JSON.stringify(entry.stepData || {})),
     processSteps: Array.isArray(entry.processSteps) ? JSON.parse(JSON.stringify(entry.processSteps)) : DEFAULT_PROCESS_STEPS.map(s => ({ ...s })),
@@ -3735,7 +3759,13 @@ function renderReport(entry) {
   document.getElementById('rpt-exp-id').textContent = entry.expId;
   document.getElementById('rpt-meta').textContent   = `${entry.expDate} · ${entry.expOperator || '—'} · ${entry.expNote || ''}`;
 
-  const rList     = entry.reagents || [];
+  // 数据迁移：将历史数据中类型为'chain'的EDA自动转换为'amine'类型以正确计算当量
+  const rList     = (entry.reagents || []).map(r => {
+    if (r.name === 'EDA' && r.type === 'chain') {
+      return { ...r, type: 'amine' };
+    }
+    return r;
+  });
   const th        = calcEquiv(rList, false);
   const ac        = calcEquiv(rList, true);
   const hasActual = rList.some(r => parseFloat(r.actual) > 0);
@@ -3983,6 +4013,15 @@ async function importAllHistory(input) {
     let added = 0;
     for (const entry of data) {
       if (entry.expId && !existIds.has(entry.expId)) {
+        // 数据迁移：将导入数据中类型为'chain'的EDA自动转换为'amine'类型
+        if (Array.isArray(entry.reagents)) {
+          entry.reagents = entry.reagents.map(r => {
+            if (r.name === 'EDA' && r.type === 'chain') {
+              return { ...r, type: 'amine' };
+            }
+            return r;
+          });
+        }
         await WPU_DB.set('history', entry.expId, entry);
         existIds.add(entry.expId); added++;
       }
