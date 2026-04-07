@@ -1879,6 +1879,7 @@ const BUILTIN_PRESETS = Object.freeze([
   { name: 'BDO',        type: 'chain',   mw:  90.12, f: 2 },
   { name: 'TMP',        type: 'chain',   mw: 134.17, f: 3 },
   { name: 'EDA',        type: 'amine',   mw:  60.10, f: 2 },
+  { name: 'EDA·H2O',    type: 'amine',   mw:  78.11, f: 2 },
   { name: 'TEA',        type: 'other',   mw: 101.19, f: 0 },
   { name: 'T9',         type: 'other',   mw: 632.32, f: 0 },
   { name: 'DBTDL',      type: 'other',   mw: 631.56, f: 0 },
@@ -1890,8 +1891,8 @@ const DEFAULT_PROCESS_STEPS = Object.freeze(
   Array.from({ length: 6 }, (_, i) => ({ id: `s${i + 1}`, title: `步骤 ${i + 1}`, sub: '', catalyst: false }))
 );
 
-const DENSITY_MAP = Object.freeze({ HDI: 1.05, MDI: 1.23, BDO: 1.017, TEA: 0.726, EDA: 0.899, DMF: 0.944 });
-const ML_KEYWORDS = Object.freeze(['HDI', 'MDI', 'BDO', 'TEA', 'EDA', 'DMF']);
+const DENSITY_MAP = Object.freeze({ HDI: 1.05, MDI: 1.23, BDO: 1.017, TEA: 0.726, EDA: 0.899, 'EDA·H2O': 0.96, DMF: 0.944 });
+const ML_KEYWORDS = Object.freeze(['HDI', 'MDI', 'BDO', 'TEA', 'EDA', 'EDA·H2O', 'DMF']);
 
 const TYPE_NAME  = Object.freeze({ polyol: '多元醇', iso: '异氰酸酯', chain: '扩链剂(醇类)', amine: '扩链剂(胺类)', hydro: '亲水剂', solvent: '溶剂', other: '其他' });
 const TYPE_CLASS = Object.freeze({ polyol: 'type-polyol', iso: 'type-iso', chain: 'type-chain', amine: 'type-amine', hydro: 'type-hydro', solvent: 'type-solvent', other: 'type-other' });
