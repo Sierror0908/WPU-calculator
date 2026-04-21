@@ -2124,6 +2124,36 @@ const DEFAULT_PROCESS_STEPS = Object.freeze(
 const DENSITY_MAP = Object.freeze({ HDI: 1.05, MDI: 1.23, BDO: 1.017, TEA: 0.726, EDA: 0.899, 'EDA·H2O': 0.96, DMF: 0.944 });
 const ML_KEYWORDS = Object.freeze(['HDI', 'MDI', 'BDO', 'TEA', 'EDA', 'EDA·H2O', 'DMF']);
 
+const BUILTIN_PRICE_PRESETS = Object.freeze({
+  '参考低价 (2026.04)': Object.freeze({
+    'PCD-2000': 14500, 'PCD-1000': 15500, 'PTMEG-2000': 17500, 'PCL-2000': 22500,
+    'PPG-2000': 9000, 'PEG-2000': 9500, 'PEG-1000': 10000,
+    'IPDI': 32000, 'HDI': 28500, 'MDI': 16000,
+    'DMPA': 22000, 'DMBA': 45000,
+    'BDO': 8500, 'TMP': 12500, 'EDA': 15000, 'EDA·H2O': 12000,
+    'TEA': 16500, 'T9': 58000, 'DBTDL': 65000,
+    'DMF': 5500, '丙酮': 6800,
+  }),
+  '参考中价 (2026.04)': Object.freeze({
+    'PCD-2000': 16250, 'PCD-1000': 17500, 'PTMEG-2000': 19000, 'PCL-2000': 24250,
+    'PPG-2000': 9750, 'PEG-2000': 10500, 'PEG-1000': 11000,
+    'IPDI': 34000, 'HDI': 30750, 'MDI': 17250,
+    'DMPA': 24500, 'DMBA': 50000,
+    'BDO': 9000, 'TMP': 13250, 'EDA': 16500, 'EDA·H2O': 13000,
+    'TEA': 17250, 'T9': 61500, 'DBTDL': 71500,
+    'DMF': 6000, '丙酮': 7200,
+  }),
+  '参考高价 (2026.04)': Object.freeze({
+    'PCD-2000': 18000, 'PCD-1000': 19500, 'PTMEG-2000': 20500, 'PCL-2000': 26000,
+    'PPG-2000': 10500, 'PEG-2000': 11500, 'PEG-1000': 12000,
+    'IPDI': 36000, 'HDI': 33000, 'MDI': 18500,
+    'DMPA': 27000, 'DMBA': 55000,
+    'BDO': 9500, 'TMP': 14000, 'EDA': 18000, 'EDA·H2O': 14000,
+    'TEA': 18000, 'T9': 65000, 'DBTDL': 78000,
+    'DMF': 6500, '丙酮': 7600,
+  }),
+});
+
 const TYPE_NAME  = Object.freeze({ polyol: '多元醇', iso: '异氰酸酯', chain: '扩链剂(醇类)', amine: '扩链剂(胺类)', hydro: '亲水剂', solvent: '溶剂', other: '其他' });
 const TYPE_CLASS = Object.freeze({ polyol: 'type-polyol', iso: 'type-iso', chain: 'type-chain', amine: 'type-amine', hydro: 'type-hydro', solvent: 'type-solvent', other: 'type-other' });
 
@@ -4914,6 +4944,12 @@ async function saveCostPreset() {
 }
 
 async function loadCostPreset(name) {
+  if (BUILTIN_PRICE_PRESETS[name]) {
+    priceMap = { ...BUILTIN_PRICE_PRESETS[name] };
+    renderCostPage();
+    toast('已加载方案: ' + name, 'success');
+    return;
+  }
   const presets = (await WPU_DB.get('config', 'pricePresets')) || {};
   if (presets[name]) {
     priceMap = { ...presets[name] };
@@ -4932,13 +4968,26 @@ async function deleteCostPreset(name) {
 async function renderCostPresets() {
   const el = document.getElementById('cost-preset-list');
   const presets = (await WPU_DB.get('config', 'pricePresets')) || {};
-  const keys = Object.keys(presets);
-  if (!keys.length) { el.innerHTML = '<div style="color:var(--text3);font-size:var(--f-sm);">暂无保存的方案</div>'; return; }
-  el.innerHTML = keys.map(k => `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
-    <span style="flex:1;font-size:var(--f-sm);">${esc(k)}</span>
-    <button class="btn btn-sm btn-secondary" onclick="loadCostPreset('${esc(k)}')">加载</button>
-    <button class="btn btn-sm btn-danger" onclick="deleteCostPreset('${esc(k)}')">删除</button>
-  </div>`).join('');
+  const builtinKeys = Object.keys(BUILTIN_PRICE_PRESETS);
+  const customKeys = Object.keys(presets);
+  let html = '';
+  // Built-in presets
+  for (const k of builtinKeys) {
+    html += `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
+      <span style="flex:1;font-size:var(--f-sm);color:var(--text2);">${esc(k)}</span>
+      <button class="btn btn-sm btn-secondary" onclick="loadCostPreset('${esc(k)}')">加载</button>
+    </div>`;
+  }
+  // User presets
+  for (const k of customKeys) {
+    html += `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
+      <span style="flex:1;font-size:var(--f-sm);">${esc(k)}</span>
+      <button class="btn btn-sm btn-secondary" onclick="loadCostPreset('${esc(k)}')">加载</button>
+      <button class="btn btn-sm btn-danger" onclick="deleteCostPreset('${esc(k)}')">删除</button>
+    </div>`;
+  }
+  if (!html) html = '<div style="color:var(--text3);font-size:var(--f-sm);">暂无保存的方案</div>';
+  el.innerHTML = html;
 }
 
 function exportPrices() {
