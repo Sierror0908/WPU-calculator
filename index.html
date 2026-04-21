@@ -1266,6 +1266,80 @@ input.inRequired, textarea.inRequired, select.inRequired {
   .card-header, .card-body { padding: 12px; }
   .page-title { font-size: var(--f-xl); }
 }
+
+/* ════════════════════════════════
+   COST PAGE
+════════════════════════════════ */
+.cost-table { width: 100%; border-collapse: collapse; font-size: var(--f-base); }
+.cost-table th { text-align: left; padding: 8px 10px; font-weight: 600; color: var(--text2); border-bottom: 2px solid var(--border); font-size: var(--f-xs); text-transform: uppercase; letter-spacing: .05em; }
+.cost-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+.cost-table tr:last-child td { border-bottom: none; }
+.cost-table input[type="number"] {
+  width: 100%; max-width: 120px; padding: 6px 8px; border: 1px solid var(--border); border-radius: var(--rs);
+  font-size: var(--f-base); font-family: var(--mono); background: var(--bg); color: var(--text);
+}
+.cost-table input[type="number"]:focus { border-color: var(--accent); outline: none; box-shadow: 0 0 0 2px var(--accent-dim); }
+.cost-subtotal { font-family: var(--mono); font-weight: 600; white-space: nowrap; }
+.cost-summary {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px;
+  margin-top: 16px; padding-top: 16px; border-top: 2px solid var(--border);
+}
+.cost-stat { text-align: center; }
+.cost-stat-value { font-family: var(--mono); font-size: var(--f-2xl); font-weight: 700; color: var(--accent); }
+.cost-stat-label { font-size: var(--f-xs); color: var(--text3); margin-top: 2px; }
+.price-tag { font-family: var(--mono); font-size: var(--f-xs); color: var(--text3); }
+
+/* ════════════════════════════════
+   SWEEP PAGE
+════════════════════════════════ */
+.sweep-controls { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.sweep-reagent-block { padding: 14px; background: var(--bg3); border-radius: var(--r); }
+.sweep-reagent-label { font-size: var(--f-xs); color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: .1em; margin-bottom: 8px; }
+.sweep-reagent-block select {
+  width: 100%; padding: 8px 10px; border: 1px solid var(--border); border-radius: var(--rs);
+  font-size: var(--f-base); background: var(--surface); color: var(--text); margin-bottom: 10px;
+}
+.sweep-reagent-block select:focus { border-color: var(--accent); outline: none; }
+.sweep-slider-row { display: flex; align-items: center; gap: 10px; }
+.sweep-slider-row input[type="range"] { flex: 1; }
+.sweep-slider-val { font-family: var(--mono); font-size: var(--f-base); font-weight: 600; min-width: 70px; text-align: right; color: var(--accent); }
+.sweep-results {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 12px;
+  padding: 16px; background: var(--bg3); border-radius: var(--r); margin-top: 16px;
+}
+.sweep-result-item { text-align: center; }
+.sweep-result-value { font-family: var(--mono); font-size: var(--f-xl); font-weight: 700; color: var(--text); }
+.sweep-result-label { font-size: var(--f-xs); color: var(--text3); margin-top: 2px; }
+.heatmap-wrap {
+  position: relative; margin-top: 16px; border-radius: var(--r); overflow: hidden;
+  background: var(--bg3); border: 1px solid var(--border);
+}
+.heatmap-canvas { width: 100%; display: block; cursor: crosshair; }
+.heatmap-legend {
+  display: flex; align-items: center; gap: 8px; padding: 8px 12px;
+  font-size: var(--f-xs); color: var(--text2);
+}
+.heatmap-legend-bar {
+  width: 120px; height: 12px; border-radius: 3px;
+  background: linear-gradient(90deg, #3b82f6, #10b981, #f59e0b, #ef4444);
+}
+.heatmap-metric-tabs { display: flex; gap: 6px; margin-top: 12px; }
+.heatmap-metric-tab {
+  padding: 6px 14px; border-radius: var(--rs); cursor: pointer; font-size: var(--f-sm);
+  border: 1px solid var(--border); background: var(--surface); color: var(--text2); transition: all .15s;
+}
+.heatmap-metric-tab.active { background: var(--accent); color: #fff; border-color: var(--accent); }
+.sweep-range-row {
+  display: flex; align-items: center; gap: 8px; margin-top: 8px; font-size: var(--f-xs); color: var(--text3);
+}
+.sweep-range-row input[type="number"] {
+  width: 60px; padding: 4px 6px; border: 1px solid var(--border); border-radius: var(--rs);
+  font-size: var(--f-xs); font-family: var(--mono); background: var(--bg); color: var(--text); text-align: center;
+}
+@media (max-width: 768px) {
+  .sweep-controls { grid-template-columns: 1fr; }
+  .cost-summary { grid-template-columns: 1fr 1fr; }
+}
 </style>
 </head>
 <body>
@@ -1300,6 +1374,12 @@ input.inRequired, textarea.inRequired, select.inRequired {
       <div class="nav-label">数据管理</div>
       <div class="nav-item" data-page="database" onclick="switchPage('database')">实验历史</div>
       <div class="nav-item" data-page="report"   onclick="switchPage('report')">报告可视化</div>
+    </div>
+    <div class="nav-divider"></div>
+    <div class="nav-section">
+      <div class="nav-label">分析工具</div>
+      <div class="nav-item" data-page="cost" onclick="switchPage('cost')"><span class="nav-icon">💰</span> 成本分析</div>
+      <div class="nav-item" data-page="sweep" onclick="switchPage('sweep')"><span class="nav-icon">📊</span> 参数扫描</div>
     </div>
     <div class="nav-divider"></div>
     <div class="nav-section">
@@ -1685,6 +1765,134 @@ input.inRequired, textarea.inRequired, select.inRequired {
       </div>
     </div><!-- /page-settings -->
 
+    <!-- ════ PAGE: 成本分析 ════ -->
+    <div class="page" id="page-cost">
+      <div class="page-header">
+        <div class="page-title-wrap">
+          <div class="page-title">成本分析</div>
+          <div class="page-desc">输入原料单价，自动计算当前配方成本</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-secondary btn-sm" id="cost-export-prices-btn">导出价格</button>
+          <button class="btn btn-secondary btn-sm" id="cost-import-prices-btn">导入价格</button>
+          <input type="file" id="cost-import-file" accept=".json" style="display:none">
+        </div>
+      </div>
+
+      <div class="card" data-card="cost-prices">
+        <div class="card-header">
+          <div class="card-title">原料价格表</div>
+          <div class="card-chevron">▼</div>
+        </div>
+        <div class="card-body">
+          <div id="cost-table-wrap">
+            <div class="empty-state"><div class="empty-icon">💰</div><div class="empty-text">请先添加原料到配方中</div></div>
+          </div>
+          <div class="cost-summary" id="cost-summary" style="display:none;">
+            <div class="cost-stat"><div class="cost-stat-value" id="cost-total">—</div><div class="cost-stat-label">原料总成本 (元)</div></div>
+            <div class="cost-stat"><div class="cost-stat-value" id="cost-solid-mass">—</div><div class="cost-stat-label">固体质量 (g)</div></div>
+            <div class="cost-stat"><div class="cost-stat-value" id="cost-water">—</div><div class="cost-stat-label">理论加水量 (g)</div></div>
+            <div class="cost-stat"><div class="cost-stat-value" id="cost-emulsion-mass">—</div><div class="cost-stat-label">成品总质量 (g)</div></div>
+            <div class="cost-stat"><div class="cost-stat-value" id="cost-per-kg-emulsion">—</div><div class="cost-stat-label">成品 ¥/kg</div></div>
+            <div class="cost-stat"><div class="cost-stat-value" id="cost-per-kg-solid">—</div><div class="cost-stat-label">固含 ¥/kg</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" data-card="cost-presets">
+        <div class="card-header">
+          <div class="card-title">价格方案</div>
+          <div class="card-chevron">▼</div>
+        </div>
+        <div class="card-body">
+          <div style="display:flex;gap:8px;align-items:center;margin-bottom:12px;">
+            <input type="text" id="cost-preset-name" placeholder="方案名称" style="flex:1;padding:8px 10px;border:1px solid var(--border);border-radius:var(--rs);font-size:var(--f-base);background:var(--bg);color:var(--text);">
+            <button class="btn btn-primary btn-sm" id="cost-save-preset-btn">保存方案</button>
+          </div>
+          <div id="cost-preset-list"></div>
+        </div>
+      </div>
+    </div><!-- /page-cost -->
+
+    <!-- ════ PAGE: 参数扫描 ════ -->
+    <div class="page" id="page-sweep">
+      <div class="page-header">
+        <div class="page-title-wrap">
+          <div class="page-title">参数扫描</div>
+          <div class="page-desc">选择两种原料，通过滑块或热力图探索不同配比下的 R 值与 HSC</div>
+        </div>
+        <div class="page-actions">
+          <button class="btn btn-green btn-sm" id="sweep-apply-btn">✓ 应用当前组合</button>
+        </div>
+      </div>
+
+      <div class="card" data-card="sweep-select">
+        <div class="card-header">
+          <div class="card-title">试剂选择与调节</div>
+          <div class="card-chevron">▼</div>
+        </div>
+        <div class="card-body">
+          <div class="sweep-controls">
+            <div class="sweep-reagent-block">
+              <div class="sweep-reagent-label">试剂 A</div>
+              <select id="sweep-reagent-a"></select>
+              <div class="sweep-slider-row">
+                <input type="range" id="sweep-slider-a" min="0" max="100" step="0.01" value="0">
+                <span class="sweep-slider-val" id="sweep-val-a">0.00 g</span>
+              </div>
+              <div class="sweep-range-row">
+                范围 <input type="number" id="sweep-lo-a" min="0" step="0.1" value="0"> ~ <input type="number" id="sweep-hi-a" min="0" step="0.1" value="100"> g
+              </div>
+            </div>
+            <div class="sweep-reagent-block">
+              <div class="sweep-reagent-label">试剂 B</div>
+              <select id="sweep-reagent-b"></select>
+              <div class="sweep-slider-row">
+                <input type="range" id="sweep-slider-b" min="0" max="100" step="0.01" value="0">
+                <span class="sweep-slider-val" id="sweep-val-b">0.00 g</span>
+              </div>
+              <div class="sweep-range-row">
+                范围 <input type="number" id="sweep-lo-b" min="0" step="0.1" value="0"> ~ <input type="number" id="sweep-hi-b" min="0" step="0.1" value="100"> g
+              </div>
+            </div>
+          </div>
+
+          <div class="sweep-results" id="sweep-results">
+            <div class="sweep-result-item"><div class="sweep-result-value" id="sw-r">—</div><div class="sweep-result-label">R 值</div></div>
+            <div class="sweep-result-item"><div class="sweep-result-value" id="sw-hsc">—</div><div class="sweep-result-label">HSC</div></div>
+            <div class="sweep-result-item"><div class="sweep-result-value" id="sw-nco">—</div><div class="sweep-result-label">NCO Eq</div></div>
+            <div class="sweep-result-item"><div class="sweep-result-value" id="sw-oh">—</div><div class="sweep-result-label">OH Eq</div></div>
+            <div class="sweep-result-item"><div class="sweep-result-value" id="sw-hydro">—</div><div class="sweep-result-label">亲水剂%</div></div>
+            <div class="sweep-result-item"><div class="sweep-result-value" id="sw-mass">—</div><div class="sweep-result-label">总质量</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" data-card="sweep-heatmap">
+        <div class="card-header">
+          <div class="card-title">热力图</div>
+          <div class="card-chevron">▼</div>
+        </div>
+        <div class="card-body">
+          <div class="heatmap-metric-tabs" id="heatmap-metric-tabs">
+            <div class="heatmap-metric-tab active" data-metric="r">R 值</div>
+            <div class="heatmap-metric-tab" data-metric="hsc">HSC</div>
+            <div class="heatmap-metric-tab" data-metric="hydro">亲水剂%</div>
+          </div>
+          <div class="heatmap-wrap" style="margin-top:12px;">
+            <canvas class="heatmap-canvas" id="heatmap-canvas" width="400" height="400"></canvas>
+            <div id="heatmap-tooltip" style="position:absolute;display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:6px 10px;font-size:var(--f-xs);font-family:var(--mono);pointer-events:none;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.15);z-index:10;"></div>
+          </div>
+          <div class="heatmap-legend">
+            <span id="heatmap-lo-label">低</span>
+            <div class="heatmap-legend-bar"></div>
+            <span id="heatmap-hi-label">高</span>
+            <span style="margin-left:auto;" id="heatmap-hover-info"></span>
+          </div>
+        </div>
+      </div>
+    </div><!-- /page-sweep -->
+
   </main>
 </div><!-- /layout -->
 
@@ -1779,6 +1987,20 @@ input.inRequired, textarea.inRequired, select.inRequired {
       </button>
     </div>
     <button class="btn btn-secondary" style="width:100%;" onclick="closeModal('export-modal')">取消</button>
+  </div>
+</div>
+
+<!-- Share modal (mobile) -->
+<div class="modal-overlay" id="share-modal" role="dialog" aria-modal="true" aria-label="分享文件">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">📤 文件已生成</div>
+    <div style="text-align:center;margin:16px 0;">
+      <div id="share-file-name" style="font-family:var(--mono);font-size:var(--f-sm);color:var(--text2);word-break:break-all;margin-bottom:16px;"></div>
+      <button class="btn btn-primary" id="share-native-btn" style="width:100%;padding:14px;font-size:var(--f-lg);">📤 分享到…</button>
+      <button class="btn btn-secondary" id="share-download-btn" style="width:100%;padding:12px;margin-top:8px;">⬇️ 下载到本地</button>
+    </div>
+    <button class="btn btn-ghost" style="width:100%;" onclick="closeModal('share-modal')">关闭</button>
   </div>
 </div>
 
@@ -2028,6 +2250,7 @@ async function init() {
 
   await loadProcessStepsFromDB();
   await loadHistory();
+  await loadPrices();
 
   // Try to restore previously-cached state (legacy path, overrides experiment data)
   const cached = await WPU_DB.get('current', 'state').catch(() => null);
@@ -2176,6 +2399,76 @@ function bindStaticEvents() {
       toast(`实验编号重复，已恢复原值`, 'error');
       syncExpId();
     }
+  });
+
+  // ── Cost page events ──
+  document.getElementById('cost-export-prices-btn').addEventListener('click', exportPrices);
+  document.getElementById('cost-import-prices-btn').addEventListener('click', () => document.getElementById('cost-import-file').click());
+  document.getElementById('cost-import-file').addEventListener('change', e => { if (e.target.files[0]) importPrices(e.target.files[0]); });
+  document.getElementById('cost-save-preset-btn').addEventListener('click', saveCostPreset);
+
+  // ── Share modal (mobile) ──
+  document.getElementById('share-native-btn').addEventListener('click', async () => {
+    if (!_pendingShareFile) return;
+    try {
+      await navigator.share({ files: [_pendingShareFile] });
+    } catch (e) {
+      if (e.name !== 'AbortError') toast('分享失败', 'error');
+    }
+    _pendingShareFile = null;
+    closeModal('share-modal');
+  });
+  document.getElementById('share-download-btn').addEventListener('click', () => {
+    if (!_pendingShareFile) return;
+    const url = URL.createObjectURL(_pendingShareFile);
+    const a = Object.assign(document.createElement('a'), { href: url, download: _pendingShareFile.name });
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 10000);
+    toast('文件已下载', 'success');
+    _pendingShareFile = null;
+    closeModal('share-modal');
+  });
+
+  // ── Sweep page events ──
+  document.getElementById('sweep-reagent-a').addEventListener('change', onSweepReagentChange);
+  document.getElementById('sweep-reagent-b').addEventListener('change', onSweepReagentChange);
+  document.getElementById('sweep-slider-a').addEventListener('input', onSweepSliderInput);
+  document.getElementById('sweep-slider-b').addEventListener('input', onSweepSliderInput);
+  document.getElementById('sweep-apply-btn').addEventListener('click', applySweepResult);
+  document.getElementById('sweep-lo-a').addEventListener('change', () => { updateSweepRange('a'); drawHeatmap(); });
+  document.getElementById('sweep-hi-a').addEventListener('change', () => { updateSweepRange('a'); drawHeatmap(); });
+  document.getElementById('sweep-lo-b').addEventListener('change', () => { updateSweepRange('b'); drawHeatmap(); });
+  document.getElementById('sweep-hi-b').addEventListener('change', () => { updateSweepRange('b'); drawHeatmap(); });
+
+  // Heatmap metric tabs
+  document.querySelectorAll('.heatmap-metric-tab').forEach(tab => {
+    tab.addEventListener('click', () => {
+      document.querySelectorAll('.heatmap-metric-tab').forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      sweepMetric = tab.dataset.metric;
+      drawHeatmap();
+    });
+  });
+
+  // Heatmap mouse events
+  const hmCanvas = document.getElementById('heatmap-canvas');
+  hmCanvas.addEventListener('mousemove', e => handleHeatmapInteraction(e.clientX, e.clientY, false));
+  hmCanvas.addEventListener('mouseleave', () => {
+    document.getElementById('heatmap-tooltip').style.display = 'none';
+    document.getElementById('heatmap-hover-info').textContent = '';
+  });
+  hmCanvas.addEventListener('click', e => handleHeatmapInteraction(e.clientX, e.clientY, true));
+  // Touch support
+  hmCanvas.addEventListener('touchmove', e => {
+    e.preventDefault();
+    const t = e.touches[0];
+    handleHeatmapInteraction(t.clientX, t.clientY, false);
+  }, { passive: false });
+  hmCanvas.addEventListener('touchend', e => {
+    const t = e.changedTouches[0];
+    handleHeatmapInteraction(t.clientX, t.clientY, true);
+    setTimeout(() => { document.getElementById('heatmap-tooltip').style.display = 'none'; }, 1500);
   });
 
   // Modal overlay click-outside to close
@@ -2383,6 +2676,10 @@ function switchPage(name) {
 
   const isExpPage = name === 'formula' || name === 'process';
   document.getElementById('exp-tabs').classList.toggle('visible', isExpPage);
+
+  // Lazy-init for analysis pages
+  if (name === 'cost') renderCostPage();
+  if (name === 'sweep') renderSweepPage();
 
   if (window.innerWidth < 768) {
     document.getElementById('sidebar').classList.remove('open');
@@ -2819,7 +3116,7 @@ function updateReagentField(id, field, val) {
           eqEl.textContent = r.eq === null ? '不参与当量' : `Eq=${r.eq.toFixed(2)}`;
           eqEl.className   = `reagent-eq-badge ${r.eq === null ? 'none' : 'has'}`;
         }
-        updateSummary(); updateSolidContent(solidContent); autoSave();
+        updateSummary(); updateSolidContent(solidContent); checkCardCompletion(); autoSave();
       }
       break;
     }
@@ -2831,7 +3128,7 @@ function updateReagentField(id, field, val) {
       } else {
         r.actual = val;
       }
-      updateSummary(); autoSave();
+      updateSummary(); checkCardCompletion(); autoSave();
       break;
     }
     case 'density': {
@@ -2840,7 +3137,7 @@ function updateReagentField(id, field, val) {
         r.density = v;
         if (r.unit === 'mL' && r.vol) r.mass = r.vol * v;
         r.eq = calcEqSingle(r.mass, r.mw, r.f);
-        updateSummary(); updateSolidContent(solidContent); autoSave();
+        updateSummary(); updateSolidContent(solidContent); checkCardCompletion(); autoSave();
       }
       break;
     }
@@ -2850,7 +3147,7 @@ function updateReagentField(id, field, val) {
       if (!isNaN(v) && (field === 'f' ? v >= 0 : v > 0)) {
         r[field] = v;
         r.eq     = calcEqSingle(r.mass, r.mw, r.f);
-        updateSummary(); updateSolidContent(solidContent); autoSave();
+        updateSummary(); updateSolidContent(solidContent); checkCardCompletion(); autoSave();
       }
       break;
     }
@@ -3203,7 +3500,7 @@ function renderProcessSteps() {
       if (!stepData[step.id]) stepData[step.id] = {};
       stepData[step.id][field] = inp.type === 'checkbox' ? inp.checked : inp.value;
       refreshStepDoneState(card, step.id);
-      autoSave();
+      checkCardCompletion(); autoSave();
     });
     body.addEventListener('change', e => {
       const inp = e.target.closest('[data-step-field]');
@@ -3214,7 +3511,7 @@ function renderProcessSteps() {
         stepData[step.id].needCool = inp.checked;
         const ct = body.querySelector(`[data-cool-block]`);
         if (ct) ct.style.display = inp.checked ? 'block' : 'none';
-        autoSave();
+        checkCardCompletion(); autoSave();
       }
     });
 
@@ -3454,7 +3751,7 @@ function confirmPhoto() {
   pendingPhotoData = null;
   closeModal('photo-modal');
   renderProcessSteps();
-  autoSave();
+  checkCardCompletion(); autoSave();
   toast('图片已添加', 'success');
 }
 
@@ -3462,7 +3759,7 @@ function removePhoto(sid, idx) {
   if (stepData[sid]?.photos) {
     stepData[sid].photos.splice(idx, 1);
     renderProcessSteps();
-    autoSave();
+    checkCardCompletion(); autoSave();
   }
 }
 
@@ -3915,17 +4212,25 @@ function showCopyModal(title, json) {
   }, 150);
 }
 
+let _pendingShareFile = null;
+
+function _showShareModal(file) {
+  _pendingShareFile = file;
+  document.getElementById('share-file-name').textContent = file.name;
+  document.getElementById('share-native-btn').style.display = navigator.share ? '' : 'none';
+  openModal('share-modal');
+}
+
 async function _downloadFile(fileName, content, mimeType) {
   const file = new File([content], fileName, { type: mimeType });
   const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
-  // 仅移动端尝试分享
-  if (navigator.share && isMobile) {
-    try { await navigator.share({ files: [file] }); return true; } catch (e) {
-      if (e.name === 'AbortError') { toast('已取消分享'); return true; }
-    }
+  if (isMobile) {
+    // Mobile: show share modal — user taps to trigger navigator.share inside gesture context
+    _showShareModal(file);
+    return true;
   }
-  // 电脑端直接下载，或分享失败则下载
+  // Desktop: direct download
   try {
     const url = URL.createObjectURL(file);
     const a   = Object.assign(document.createElement('a'), { href: url, download: fileName });
@@ -4463,6 +4768,539 @@ function toast(msg, type = '') {
   el.className   = `show${type ? ` ${type}` : ''}`;
   clearTimeout(_toastTimer);
   _toastTimer = setTimeout(() => { el.className = ''; }, 2400);
+}
+
+/* ════════════════════════════════════════════════════
+   SECTION 27 — Cost Analysis
+════════════════════════════════════════════════════ */
+let priceMap = {};
+
+async function loadPrices() {
+  const data = await WPU_DB.get('config', 'prices');
+  priceMap = data || {};
+}
+
+async function savePrices() {
+  await WPU_DB.set('config', 'prices', priceMap);
+}
+
+function renderCostPage() {
+  const wrap = document.getElementById('cost-table-wrap');
+  const summaryEl = document.getElementById('cost-summary');
+
+  if (!reagents.length) {
+    wrap.innerHTML = '<div class="empty-state"><div class="empty-icon">💰</div><div class="empty-text">请先添加原料到配方中</div></div>';
+    summaryEl.style.display = 'none';
+    return;
+  }
+
+  let html = '<table class="cost-table"><thead><tr><th>试剂</th><th>类型</th><th>质量</th><th>单价 (元/吨)</th><th>小计 (元)</th></tr></thead><tbody>';
+  let totalCost = 0, totalMass = 0;
+
+  for (const r of reagents) {
+    const price = priceMap[r.name] || 0;
+    const subtotal = price > 0 ? (r.mass * price / 1e6) : 0;
+    totalCost += subtotal;
+    totalMass += r.mass;
+    const typeLabel = { iso:'异氰酸酯', polyol:'聚醇', chain:'扩链剂', amine:'胺类', hydro:'亲水剂', solvent:'溶剂', other:'其他' }[r.type] || r.type;
+    html += `<tr>
+      <td><strong>${esc(r.name)}</strong></td>
+      <td><span class="type-badge type-${r.type}">${typeLabel}</span></td>
+      <td class="price-tag">${fmt(r.mass)} g</td>
+      <td><input type="number" data-cost-name="${esc(r.name)}" value="${price || ''}" placeholder="输入单价" min="0" step="1"></td>
+      <td class="cost-subtotal" style="color:${subtotal > 0 ? 'var(--green)' : 'var(--text3)'}">${subtotal > 0 ? '¥' + subtotal.toFixed(4) : '—'}</td>
+    </tr>`;
+  }
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+
+  // Bind input events on price fields
+  wrap.querySelectorAll('input[data-cost-name]').forEach(inp => {
+    inp.addEventListener('input', () => {
+      const name = inp.dataset.costName;
+      const val = parseFloat(inp.value);
+      if (!isNaN(val) && val > 0) priceMap[name] = val;
+      else delete priceMap[name];
+      updateCostCalc();
+      savePrices();
+      autoSave();
+    });
+  });
+
+  summaryEl.style.display = '';
+  updateCostCalc();
+  renderCostPresets();
+}
+
+function updateCostCalc() {
+  let totalCost = 0, solidMass = 0;
+  for (const r of reagents) {
+    const price = priceMap[r.name] || 0;
+    totalCost += r.mass * price / 1e6;
+    if (r.type !== 'solvent') solidMass += r.mass;
+  }
+
+  const sc = solidContent || 30;
+  const water = solidMass > 0 ? solidMass * (100 - sc) / sc : 0;
+  const emulsionMass = solidMass + water;
+
+  function set(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+  set('cost-total', totalCost > 0 ? '¥' + totalCost.toFixed(4) : '—');
+  set('cost-solid-mass', solidMass > 0 ? solidMass.toFixed(2) : '—');
+  set('cost-water', water > 0 ? water.toFixed(2) : '—');
+  set('cost-emulsion-mass', emulsionMass > 0 ? emulsionMass.toFixed(2) : '—');
+  set('cost-per-kg-emulsion', (totalCost > 0 && emulsionMass > 0) ? '¥' + (totalCost / emulsionMass * 1000).toFixed(2) : '—');
+  set('cost-per-kg-solid', (totalCost > 0 && solidMass > 0) ? '¥' + (totalCost / solidMass * 1000).toFixed(2) : '—');
+}
+
+async function saveCostPreset() {
+  const name = document.getElementById('cost-preset-name').value.trim();
+  if (!name) { toast('请输入方案名称', 'error'); return; }
+  const presets = (await WPU_DB.get('config', 'pricePresets')) || {};
+  presets[name] = { ...priceMap };
+  await WPU_DB.set('config', 'pricePresets', presets);
+  toast('价格方案已保存', 'success');
+  document.getElementById('cost-preset-name').value = '';
+  renderCostPresets();
+}
+
+async function loadCostPreset(name) {
+  const presets = (await WPU_DB.get('config', 'pricePresets')) || {};
+  if (presets[name]) {
+    priceMap = { ...presets[name] };
+    renderCostPage();
+    toast('已加载方案: ' + name, 'success');
+  }
+}
+
+async function deleteCostPreset(name) {
+  const presets = (await WPU_DB.get('config', 'pricePresets')) || {};
+  delete presets[name];
+  await WPU_DB.set('config', 'pricePresets', presets);
+  renderCostPresets();
+}
+
+async function renderCostPresets() {
+  const el = document.getElementById('cost-preset-list');
+  const presets = (await WPU_DB.get('config', 'pricePresets')) || {};
+  const keys = Object.keys(presets);
+  if (!keys.length) { el.innerHTML = '<div style="color:var(--text3);font-size:var(--f-sm);">暂无保存的方案</div>'; return; }
+  el.innerHTML = keys.map(k => `<div style="display:flex;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--border);">
+    <span style="flex:1;font-size:var(--f-sm);">${esc(k)}</span>
+    <button class="btn btn-sm btn-secondary" onclick="loadCostPreset('${esc(k)}')">加载</button>
+    <button class="btn btn-sm btn-danger" onclick="deleteCostPreset('${esc(k)}')">删除</button>
+  </div>`).join('');
+}
+
+function exportPrices() {
+  const blob = new Blob([JSON.stringify(priceMap, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'wpu-prices.json';
+  a.click();
+  URL.revokeObjectURL(a.href);
+  toast('价格数据已导出', 'success');
+}
+
+function importPrices(file) {
+  const reader = new FileReader();
+  reader.onload = async e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if (typeof data === 'object') {
+        priceMap = { ...priceMap, ...data };
+        await savePrices();
+        renderCostPage();
+        toast('价格数据已导入', 'success');
+      }
+    } catch { toast('文件格式错误', 'error'); }
+  };
+  reader.readAsText(file);
+}
+
+/* ════════════════════════════════════════════════════
+   SECTION 28 — Sweep / Dual-Ingredient Analysis
+════════════════════════════════════════════════════ */
+let sweepMetric = 'r';
+let sweepCache = null;
+
+function renderSweepPage() {
+  const selA = document.getElementById('sweep-reagent-a');
+  const selB = document.getElementById('sweep-reagent-b');
+  selA.innerHTML = '<option value="">— 请选择 —</option>';
+  selB.innerHTML = '<option value="">— 请选择 —</option>';
+
+  for (const r of reagents) {
+    if (r.type === 'solvent' || r.type === 'other') continue;
+    const opt = `<option value="${r.id}">${esc(r.name)} (${fmt(r.mass)}g)</option>`;
+    selA.innerHTML += opt;
+    selB.innerHTML += opt;
+  }
+
+  // Auto-select first two if possible
+  const valid = reagents.filter(r => r.type !== 'solvent' && r.type !== 'other');
+  if (valid.length >= 2) {
+    selA.value = valid[0].id;
+    selB.value = valid[1].id;
+    onSweepReagentChange();
+  } else if (valid.length === 1) {
+    selA.value = valid[0].id;
+    onSweepReagentChange();
+  }
+}
+
+function onSweepReagentChange() {
+  const idA = parseInt(document.getElementById('sweep-reagent-a').value);
+  const idB = parseInt(document.getElementById('sweep-reagent-b').value);
+  const rA = reagents.find(r => r.id === idA);
+  const rB = reagents.find(r => r.id === idB);
+
+  if (rA) {
+    const lo = Math.max(0.01, rA.mass * 0.1);
+    const hi = rA.mass * 2.5;
+    document.getElementById('sweep-lo-a').value = lo.toFixed(1);
+    document.getElementById('sweep-hi-a').value = hi.toFixed(1);
+    document.getElementById('sweep-slider-a').min = lo;
+    document.getElementById('sweep-slider-a').max = hi;
+    document.getElementById('sweep-slider-a').value = rA.mass;
+    document.getElementById('sweep-val-a').textContent = fmt(rA.mass) + ' g';
+  }
+  if (rB) {
+    const lo = Math.max(0.01, rB.mass * 0.1);
+    const hi = rB.mass * 2.5;
+    document.getElementById('sweep-lo-b').value = lo.toFixed(1);
+    document.getElementById('sweep-hi-b').value = hi.toFixed(1);
+    document.getElementById('sweep-slider-b').min = lo;
+    document.getElementById('sweep-slider-b').max = hi;
+    document.getElementById('sweep-slider-b').value = rB.mass;
+    document.getElementById('sweep-val-b').textContent = fmt(rB.mass) + ' g';
+  }
+
+  updateSweepResults();
+  drawHeatmap();
+}
+
+function onSweepSliderInput() {
+  const vA = parseFloat(document.getElementById('sweep-slider-a').value);
+  const vB = parseFloat(document.getElementById('sweep-slider-b').value);
+  document.getElementById('sweep-val-a').textContent = fmt(vA) + ' g';
+  document.getElementById('sweep-val-b').textContent = fmt(vB) + ' g';
+  updateSweepResults();
+  drawHeatmapCrosshair();
+}
+
+function updateSweepResults() {
+  const idA = parseInt(document.getElementById('sweep-reagent-a').value);
+  const idB = parseInt(document.getElementById('sweep-reagent-b').value);
+  const massA = parseFloat(document.getElementById('sweep-slider-a').value);
+  const massB = parseFloat(document.getElementById('sweep-slider-b').value);
+  if (!idA || isNaN(massA)) return;
+
+  const rA = reagents.find(r => r.id === idA);
+  const rB = reagents.find(r => r.id === idB);
+  if (!rA) return;
+
+  const testReagents = reagents.map(r => {
+    if (r.id === idA) return { ...r, mass: massA, eq: calcEqSingle(massA, r.mw, r.f) };
+    if (rB && r.id === idB) return { ...r, mass: massB, eq: calcEqSingle(massB, r.mw, r.f) };
+    return r;
+  });
+
+  const c = calcEquiv(testReagents, false);
+  function set(id, val) { const el = document.getElementById(id); if (el) el.textContent = val; }
+  set('sw-r', c.rVal > 0 ? c.rVal.toFixed(3) : '—');
+  set('sw-hsc', c.hsc > 0 ? c.hsc.toFixed(1) + '%' : '—');
+  set('sw-nco', c.ncoEq > 0 ? fmt(c.ncoEq) : '—');
+  set('sw-oh', c.ohEq > 0 ? fmt(c.ohEq) : '—');
+  set('sw-hydro', c.hydroPct > 0 ? c.hydroPct.toFixed(1) + '%' : '—');
+  set('sw-mass', c.totalMass > 0 ? fmt(c.totalMass) + ' g' : '—');
+}
+
+// Viridis-inspired colormap — perceptually uniform, looks professional
+const VIRIDIS = [
+  [68,1,84],[72,40,120],[62,74,137],[49,104,142],[38,130,142],
+  [31,158,137],[53,183,121],[109,205,89],[180,222,44],[253,231,37]
+];
+function metricToColor(val, minV, maxV) {
+  if (maxV <= minV) return [100, 100, 100];
+  const t = Math.max(0, Math.min(1, (val - minV) / (maxV - minV)));
+  const pos = t * (VIRIDIS.length - 1);
+  const i = Math.floor(pos);
+  const f = pos - i;
+  if (i >= VIRIDIS.length - 1) return VIRIDIS[VIRIDIS.length - 1];
+  const a = VIRIDIS[i], b = VIRIDIS[i + 1];
+  return [Math.round(a[0] + (b[0]-a[0])*f), Math.round(a[1] + (b[1]-a[1])*f), Math.round(a[2] + (b[2]-a[2])*f)];
+}
+
+function drawHeatmap() {
+  const canvas = document.getElementById('heatmap-canvas');
+  const ctx = canvas.getContext('2d');
+  const idA = parseInt(document.getElementById('sweep-reagent-a').value);
+  const idB = parseInt(document.getElementById('sweep-reagent-b').value);
+  if (!idA) return;
+
+  const rA = reagents.find(r => r.id === idA);
+  const rB = reagents.find(r => r.id === idB);
+  if (!rA) return;
+
+  const loA = parseFloat(document.getElementById('sweep-lo-a').value) || 0.01;
+  const hiA = parseFloat(document.getElementById('sweep-hi-a').value) || rA.mass * 2;
+  const loB = rB ? (parseFloat(document.getElementById('sweep-lo-b').value) || 0.01) : 0;
+  const hiB = rB ? (parseFloat(document.getElementById('sweep-hi-b').value) || rB.mass * 2) : 1;
+
+  // Layout constants — margins for axes
+  const ML = 56, MR = 60, MT = 8, MB = 40;  // left, right, top, bottom
+  const GW = 240, GH = rB ? 240 : 60;        // grid (heatmap) area
+  const CW = ML + GW + MR;
+  const CH = MT + GH + MB;
+
+  canvas.width  = CW * 2;   // 2x for sharpness on retina
+  canvas.height = CH * 2;
+  canvas.style.width  = CW + 'px';
+  canvas.style.height = CH + 'px';
+  ctx.scale(2, 2);
+
+  // Compute grid values
+  const values = new Float32Array(GW * GH);
+  let minV = Infinity, maxV = -Infinity;
+
+  for (let gy = 0; gy < GH; gy++) {
+    for (let gx = 0; gx < GW; gx++) {
+      const mA = loA + (hiA - loA) * gx / (GW - 1);
+      const mB = rB ? (loB + (hiB - loB) * (GH - 1 - gy) / (GH - 1)) : 0;
+      const testR = reagents.map(r => {
+        if (r.id === idA) return { ...r, mass: mA, eq: calcEqSingle(mA, r.mw, r.f) };
+        if (rB && r.id === idB) return { ...r, mass: mB, eq: calcEqSingle(mB, r.mw, r.f) };
+        return r;
+      });
+      const c = calcEquiv(testR, false);
+      const v = sweepMetric === 'r' ? c.rVal : sweepMetric === 'hsc' ? c.hsc : c.hydroPct;
+      values[gy * GW + gx] = v;
+      if (v < minV) minV = v;
+      if (v > maxV) maxV = v;
+    }
+  }
+
+  sweepCache = { loA, hiA, loB, hiB, GW, GH, values, minV, maxV, idA, idB, ML, MT, MR, MB, CW, CH };
+
+  // -- Background --
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg3').trim() || '#f1f5f9';
+  ctx.fillRect(0, 0, CW, CH);
+
+  // -- Heatmap pixels into offscreen canvas --
+  const offscreen = document.createElement('canvas');
+  offscreen.width = GW; offscreen.height = GH;
+  const octx = offscreen.getContext('2d');
+  const imgData = octx.createImageData(GW, GH);
+  for (let i = 0; i < GW * GH; i++) {
+    const [r, g, b] = metricToColor(values[i], minV, maxV);
+    imgData.data[i*4]   = r;
+    imgData.data[i*4+1] = g;
+    imgData.data[i*4+2] = b;
+    imgData.data[i*4+3] = 255;
+  }
+  octx.putImageData(imgData, 0, 0);
+  ctx.drawImage(offscreen, ML, MT, GW, GH);
+
+  // -- Contour at R=1.0 --
+  if (sweepMetric === 'r' && minV < 1.0 && maxV > 1.0) {
+    ctx.strokeStyle = 'rgba(255,255,255,0.75)';
+    ctx.lineWidth = 1.5;
+    ctx.setLineDash([5, 3]);
+    ctx.beginPath();
+    for (let gy = 0; gy < GH - 1; gy++) {
+      for (let gx = 0; gx < GW - 1; gx++) {
+        const v00 = values[gy*GW+gx], v10 = values[gy*GW+gx+1];
+        const v01 = values[(gy+1)*GW+gx];
+        if ((v00-1)*(v10-1)<0) { const t=(1-v00)/(v10-v00); ctx.moveTo(ML+gx+t, MT+gy); ctx.lineTo(ML+gx+t, MT+gy+0.5); }
+        if ((v00-1)*(v01-1)<0) { const t=(1-v00)/(v01-v00); ctx.moveTo(ML+gx, MT+gy+t); ctx.lineTo(ML+gx+0.5, MT+gy+t); }
+      }
+    }
+    ctx.stroke();
+    ctx.setLineDash([]);
+  }
+
+  // -- Grid lines (5 divisions) --
+  const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text3').trim() || '#94a3b8';
+  const borderColor = getComputedStyle(document.documentElement).getPropertyValue('--border').trim() || '#e2e8f0';
+  ctx.strokeStyle = borderColor;
+  ctx.lineWidth = 0.5;
+  const ticks = 5;
+  ctx.font = '10px IBM Plex Mono, monospace';
+  ctx.fillStyle = textColor;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  for (let i = 0; i <= ticks; i++) {
+    const x = ML + GW * i / ticks;
+    const val = loA + (hiA - loA) * i / ticks;
+    ctx.beginPath(); ctx.moveTo(x, MT); ctx.lineTo(x, MT + GH); ctx.stroke();
+    ctx.fillText(val.toFixed(1), x, MT + GH + 4);
+  }
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  for (let i = 0; i <= ticks; i++) {
+    const y = MT + GH * i / ticks;
+    const val = rB ? (hiB - (hiB - loB) * i / ticks) : 0;
+    ctx.beginPath(); ctx.moveTo(ML, y); ctx.lineTo(ML + GW, y); ctx.stroke();
+    if (rB) ctx.fillText(val.toFixed(1), ML - 4, y);
+  }
+
+  // -- Axis labels --
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text2').trim() || '#64748b';
+  ctx.font = '11px Noto Sans SC, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.fillText(esc(rA.name) + ' (g)', ML + GW / 2, MT + GH + 22);
+  if (rB) {
+    ctx.save();
+    ctx.translate(12, MT + GH / 2);
+    ctx.rotate(-Math.PI / 2);
+    ctx.textBaseline = 'middle';
+    ctx.fillText(esc(rB.name) + ' (g)', 0, 0);
+    ctx.restore();
+  }
+
+  // -- Colorbar --
+  const cbX = ML + GW + 12, cbW = 14, cbY = MT, cbH = GH;
+  for (let i = 0; i < cbH; i++) {
+    const t = 1 - i / (cbH - 1);
+    const [r, g, b] = metricToColor(minV + (maxV - minV) * t, minV, maxV);
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+    ctx.fillRect(cbX, cbY + i, cbW, 1);
+  }
+  ctx.strokeStyle = borderColor;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(cbX, cbY, cbW, cbH);
+  // Colorbar labels
+  ctx.fillStyle = textColor;
+  ctx.font = '9px IBM Plex Mono, monospace';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText(maxV.toFixed(2), cbX + cbW + 3, cbY);
+  ctx.textBaseline = 'bottom';
+  ctx.fillText(minV.toFixed(2), cbX + cbW + 3, cbY + cbH);
+  // Mid label
+  ctx.textBaseline = 'middle';
+  ctx.fillText(((minV + maxV) / 2).toFixed(2), cbX + cbW + 3, cbY + cbH / 2);
+
+  // Update legend
+  document.getElementById('heatmap-lo-label').textContent = minV.toFixed(2);
+  document.getElementById('heatmap-hi-label').textContent = maxV.toFixed(2);
+
+  drawCrosshairOverlay(ctx);
+}
+
+function drawCrosshairOverlay(ctx) {
+  if (!sweepCache) return;
+  const { loA, hiA, loB, hiB, GW, GH, idA, idB, ML, MT } = sweepCache;
+
+  const massA = parseFloat(document.getElementById('sweep-slider-a').value);
+  const massB = parseFloat(document.getElementById('sweep-slider-b').value);
+
+  const gx = (massA - loA) / (hiA - loA) * (GW - 1);
+  const gy = idB ? ((hiB - massB) / (hiB - loB) * (GH - 1)) : GH / 2;
+  const cx = ML + Math.max(0, Math.min(GW - 1, gx));
+  const cy = MT + Math.max(0, Math.min(GH - 1, gy));
+
+  // Crosshair lines
+  ctx.strokeStyle = 'rgba(255,255,255,0.5)';
+  ctx.lineWidth = 1;
+  ctx.setLineDash([]);
+  ctx.beginPath(); ctx.moveTo(ML, cy); ctx.lineTo(ML + GW, cy); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx, MT); ctx.lineTo(cx, MT + GH); ctx.stroke();
+
+  // Center marker
+  ctx.fillStyle = '#fff';
+  ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(cx, cy, 5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+}
+
+function drawHeatmapCrosshair() {
+  // drawHeatmap() already calls drawCrosshairOverlay at the end,
+  // so a full redraw is all we need.
+  drawHeatmap();
+}
+
+function handleHeatmapInteraction(clientX, clientY, isTap) {
+  if (!sweepCache) return;
+  const canvas = document.getElementById('heatmap-canvas');
+  const rect = canvas.getBoundingClientRect();
+  const { loA, hiA, loB, hiB, GW, GH, values, idA, idB, minV, maxV, ML, MT, CW, CH } = sweepCache;
+
+  // Convert screen coords to canvas logical coords
+  const scaleRatio = CW / rect.width;
+  const lx = (clientX - rect.left) * scaleRatio;
+  const ly = (clientY - rect.top) * scaleRatio;
+
+  // Convert to grid coords
+  const gx = Math.round((lx - ML) / GW * (GW - 1));
+  const gy = Math.round((ly - MT) / GH * (GH - 1));
+  const cgx = Math.max(0, Math.min(GW - 1, gx));
+  const cgy = Math.max(0, Math.min(GH - 1, gy));
+
+  // Grid → mass (note: Y is inverted — top = hiB, bottom = loB)
+  const massA = loA + (hiA - loA) * cgx / (GW - 1);
+  const massB = idB ? (hiB - (hiB - loB) * cgy / (GH - 1)) : 0;
+
+  // Tooltip
+  const tooltip = document.getElementById('heatmap-tooltip');
+  const v = values[cgy * GW + cgx];
+  const metricName = sweepMetric === 'r' ? 'R' : sweepMetric === 'hsc' ? 'HSC' : '亲水%';
+  tooltip.style.display = 'block';
+  tooltip.style.left = Math.min(lx + 14, CW - 140) + 'px';
+  tooltip.style.top = Math.max(ly - 32, 4) + 'px';
+  tooltip.textContent = `${fmt(massA)}g × ${fmt(massB)}g → ${metricName}=${v.toFixed(3)}`;
+
+  document.getElementById('heatmap-hover-info').textContent =
+    `${fmt(massA)}g × ${fmt(massB)}g → ${v.toFixed(3)}`;
+
+  if (isTap) {
+    document.getElementById('sweep-slider-a').value = massA;
+    document.getElementById('sweep-slider-b').value = massB;
+    document.getElementById('sweep-val-a').textContent = fmt(massA) + ' g';
+    document.getElementById('sweep-val-b').textContent = fmt(massB) + ' g';
+    updateSweepResults();
+    drawHeatmapCrosshair();
+  }
+}
+
+function applySweepResult() {
+  const idA = parseInt(document.getElementById('sweep-reagent-a').value);
+  const idB = parseInt(document.getElementById('sweep-reagent-b').value);
+  const massA = parseFloat(document.getElementById('sweep-slider-a').value);
+  const massB = parseFloat(document.getElementById('sweep-slider-b').value);
+
+  const rA = reagents.find(r => r.id === idA);
+  const rB = reagents.find(r => r.id === idB);
+  if (!rA) { toast('请先选择试剂', 'error'); return; }
+
+  rA.mass = massA;
+  if (rA.unit === 'mL' && rA.density) rA.vol = massA / rA.density;
+  rA.eq = calcEqSingle(massA, rA.mw, rA.f);
+
+  if (rB) {
+    rB.mass = massB;
+    if (rB.unit === 'mL' && rB.density) rB.vol = massB / rB.density;
+    rB.eq = calcEqSingle(massB, rB.mw, rB.f);
+  }
+
+  renderReagents();
+  updateSummary();
+  updateSolidContent(solidContent);
+  checkCardCompletion();
+  autoSave();
+  toast('已应用到配方', 'success');
+}
+
+function updateSweepRange(which) {
+  const loEl = document.getElementById(`sweep-lo-${which}`);
+  const hiEl = document.getElementById(`sweep-hi-${which}`);
+  const slider = document.getElementById(`sweep-slider-${which}`);
+  const lo = parseFloat(loEl.value) || 0.01;
+  const hi = parseFloat(hiEl.value) || 100;
+  slider.min = lo;
+  slider.max = hi;
 }
 
 /* ════════════════════════════════════════════════════
