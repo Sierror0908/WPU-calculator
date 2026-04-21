@@ -1628,8 +1628,8 @@ input.inRequired, textarea.inRequired, select.inRequired {
           <input type="text" id="db-search" placeholder="搜索实验编号、操作人、体系…">
         </div>
         <select id="db-sort" style="min-width:130px;">
-          <option value="date-desc">日期 ↓</option>
-          <option value="date-asc">日期 ↑</option>
+          <option value="id-desc">编号 ↓</option>
+          <option value="id-asc">编号 ↑</option>
           <option value="r-asc">R 值 ↑</option>
           <option value="r-desc">R 值 ↓</option>
           <option value="hsc-desc">HSC ↓</option>
@@ -1882,6 +1882,14 @@ input.inRequired, textarea.inRequired, select.inRequired {
           <div class="heatmap-wrap" style="margin-top:12px;">
             <canvas class="heatmap-canvas" id="heatmap-canvas" width="400" height="400"></canvas>
             <div id="heatmap-tooltip" style="position:absolute;display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:6px 10px;font-size:var(--f-xs);font-family:var(--mono);pointer-events:none;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.15);z-index:10;"></div>
+          </div>
+          <div style="display:flex;align-items:center;gap:8px;margin-top:10px;">
+            <span style="font-size:var(--f-xs);color:var(--text3);white-space:nowrap;">等高线间距</span>
+            <input type="range" id="sweep-contour-step" min="1" max="50" value="5" style="flex:1;max-width:200px;">
+            <span id="sweep-contour-step-val" style="font-size:var(--f-xs);font-family:var(--mono);min-width:40px;">5 条</span>
+            <label style="font-size:var(--f-xs);color:var(--text3);display:flex;align-items:center;gap:4px;margin-left:8px;">
+              <input type="checkbox" id="sweep-contour-show" checked> 显示
+            </label>
           </div>
           <div class="heatmap-legend">
             <span id="heatmap-lo-label">低</span>
@@ -2440,6 +2448,13 @@ function bindStaticEvents() {
   document.getElementById('sweep-hi-a').addEventListener('change', () => { updateSweepRange('a'); drawHeatmap(); });
   document.getElementById('sweep-lo-b').addEventListener('change', () => { updateSweepRange('b'); drawHeatmap(); });
   document.getElementById('sweep-hi-b').addEventListener('change', () => { updateSweepRange('b'); drawHeatmap(); });
+  // Contour controls
+  document.getElementById('sweep-contour-step').addEventListener('input', e => {
+    const count = parseInt(e.target.value);
+    document.getElementById('sweep-contour-step-val').textContent = count + ' 条';
+    drawHeatmap();
+  });
+  document.getElementById('sweep-contour-show').addEventListener('change', () => drawHeatmap());
 
   // Heatmap metric tabs
   document.querySelectorAll('.heatmap-metric-tab').forEach(tab => {
@@ -3853,14 +3868,44 @@ function newExperiment() {
 async function loadHistory() {
   try {
     const items  = await WPU_DB.getAll('history');
-    historyData  = items.sort((a, b) => new Date(b.savedAt) - new Date(a.savedAt));
+    historyData  = items;
+    // backfill computed fields for entries that lack them
+    for (const h of historyData) {
+      let dirty = false;
+      if (!h.mainSystem || h.mainSystem === '—') {
+        h.mainSystem = _computeMainSystem(h);
+        dirty = true;
+      }
+      if (!h.rVal || !h.hsc) {
+        const c = _computeMetrics(h);
+        if (!h.rVal) { h.rVal = c.rVal; dirty = true; }
+        if (!h.hsc)  { h.hsc  = c.hsc;  dirty = true; }
+      }
+      if (dirty) WPU_DB.set('history', h.expId, h).catch(() => {});
+    }
   } catch (e) {
     historyData = [];
     console.error('Failed to load history', e);
   }
-  renderDBTable(historyData);
+  filterHistory();
   updateRptSelect();
   await updateStorageInfo();
+}
+
+function _computeMainSystem(entry) {
+  if (!entry.reagents || !Array.isArray(entry.reagents)) return '—';
+  return [
+    ...entry.reagents.filter(r => r.type === 'iso').map(r => r.name),
+    ...entry.reagents.filter(r => r.type === 'polyol').map(r => r.name),
+  ].join('/') || '—';
+}
+
+function _computeMetrics(entry) {
+  if (!entry.reagents || !Array.isArray(entry.reagents)) return { rVal: '—', hsc: '—' };
+  try {
+    const c = calcEquiv(entry.reagents, false);
+    return { rVal: c.rVal.toFixed(2), hsc: c.hsc.toFixed(2) };
+  } catch { return { rVal: '—', hsc: '—' }; }
 }
 
 function updateRptSelect() {
@@ -3884,8 +3929,12 @@ function filterHistory() {
   );
   const [field, dir] = sort.split('-');
   filtered.sort((a, b) => {
-    const av = field === 'date' ? new Date(a.savedAt || a.expDate) : parseFloat(a[field === 'hsc' ? 'hsc' : 'rVal']) || 0;
-    const bv = field === 'date' ? new Date(b.savedAt || b.expDate) : parseFloat(b[field === 'hsc' ? 'hsc' : 'rVal']) || 0;
+    if (field === 'id') {
+      const cmp = (a.expId || '').localeCompare(b.expId || '', undefined, { numeric: true });
+      return dir === 'desc' ? -cmp : cmp;
+    }
+    const av = parseFloat(a[field === 'hsc' ? 'hsc' : 'rVal']) || 0;
+    const bv = parseFloat(b[field === 'hsc' ? 'hsc' : 'rVal']) || 0;
     return dir === 'desc' ? bv - av : av - bv;
   });
   renderDBTable(filtered);
@@ -5102,22 +5151,50 @@ function drawHeatmap() {
   octx.putImageData(imgData, 0, 0);
   ctx.drawImage(offscreen, ML, MT, GW, GH);
 
-  // -- Contour at R=1.0 --
-  if (sweepMetric === 'r' && minV < 1.0 && maxV > 1.0) {
-    ctx.strokeStyle = 'rgba(255,255,255,0.75)';
-    ctx.lineWidth = 1.5;
-    ctx.setLineDash([5, 3]);
-    ctx.beginPath();
-    for (let gy = 0; gy < GH - 1; gy++) {
-      for (let gx = 0; gx < GW - 1; gx++) {
-        const v00 = values[gy*GW+gx], v10 = values[gy*GW+gx+1];
-        const v01 = values[(gy+1)*GW+gx];
-        if ((v00-1)*(v10-1)<0) { const t=(1-v00)/(v10-v00); ctx.moveTo(ML+gx+t, MT+gy); ctx.lineTo(ML+gx+t, MT+gy+0.5); }
-        if ((v00-1)*(v01-1)<0) { const t=(1-v00)/(v01-v00); ctx.moveTo(ML+gx, MT+gy+t); ctx.lineTo(ML+gx+0.5, MT+gy+t); }
+  // -- Contour lines --
+  const showContour = document.getElementById('sweep-contour-show')?.checked;
+  const contourCount = parseInt(document.getElementById('sweep-contour-step')?.value || 5);
+  const range = maxV - minV;
+  if (showContour && contourCount > 0 && range > 0) {
+    const contourStep = range / contourCount;
+    const start = Math.ceil(minV / contourStep) * contourStep;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 3]);
+    for (let level = start; level <= maxV; level += contourStep) {
+      const isSpecial = (sweepMetric === 'r' && Math.abs(level - 1.0) < contourStep * 0.01);
+      ctx.strokeStyle = isSpecial ? 'rgba(255,255,255,0.9)' : 'rgba(255,255,255,0.45)';
+      ctx.lineWidth = isSpecial ? 1.8 : 0.8;
+      ctx.beginPath();
+      for (let gy = 0; gy < GH - 1; gy++) {
+        for (let gx = 0; gx < GW - 1; gx++) {
+          const v00 = values[gy*GW+gx], v10 = values[gy*GW+gx+1];
+          const v01 = values[(gy+1)*GW+gx], v11 = values[(gy+1)*GW+gx+1];
+          if ((v00 - level) * (v10 - level) < 0) {
+            const t = (level - v00) / (v10 - v00);
+            ctx.moveTo(ML + gx + t, MT + gy);
+            ctx.lineTo(ML + gx + t, MT + gy + 0.5);
+          }
+          if ((v00 - level) * (v01 - level) < 0) {
+            const t = (level - v00) / (v01 - v00);
+            ctx.moveTo(ML + gx, MT + gy + t);
+            ctx.lineTo(ML + gx + 0.5, MT + gy + t);
+          }
+          if ((v10 - level) * (v11 - level) < 0) {
+            const t = (level - v10) / (v11 - v10);
+            ctx.moveTo(ML + gx + 1, MT + gy + t);
+            ctx.lineTo(ML + gx + 1, MT + gy + t + 0.5);
+          }
+          if ((v01 - level) * (v11 - level) < 0) {
+            const t = (level - v01) / (v11 - v01);
+            ctx.moveTo(ML + gx + t, MT + gy + 1);
+            ctx.lineTo(ML + gx + t + 0.5, MT + gy + 1);
+          }
+        }
       }
+      ctx.stroke();
     }
-    ctx.stroke();
     ctx.setLineDash([]);
+    ctx.lineWidth = 1;
   }
 
   // -- Grid lines (5 divisions) --
