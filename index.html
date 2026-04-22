@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>WPU · ELN</title>
+<title>WPU配方计算器/电子记录本</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600;700&family=Noto+Sans+SC:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -1336,6 +1336,22 @@ input.inRequired, textarea.inRequired, select.inRequired {
   width: 60px; padding: 4px 6px; border: 1px solid var(--border); border-radius: var(--rs);
   font-size: var(--f-xs); font-family: var(--mono); background: var(--bg); color: var(--text); text-align: center;
 }
+.sweep-mode-selector {
+  display: flex; gap: 8px; margin-bottom: 12px;
+}
+.sweep-mode-selector .btn {
+  flex: 1;
+}
+.sweep-mode-selector .btn-primary {
+  background: var(--accent);
+  color: #fff;
+  border-color: var(--accent);
+}
+.sweep-mode-selector .btn-secondary {
+  background: var(--bg3);
+  color: var(--text2);
+  border-color: var(--border);
+}
 @media (max-width: 768px) {
   .sweep-controls { grid-template-columns: 1fr; }
   .cost-summary { grid-template-columns: 1fr 1fr; }
@@ -1874,11 +1890,72 @@ input.inRequired, textarea.inRequired, select.inRequired {
           <div class="card-chevron">▼</div>
         </div>
         <div class="card-body">
-          <div class="heatmap-metric-tabs" id="heatmap-metric-tabs">
-            <div class="heatmap-metric-tab active" data-metric="r">R 值</div>
-            <div class="heatmap-metric-tab" data-metric="hsc">HSC</div>
-            <div class="heatmap-metric-tab" data-metric="hydro">亲水剂%</div>
+          <!-- 模式选择器 -->
+          <div class="sweep-mode-selector">
+            <button class="btn btn-primary" id="mode-reagent" style="flex:1;">试剂扫描</button>
+            <button class="btn btn-secondary" id="mode-param" style="flex:1;">参数扫描</button>
           </div>
+
+          <!-- 试剂扫描模式的指标选择 -->
+          <div id="reagent-mode-controls">
+            <div class="heatmap-metric-tabs" id="heatmap-metric-tabs">
+              <div class="heatmap-metric-tab active" data-metric="r">R 值</div>
+              <div class="heatmap-metric-tab" data-metric="hsc">HSC</div>
+              <div class="heatmap-metric-tab" data-metric="hydro">亲水剂%</div>
+            </div>
+          </div>
+
+          <!-- 参数扫描模式的控制项 -->
+          <div id="param-mode-controls" style="display:none;">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+              <div class="form-group" style="margin:0;">
+                <label for="param-x-axis" style="font-size:var(--f-xs);">横轴参数</label>
+                <select id="param-x-axis" style="width:100%;padding:6px;border-radius:var(--rs);border:1px solid var(--border);">
+                  <option value="r">R 值</option>
+                  <option value="hsc">HSC (%)</option>
+                  <option value="hydro">亲水剂 (%)</option>
+                </select>
+              </div>
+              <div class="form-group" style="margin:0;">
+                <label for="param-y-axis" style="font-size:var(--f-xs);">纵轴参数</label>
+                <select id="param-y-axis" style="width:100%;padding:6px;border-radius:var(--rs);border:1px solid var(--border);">
+                  <option value="hsc">HSC (%)</option>
+                  <option value="r">R 值</option>
+                  <option value="hydro">亲水剂 (%)</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:12px;">
+              <label for="param-target-reagent" style="font-size:var(--f-xs);">热图显示试剂用量</label>
+              <select id="param-target-reagent" style="width:100%;padding:6px;border-radius:var(--rs);border:1px solid var(--border);">
+                <option value="">— 选择试剂 —</option>
+              </select>
+            </div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px;">
+              <div class="form-group" style="margin:0;">
+                <label style="font-size:var(--f-xs);">横轴范围</label>
+                <div style="display:flex;gap:4px;align-items:center;">
+                  <input type="number" id="param-x-lo" step="0.01" style="width:50%;padding:4px;border-radius:var(--rs);border:1px solid var(--border);">
+                  <span>~</span>
+                  <input type="number" id="param-x-hi" step="0.01" style="width:50%;padding:4px;border-radius:var(--rs);border:1px solid var(--border);">
+                </div>
+              </div>
+              <div class="form-group" style="margin:0;">
+                <label style="font-size:var(--f-xs);">纵轴范围</label>
+                <div style="display:flex;gap:4px;align-items:center;">
+                  <input type="number" id="param-y-lo" step="0.01" style="width:50%;padding:4px;border-radius:var(--rs);border:1px solid var(--border);">
+                  <span>~</span>
+                  <input type="number" id="param-y-hi" step="0.01" style="width:50%;padding:4px;border-radius:var(--rs);border:1px solid var(--border);">
+                </div>
+              </div>
+            </div>
+            <div class="form-group" style="margin-bottom:8px;">
+              <label style="font-size:var(--f-xs);color:var(--text3);display:flex;align-items:center;gap:4px;">
+                <input type="checkbox" id="param-auto-range" checked> 自动计算参数范围
+              </label>
+            </div>
+          </div>
+
           <div class="heatmap-wrap" style="margin-top:12px;">
             <canvas class="heatmap-canvas" id="heatmap-canvas" width="400" height="400"></canvas>
             <div id="heatmap-tooltip" style="position:absolute;display:none;background:var(--surface);border:1px solid var(--border);border-radius:var(--rs);padding:6px 10px;font-size:var(--f-xs);font-family:var(--mono);pointer-events:none;white-space:nowrap;box-shadow:0 2px 8px rgba(0,0,0,.15);z-index:10;"></div>
@@ -2485,6 +2562,21 @@ function bindStaticEvents() {
     drawHeatmap();
   });
   document.getElementById('sweep-contour-show').addEventListener('change', () => drawHeatmap());
+
+  // ── Parameter scan mode events ──
+  document.getElementById('mode-reagent').addEventListener('click', () => setSweepMode('reagent'));
+  document.getElementById('mode-param').addEventListener('click', () => setSweepMode('param'));
+  document.getElementById('param-x-axis').addEventListener('change', onParamScanConfigChange);
+  document.getElementById('param-y-axis').addEventListener('change', onParamScanConfigChange);
+  document.getElementById('param-target-reagent').addEventListener('change', onParamScanConfigChange);
+  document.getElementById('param-x-lo').addEventListener('change', () => { paramScanConfig.autoRange = false; document.getElementById('param-auto-range').checked = false; drawHeatmap(); });
+  document.getElementById('param-x-hi').addEventListener('change', () => { paramScanConfig.autoRange = false; document.getElementById('param-auto-range').checked = false; drawHeatmap(); });
+  document.getElementById('param-y-lo').addEventListener('change', () => { paramScanConfig.autoRange = false; document.getElementById('param-auto-range').checked = false; drawHeatmap(); });
+  document.getElementById('param-y-hi').addEventListener('change', () => { paramScanConfig.autoRange = false; document.getElementById('param-auto-range').checked = false; drawHeatmap(); });
+  document.getElementById('param-auto-range').addEventListener('change', e => {
+    paramScanConfig.autoRange = e.target.checked;
+    if (e.target.checked) drawHeatmap();
+  });
 
   // Heatmap metric tabs
   document.querySelectorAll('.heatmap-metric-tab').forEach(tab => {
@@ -5021,6 +5113,15 @@ function importPrices(file) {
 ════════════════════════════════════════════════════ */
 let sweepMetric = 'r';
 let sweepCache = null;
+let sweepMode = 'reagent'; // 'reagent' 或 'param'
+let paramScanConfig = {
+  xAxis: 'r',
+  yAxis: 'hsc',
+  targetReagentId: null,
+  xLo: 1.0, xHi: 2.5,
+  yLo: 20, yHi: 60,
+  autoRange: true
+};
 
 function renderSweepPage() {
   const selA = document.getElementById('sweep-reagent-a');
@@ -5045,6 +5146,9 @@ function renderSweepPage() {
     selA.value = valid[0].id;
     onSweepReagentChange();
   }
+
+  // Initialize mode
+  setSweepMode(sweepMode);
 }
 
 function onSweepReagentChange() {
@@ -5133,6 +5237,14 @@ function metricToColor(val, minV, maxV) {
 function drawHeatmap() {
   const canvas = document.getElementById('heatmap-canvas');
   const ctx = canvas.getContext('2d');
+
+  // 检查是否为参数扫描模式
+  if (sweepMode === 'param') {
+    drawParamScanHeatmap(ctx, canvas);
+    return;
+  }
+
+  // 原有的试剂扫描模式
   const idA = parseInt(document.getElementById('sweep-reagent-a').value);
   const idB = parseInt(document.getElementById('sweep-reagent-b').value);
   if (!idA) return;
@@ -5316,6 +5428,283 @@ function drawHeatmap() {
   drawCrosshairOverlay(ctx);
 }
 
+/* ════════════════════════════════════════════════════
+   参数扫描模式热力图绘制
+════════════════════════════════════════════════════ */
+function drawParamScanHeatmap(ctx, canvas) {
+  const idA = parseInt(document.getElementById('sweep-reagent-a').value);
+  const idB = parseInt(document.getElementById('sweep-reagent-b').value);
+  const rA = reagents.find(r => r.id === idA);
+  const rB = reagents.find(r => r.id === idB);
+  if (!rA) return;
+
+  const targetReagentId = paramScanConfig.targetReagentId;
+  const targetReagent = reagents.find(r => r.id === targetReagentId);
+  if (!targetReagent) return;
+
+  // 读取参数范围
+  const xLo = parseFloat(document.getElementById('param-x-lo').value) || paramScanConfig.xLo;
+  const xHi = parseFloat(document.getElementById('param-x-hi').value) || paramScanConfig.xHi;
+  const yLo = parseFloat(document.getElementById('param-y-lo').value) || paramScanConfig.yLo;
+  const yHi = parseFloat(document.getElementById('param-y-hi').value) || paramScanConfig.yHi;
+
+  const xAxis = paramScanConfig.xAxis;
+  const yAxis = paramScanConfig.yAxis;
+
+  // Layout constants - 使用和试剂扫描相同的尺寸
+  const ML = 56, MR = 65, MT = 8, MB = 40;
+  const GW = 200, GH = 200;  // 提高分辨率
+  const CW = ML + GW + MR;
+  const CH = MT + GH + MB;
+
+  canvas.width  = CW * 2;
+  canvas.height = CH * 2;
+  canvas.style.width  = CW + 'px';
+  canvas.style.height = CH + 'px';
+  ctx.scale(2, 2);
+
+  // 先建立试剂用量到参数的映射（正向计算，快速）
+  const loA = parseFloat(document.getElementById('sweep-lo-a').value) || 0.01;
+  const hiA = parseFloat(document.getElementById('sweep-hi-a').value) || rA.mass * 2;
+  const loB = rB ? (parseFloat(document.getElementById('sweep-lo-b').value) || 0.01) : 0;
+  const hiB = rB ? (parseFloat(document.getElementById('sweep-hi-b').value) || rB.mass * 2) : 0;
+
+  // 预计算正向映射表（使用较低分辨率）
+  const forwardMap = new Map();
+  const forwardSteps = 100; // 预计算精度
+
+  for (let i = 0; i <= forwardSteps; i++) {
+    for (let j = 0; j <= forwardSteps; j++) {
+      const mA = loA + (hiA - loA) * i / forwardSteps;
+      const mB = rB ? (loB + (hiB - loB) * j / forwardSteps) : 0;
+
+      const testR = reagents.map(r => {
+        if (r.id === idA) return { ...r, mass: mA };
+        if (rB && r.id === idB) return { ...r, mass: mB };
+        return r;
+      });
+      const c = calcEquiv(testR, false);
+
+      const pv = getParamValue(c, xAxis);
+      const py = getParamValue(c, yAxis);
+
+      // 使用字符串键来存储
+      const keyX = Math.round(pv * 100) / 100;
+      const keyY = Math.round(py * 10) / 10;
+      const key = `${keyX},${keyY}`;
+
+      forwardMap.set(key, { massA: mA, massB: mB, paramX: pv, paramY: py });
+    }
+  }
+
+  // 计算热图数据
+  const values = new Float32Array(GW * GH);
+  const massAValues = new Float32Array(GW * GH);
+  const massBValues = new Float32Array(GW * GH);
+  let minV = Infinity, maxV = -Infinity;
+  let hasValidData = false;
+
+  const paramNameX = xAxis === 'r' ? 'R值' : xAxis === 'hsc' ? 'HSC' : '亲水%';
+  const paramNameY = yAxis === 'r' ? 'R值' : yAxis === 'hsc' ? 'HSC' : '亲水%';
+
+  for (let gy = 0; gy < GH; gy++) {
+    for (let gx = 0; gx < GW; gx++) {
+      const targetX = xLo + (xHi - xLo) * gx / (GW - 1);
+      const targetY = yLo + (yHi - yLo) * (GH - 1 - gy) / (GH - 1);
+
+      // 在预计算表中查找最近的值
+      const keyX = Math.round(targetX * 100) / 100;
+      const keyY = Math.round(targetY * 10) / 10;
+      const key = `${keyX},${keyY}`;
+
+      let massA = 0, massB = 0;
+
+      if (forwardMap.has(key)) {
+        const result = forwardMap.get(key);
+        massA = result.massA;
+        massB = result.massB;
+        hasValidData = true;
+      }
+
+      // 计算显示值
+      let displayValue = 0;
+      if (targetReagent.id === idA) {
+        displayValue = massA;
+      } else if (targetReagent.id === idB) {
+        displayValue = massB;
+      } else {
+        displayValue = targetReagent.mass || 0;
+      }
+
+      values[gy * GW + gx] = displayValue;
+      massAValues[gy * GW + gx] = massA;
+      massBValues[gy * GW + gx] = massB;
+
+      if (displayValue > 0) {
+        if (displayValue < minV) minV = displayValue;
+        if (displayValue > maxV) maxV = displayValue;
+      }
+    }
+  }
+
+  if (!hasValidData || minV === Infinity || maxV <= 0) {
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg3').trim() || '#f1f5f9';
+    ctx.fillRect(0, 0, CW, CH);
+    ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text3').trim() || '#94a3b8';
+    ctx.font = '14px Noto Sans SC, sans-serif';
+    ctx.textAlign = 'center';
+    ctx.fillText('参数范围超出可行域，请调整范围', CW / 2, CH / 2);
+    return;
+  }
+
+  sweepCache = { mode: 'param', loA: xLo, hiA: xHi, loB: yLo, hiB: yHi, GW, GH, values, minV, maxV,
+                 massAValues, massBValues, xAxis, yAxis, targetReagentId, ML, MT, MR, MB, CW, CH };
+
+  // -- Background --
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--bg3').trim() || '#f1f5f9';
+  ctx.fillRect(0, 0, CW, CH);
+
+  // -- Heatmap pixels --
+  const offscreen = document.createElement('canvas');
+  offscreen.width = GW; offscreen.height = GH;
+  const octx = offscreen.getContext('2d');
+  const imgData = octx.createImageData(GW, GH);
+  for (let i = 0; i < GW * GH; i++) {
+    const v = values[i];
+    if (v > 0) {
+      const [r, g, b] = metricToColor(v, minV, maxV);
+      imgData.data[i*4]   = r;
+      imgData.data[i*4+1] = g;
+      imgData.data[i*4+2] = b;
+      imgData.data[i*4+3] = 255;
+    } else {
+      imgData.data[i*4]   = 240;
+      imgData.data[i*4+1] = 240;
+      imgData.data[i*4+2] = 240;
+      imgData.data[i*4+3] = 255;
+    }
+  }
+  octx.putImageData(imgData, 0, 0);
+  ctx.drawImage(offscreen, ML, MT, GW, GH);
+
+  // -- Contour lines --
+  const showContour = document.getElementById('sweep-contour-show')?.checked;
+  const contourCount = parseInt(document.getElementById('sweep-contour-step')?.value || 5);
+  const range = maxV - minV;
+  if (showContour && contourCount > 0 && range > 0) {
+    const contourStep = range / contourCount;
+    const start = Math.ceil(minV / contourStep) * contourStep;
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 3]);
+    for (let level = start; level <= maxV; level += contourStep) {
+      ctx.strokeStyle = 'rgba(255,255,255,0.45)';
+      ctx.lineWidth = 0.8;
+      ctx.beginPath();
+      for (let gy = 0; gy < GH - 1; gy++) {
+        for (let gx = 0; gx < GW - 1; gx++) {
+          const v00 = values[gy*GW+gx], v10 = values[gy*GW+gx+1];
+          const v01 = values[(gy+1)*GW+gx], v11 = values[(gy+1)*GW+gx+1];
+          if ((v00 - level) * (v10 - level) < 0) {
+            const t = (level - v00) / (v10 - v00);
+            ctx.moveTo(ML + gx + t, MT + gy);
+            ctx.lineTo(ML + gx + t, MT + gy + 0.5);
+          }
+          if ((v00 - level) * (v01 - level) < 0) {
+            const t = (level - v00) / (v01 - v00);
+            ctx.moveTo(ML + gx, MT + gy + t);
+            ctx.lineTo(ML + gx + 0.5, MT + gy + t);
+          }
+          if ((v10 - level) * (v11 - level) < 0) {
+            const t = (level - v10) / (v11 - v10);
+            ctx.moveTo(ML + gx + 1, MT + gy + t);
+            ctx.lineTo(ML + gx + 1, MT + gy + t + 0.5);
+          }
+          if ((v01 - level) * (v11 - level) < 0) {
+            const t = (level - v01) / (v11 - v01);
+            ctx.moveTo(ML + gx + t, MT + gy + 1);
+            ctx.lineTo(ML + gx + t + 0.5, MT + gy + 1);
+          }
+        }
+      }
+      ctx.stroke();
+    }
+    ctx.setLineDash([]);
+    ctx.lineWidth = 1;
+  }
+
+  // -- Grid lines --
+  const textColor = getComputedStyle(document.documentElement).getPropertyValue('--text3').trim() || '#94a3b8';
+  const borderColor = getComputedStyle(document.documentElement).getPropertyValue('--border').trim() || '#e2e8f0';
+  ctx.strokeStyle = borderColor;
+  ctx.lineWidth = 0.5;
+  const ticks = 5;
+  ctx.font = '10px IBM Plex Mono, monospace';
+  ctx.fillStyle = textColor;
+
+  // X-axis labels
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  for (let i = 0; i <= ticks; i++) {
+    const x = ML + GW * i / ticks;
+    const val = xLo + (xHi - xLo) * i / ticks;
+    ctx.beginPath(); ctx.moveTo(x, MT); ctx.lineTo(x, MT + GH); ctx.stroke();
+    const fmtVal = xAxis === 'hsc' || xAxis === 'hydro' ? val.toFixed(1) : val.toFixed(2);
+    ctx.fillText(fmtVal, x, MT + GH + 4);
+  }
+
+  // Y-axis labels
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  for (let i = 0; i <= ticks; i++) {
+    const y = MT + GH * i / ticks;
+    const val = yHi - (yHi - yLo) * i / ticks;
+    ctx.beginPath(); ctx.moveTo(ML, y); ctx.lineTo(ML + GW, y); ctx.stroke();
+    const fmtVal = yAxis === 'hsc' || yAxis === 'hydro' ? val.toFixed(1) : val.toFixed(2);
+    ctx.fillText(fmtVal, ML - 4, y);
+  }
+
+  // -- Axis labels --
+  ctx.fillStyle = getComputedStyle(document.documentElement).getPropertyValue('--text2').trim() || '#64748b';
+  ctx.font = '11px Noto Sans SC, sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  ctx.fillText(paramNameX, ML + GW / 2, MT + GH + 22);
+
+  ctx.save();
+  ctx.translate(12, MT + GH / 2);
+  ctx.rotate(-Math.PI / 2);
+  ctx.textBaseline = 'middle';
+  ctx.fillText(paramNameY, 0, 0);
+  ctx.restore();
+
+  // -- Colorbar --
+  const cbX = ML + GW + 12, cbW = 14, cbY = MT, cbH = GH;
+  for (let i = 0; i < cbH; i++) {
+    const t = 1 - i / (cbH - 1);
+    const [r, g, b] = metricToColor(minV + (maxV - minV) * t, minV, maxV);
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+    ctx.fillRect(cbX, cbY + i, cbW, 1);
+  }
+  ctx.strokeStyle = borderColor;
+  ctx.lineWidth = 1;
+  ctx.strokeRect(cbX, cbY, cbW, cbH);
+
+  // Colorbar labels
+  ctx.fillStyle = textColor;
+  ctx.font = '9px IBM Plex Mono, monospace';
+  ctx.textAlign = 'left';
+  ctx.textBaseline = 'top';
+  ctx.fillText(maxV.toFixed(2) + 'g', cbX + cbW + 3, cbY);
+  ctx.textBaseline = 'bottom';
+  ctx.fillText(minV.toFixed(2) + 'g', cbX + cbW + 3, cbY + cbH);
+  ctx.textBaseline = 'middle';
+  ctx.fillText(((minV + maxV) / 2).toFixed(2) + 'g', cbX + cbW + 3, cbY + cbH / 2);
+
+  // Update legend
+  document.getElementById('heatmap-lo-label').textContent = minV.toFixed(2) + 'g';
+  document.getElementById('heatmap-hi-label').textContent = maxV.toFixed(2) + 'g';
+}
+
 function drawCrosshairOverlay(ctx) {
   if (!sweepCache) return;
   const { loA, hiA, loB, hiB, GW, GH, idA, idB, ML, MT } = sweepCache;
@@ -5352,7 +5741,7 @@ function handleHeatmapInteraction(clientX, clientY, isTap) {
   if (!sweepCache) return;
   const canvas = document.getElementById('heatmap-canvas');
   const rect = canvas.getBoundingClientRect();
-  const { loA, hiA, loB, hiB, GW, GH, values, idA, idB, minV, maxV, ML, MT, CW, CH } = sweepCache;
+  const { GW, GH, values, minV, maxV, ML, MT, CW, CH } = sweepCache;
 
   // Convert screen coords to canvas logical coords
   const scaleRatio = CW / rect.width;
@@ -5365,29 +5754,58 @@ function handleHeatmapInteraction(clientX, clientY, isTap) {
   const cgx = Math.max(0, Math.min(GW - 1, gx));
   const cgy = Math.max(0, Math.min(GH - 1, gy));
 
-  // Grid → mass (note: Y is inverted — top = hiB, bottom = loB)
-  const massA = loA + (hiA - loA) * cgx / (GW - 1);
-  const massB = idB ? (hiB - (hiB - loB) * cgy / (GH - 1)) : 0;
-
   // Tooltip
   const tooltip = document.getElementById('heatmap-tooltip');
   const v = values[cgy * GW + cgx];
-  const metricName = sweepMetric === 'r' ? 'R' : sweepMetric === 'hsc' ? 'HSC' : '亲水%';
   tooltip.style.display = 'block';
   tooltip.style.left = Math.min(lx + 14, CW - 140) + 'px';
   tooltip.style.top = Math.max(ly - 32, 4) + 'px';
-  tooltip.textContent = `${fmt(massA)}g × ${fmt(massB)}g → ${metricName}=${v.toFixed(3)}`;
 
-  document.getElementById('heatmap-hover-info').textContent =
-    `${fmt(massA)}g × ${fmt(massB)}g → ${v.toFixed(3)}`;
+  // 根据模式显示不同的提示信息
+  if (sweepCache.mode === 'param') {
+    // 参数扫描模式
+    const { loA, hiA, loB, hiB, xAxis, yAxis, massAValues, massBValues } = sweepCache;
+    const paramX = loA + (hiA - loA) * cgx / (GW - 1);
+    const paramY = hiB - (hiB - loB) * cgy / (GH - 1);
+    const massA = massAValues[cgy * GW + cgx];
+    const massB = massBValues[cgy * GW + cgx];
 
-  if (isTap) {
-    document.getElementById('sweep-slider-a').value = massA;
-    document.getElementById('sweep-slider-b').value = massB;
-    document.getElementById('sweep-val-a').textContent = fmt(massA) + ' g';
-    document.getElementById('sweep-val-b').textContent = fmt(massB) + ' g';
-    updateSweepResults();
-    drawHeatmapCrosshair();
+    const paramNameX = xAxis === 'r' ? 'R' : xAxis === 'hsc' ? 'HSC' : '亲水%';
+    const paramNameY = yAxis === 'r' ? 'R' : yAxis === 'hsc' ? 'HSC' : '亲水%';
+
+    tooltip.textContent = `${paramNameX}=${paramX.toFixed(2)}, ${paramNameY}=${paramY.toFixed(1)}% → ${fmt(v)}g`;
+
+    document.getElementById('heatmap-hover-info').textContent =
+      `${paramNameX}=${paramX.toFixed(2)}, ${paramNameY}=${paramY.toFixed(1)}% → ${fmt(v)}g`;
+
+    if (isTap && massA > 0 && massB > 0) {
+      document.getElementById('sweep-slider-a').value = massA;
+      document.getElementById('sweep-slider-b').value = massB;
+      document.getElementById('sweep-val-a').textContent = fmt(massA) + ' g';
+      document.getElementById('sweep-val-b').textContent = fmt(massB) + ' g';
+      updateSweepResults();
+      drawHeatmap();
+    }
+  } else {
+    // 试剂扫描模式
+    const { loA, hiA, loB, hiB, idA, idB } = sweepCache;
+    const massA = loA + (hiA - loA) * cgx / (GW - 1);
+    const massB = idB ? (hiB - (hiB - loB) * cgy / (GH - 1)) : 0;
+
+    const metricName = sweepMetric === 'r' ? 'R' : sweepMetric === 'hsc' ? 'HSC' : '亲水%';
+    tooltip.textContent = `${fmt(massA)}g × ${fmt(massB)}g → ${metricName}=${v.toFixed(3)}`;
+
+    document.getElementById('heatmap-hover-info').textContent =
+      `${fmt(massA)}g × ${fmt(massB)}g → ${v.toFixed(3)}`;
+
+    if (isTap) {
+      document.getElementById('sweep-slider-a').value = massA;
+      document.getElementById('sweep-slider-b').value = massB;
+      document.getElementById('sweep-val-a').textContent = fmt(massA) + ' g';
+      document.getElementById('sweep-val-b').textContent = fmt(massB) + ' g';
+      updateSweepResults();
+      drawHeatmapCrosshair();
+    }
   }
 }
 
@@ -5427,6 +5845,239 @@ function updateSweepRange(which) {
   const hi = parseFloat(hiEl.value) || 100;
   slider.min = lo;
   slider.max = hi;
+}
+
+/* ════════════════════════════════════════════════════
+   参数扫描模式 (反向扫描)
+════════════════════════════════════════════════════ */
+
+function setSweepMode(mode) {
+  sweepMode = mode;
+  const reagentBtn = document.getElementById('mode-reagent');
+  const paramBtn = document.getElementById('mode-param');
+  const reagentControls = document.getElementById('reagent-mode-controls');
+  const paramControls = document.getElementById('param-mode-controls');
+
+  if (mode === 'reagent') {
+    reagentBtn.className = 'btn btn-sm btn-primary';
+    paramBtn.className = 'btn btn-sm btn-secondary';
+    reagentControls.style.display = 'block';
+    paramControls.style.display = 'none';
+  } else {
+    reagentBtn.className = 'btn btn-sm btn-secondary';
+    paramBtn.className = 'btn btn-sm btn-primary';
+    reagentControls.style.display = 'none';
+    paramControls.style.display = 'block';
+    populateParamScanReagents();
+    updateParamScanRanges();
+  }
+  drawHeatmap();
+}
+
+function populateParamScanReagents() {
+  const sel = document.getElementById('param-target-reagent');
+  sel.innerHTML = '<option value="">— 选择试剂 —</option>';
+
+  for (const r of reagents) {
+    if (r.type === 'solvent' || r.type === 'other') continue;
+    const opt = `<option value="${r.id}">${esc(r.name)}</option>`;
+    sel.innerHTML += opt;
+  }
+
+  // Auto-select first reagent if none selected
+  if (!paramScanConfig.targetReagentId) {
+    const valid = reagents.filter(r => r.type !== 'solvent' && r.type !== 'other');
+    if (valid.length > 0) {
+      paramScanConfig.targetReagentId = valid[0].id;
+      sel.value = valid[0].id;
+    }
+  } else {
+    sel.value = paramScanConfig.targetReagentId;
+  }
+}
+
+function onParamScanConfigChange() {
+  paramScanConfig.xAxis = document.getElementById('param-x-axis').value;
+  paramScanConfig.yAxis = document.getElementById('param-y-axis').value;
+  paramScanConfig.targetReagentId = parseInt(document.getElementById('param-target-reagent').value) || null;
+
+  if (paramScanConfig.autoRange) {
+    updateParamScanRanges();
+  }
+
+  drawHeatmap();
+}
+
+function updateParamScanRanges() {
+  // Calculate current parameter ranges based on reagent mass ranges
+  const idA = parseInt(document.getElementById('sweep-reagent-a').value);
+  const idB = parseInt(document.getElementById('sweep-reagent-b').value);
+  const rA = reagents.find(r => r.id === idA);
+  const rB = reagents.find(r => r.id === idB);
+
+  if (!rA) return;
+
+  const loA = parseFloat(document.getElementById('sweep-lo-a').value) || 0.01;
+  const hiA = parseFloat(document.getElementById('sweep-hi-a').value) || rA.mass * 2;
+  const loB = rB ? (parseFloat(document.getElementById('sweep-lo-b').value) || 0.01) : 0;
+  const hiB = rB ? (parseFloat(document.getElementById('sweep-hi-b').value) || rB.mass * 2) : 0;
+
+  // Sample the parameter space to find min/max
+  let minR = Infinity, maxR = -Infinity;
+  let minHSC = Infinity, maxHSC = -Infinity;
+  let minHydro = Infinity, maxHydro = -Infinity;
+
+  const samples = 20;
+  for (let i = 0; i <= samples; i++) {
+    for (let j = 0; j <= samples; j++) {
+      const mA = loA + (hiA - loA) * i / samples;
+      const mB = rB ? (loB + (hiB - loB) * j / samples) : 0;
+      const testR = reagents.map(r => {
+        if (r.id === idA) return { ...r, mass: mA };
+        if (rB && r.id === idB) return { ...r, mass: mB };
+        return r;
+      });
+      const c = calcEquiv(testR, false);
+      minR = Math.min(minR, c.rVal); maxR = Math.max(maxR, c.rVal);
+      minHSC = Math.min(minHSC, c.hsc); maxHSC = Math.max(maxHSC, c.hsc);
+      minHydro = Math.min(minHydro, c.hydroPct); maxHydro = Math.max(maxHydro, c.hydroPct);
+    }
+  }
+
+  // Update ranges with some padding
+  const getRange = (min, max, pad = 0.1) => {
+    const range = max - min;
+    return { lo: Math.max(0, min - range * pad), hi: max + range * pad };
+  };
+
+  const rRange = getRange(minR, maxR);
+  const hscRange = getRange(minHSC, maxHSC);
+  const hydroRange = getRange(minHydro, maxHydro);
+
+  const ranges = { r: rRange, hsc: hscRange, hydro: hydroRange };
+
+  // Update UI
+  document.getElementById('param-x-lo').value = ranges[paramScanConfig.xAxis].lo.toFixed(2);
+  document.getElementById('param-x-hi').value = ranges[paramScanConfig.xAxis].hi.toFixed(2);
+  document.getElementById('param-y-lo').value = ranges[paramScanConfig.yAxis].lo.toFixed(2);
+  document.getElementById('param-y-hi').value = ranges[paramScanConfig.yAxis].hi.toFixed(2);
+
+  paramScanConfig.xLo = ranges[paramScanConfig.xAxis].lo;
+  paramScanConfig.xHi = ranges[paramScanConfig.xAxis].hi;
+  paramScanConfig.yLo = ranges[paramScanConfig.yAxis].lo;
+  paramScanConfig.yHi = ranges[paramScanConfig.yAxis].hi;
+}
+
+/**
+ * 反向计算：给定目标参数值，找到能达到这些参数的试剂用量
+ * 这是一个优化问题：调整两个试剂的用量来匹配目标参数
+ */
+function solveForReagentMass(targetR, targetHSC, targetHydro, idA, idB, rA, rB) {
+  const EPS = 1e-6;
+  const MAX_ITER = 100;
+
+  // 如果没有试剂B，只调整试剂A
+  if (!rB || !idB) {
+    // 简单的二元搜索来找满足目标R值的试剂A用量
+    let lo = 0.01, hi = rA.mass * 10;
+    for (let iter = 0; iter < MAX_ITER; iter++) {
+      const mid = (lo + hi) / 2;
+      const testR = reagents.map(r => r.id === idA ? { ...r, mass: mid } : r);
+      const c = calcEquiv(testR, false);
+      if (Math.abs(c.rVal - targetR) < EPS) {
+        return { massA: mid, massB: 0, params: c };
+      }
+      if (c.rVal < targetR) lo = mid;
+      else hi = mid;
+    }
+    return null;
+  }
+
+  // 对于两种试剂，使用数值优化来找最接近目标参数的组合
+  let bestMassA = rA.mass, bestMassB = rB.mass;
+  let bestError = Infinity;
+  let bestParams = null;
+
+  // 搜索范围
+  const loA = parseFloat(document.getElementById('sweep-lo-a').value) || 0.01;
+  const hiA = parseFloat(document.getElementById('sweep-hi-a').value) || rA.mass * 2;
+  const loB = parseFloat(document.getElementById('sweep-lo-b').value) || 0.01;
+  const hiB = parseFloat(document.getElementById('sweep-hi-b').value) || rB.mass * 2;
+
+  // 粗搜索
+  const coarseSteps = 15;
+  for (let i = 0; i <= coarseSteps; i++) {
+    for (let j = 0; j <= coarseSteps; j++) {
+      const mA = loA + (hiA - loA) * i / coarseSteps;
+      const mB = loB + (hiB - loB) * j / coarseSteps;
+
+      const testR = reagents.map(r => {
+        if (r.id === idA) return { ...r, mass: mA };
+        if (r.id === idB) return { ...r, mass: mB };
+        return r;
+      });
+      const c = calcEquiv(testR, false);
+
+      let error = 0;
+      if (paramScanConfig.xAxis === 'r') error += Math.pow(c.rVal - targetR, 2);
+      if (paramScanConfig.xAxis === 'hsc') error += Math.pow(c.hsc - targetR, 2);
+      if (paramScanConfig.xAxis === 'hydro') error += Math.pow(c.hydroPct - targetR, 2);
+
+      if (paramScanConfig.yAxis === 'r') error += Math.pow(c.rVal - targetHSC, 2);
+      if (paramScanConfig.yAxis === 'hsc') error += Math.pow(c.hsc - targetHSC, 2);
+      if (paramScanConfig.yAxis === 'hydro') error += Math.pow(c.hydroPct - targetHSC, 2);
+
+      if (error < bestError) {
+        bestError = error;
+        bestMassA = mA;
+        bestMassB = mB;
+        bestParams = c;
+      }
+    }
+  }
+
+  // 细搜索（在最佳解附近）
+  const fineRadius = 0.15;
+  const fineSteps = 8;
+  for (let i = -fineSteps; i <= fineSteps; i++) {
+    for (let j = -fineSteps; j <= fineSteps; j++) {
+      const mA = bestMassA * (1 + i * fineRadius / fineSteps);
+      const mB = bestMassB * (1 + j * fineRadius / fineSteps);
+      if (mA < loA || mA > hiA || mB < loB || mB > hiB) continue;
+
+      const testR = reagents.map(r => {
+        if (r.id === idA) return { ...r, mass: mA };
+        if (r.id === idB) return { ...r, mass: mB };
+        return r;
+      });
+      const c = calcEquiv(testR, false);
+
+      let error = 0;
+      if (paramScanConfig.xAxis === 'r') error += Math.pow(c.rVal - targetR, 2);
+      if (paramScanConfig.xAxis === 'hsc') error += Math.pow(c.hsc - targetR, 2);
+      if (paramScanConfig.xAxis === 'hydro') error += Math.pow(c.hydroPct - targetR, 2);
+
+      if (paramScanConfig.yAxis === 'r') error += Math.pow(c.rVal - targetHSC, 2);
+      if (paramScanConfig.yAxis === 'hsc') error += Math.pow(c.hsc - targetHSC, 2);
+      if (paramScanConfig.yAxis === 'hydro') error += Math.pow(c.hydroPct - targetHSC, 2);
+
+      if (error < bestError) {
+        bestError = error;
+        bestMassA = mA;
+        bestMassB = mB;
+        bestParams = c;
+      }
+    }
+  }
+
+  return { massA: bestMassA, massB: bestMassB, params: bestParams, error: bestError };
+}
+
+function getParamValue(c, param) {
+  if (param === 'r') return c.rVal;
+  if (param === 'hsc') return c.hsc;
+  if (param === 'hydro') return c.hydroPct;
+  return 0;
 }
 
 /* ════════════════════════════════════════════════════
