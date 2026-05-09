@@ -2191,6 +2191,7 @@ const BUILTIN_PRESETS = Object.freeze([
   { name: 'T9',         type: 'other',   mw: 632.32, f: 0 },
   { name: 'DBTDL',      type: 'other',   mw: 631.56, f: 0 },
   { name: 'DMF',        type: 'solvent', mw:  73.09, f: 0 },
+  { name: 'NMP',        type: 'solvent', mw:  99.13, f: 0 },
   { name: '丙酮',       type: 'solvent', mw:  58.08, f: 0 },
 ]);
 
@@ -2198,8 +2199,8 @@ const DEFAULT_PROCESS_STEPS = Object.freeze(
   Array.from({ length: 6 }, (_, i) => ({ id: `s${i + 1}`, title: `步骤 ${i + 1}`, sub: '', catalyst: false }))
 );
 
-const DENSITY_MAP = Object.freeze({ HDI: 1.05, MDI: 1.23, BDO: 1.017, TEA: 0.726, EDA: 0.899, 'EDA·H2O': 0.96, DMF: 0.944 });
-const ML_KEYWORDS = Object.freeze(['HDI', 'MDI', 'BDO', 'TEA', 'EDA', 'EDA·H2O', 'DMF']);
+const DENSITY_MAP = Object.freeze({ HDI: 1.05, MDI: 1.23, BDO: 1.017, TEA: 0.726, EDA: 0.899, 'EDA·H2O': 0.96, DMF: 0.944, NMP: 1.028 });
+const ML_KEYWORDS = Object.freeze(['HDI', 'MDI', 'BDO', 'TEA', 'EDA', 'EDA·H2O', 'DMF', 'NMP']);
 
 const BUILTIN_PRICE_PRESETS = Object.freeze({
   '参考低价 (2026.04)': Object.freeze({
@@ -2209,7 +2210,7 @@ const BUILTIN_PRICE_PRESETS = Object.freeze({
     'DMPA': 22000, 'DMBA': 45000,
     'BDO': 8500, 'TMP': 12500, 'EDA': 15000, 'EDA·H2O': 12000,
     'TEA': 16500, 'T9': 58000, 'DBTDL': 65000,
-    'DMF': 5500, '丙酮': 6800,
+    'DMF': 5500, 'NMP': 8500, '丙酮': 6800,
   }),
   '参考中价 (2026.04)': Object.freeze({
     'PCD-2000': 16250, 'PCD-1000': 17500, 'PTMEG-2000': 19000, 'PCL-2000': 24250,
@@ -2218,7 +2219,7 @@ const BUILTIN_PRICE_PRESETS = Object.freeze({
     'DMPA': 24500, 'DMBA': 50000,
     'BDO': 9000, 'TMP': 13250, 'EDA': 16500, 'EDA·H2O': 13000,
     'TEA': 17250, 'T9': 61500, 'DBTDL': 71500,
-    'DMF': 6000, '丙酮': 7200,
+    'DMF': 6000, 'NMP': 9200, '丙酮': 7200,
   }),
   '参考高价 (2026.04)': Object.freeze({
     'PCD-2000': 18000, 'PCD-1000': 19500, 'PTMEG-2000': 20500, 'PCL-2000': 26000,
@@ -2227,7 +2228,7 @@ const BUILTIN_PRICE_PRESETS = Object.freeze({
     'DMPA': 27000, 'DMBA': 55000,
     'BDO': 9500, 'TMP': 14000, 'EDA': 18000, 'EDA·H2O': 14000,
     'TEA': 18000, 'T9': 65000, 'DBTDL': 78000,
-    'DMF': 6500, '丙酮': 7600,
+    'DMF': 6500, 'NMP': 10000, '丙酮': 7600,
   }),
 });
 
@@ -3752,13 +3753,13 @@ function buildStepBodyHTML(step, data, stepIdx) {
     </div>
     <div class="check-row">
       <input type="checkbox" id="cool-${esc(sid)}" ${data.needCool ? 'checked' : ''} data-step-field="needCool">
-      <label for="cool-${esc(sid)}">需要降温步骤</label>
+      <label for="cool-${esc(sid)}">需要调温步骤</label>
     </div>
     <div data-cool-block style="display:${data.needCool ? 'block' : 'none'};">
       <div class="form-grid-dense" style="margin:8px 0;">
-        <div class="form-group"><label>降温开始</label><input type="time" value="${esc(data.coolStart||'')}" data-step-field="coolStart"></div>
+        <div class="form-group"><label>调温开始</label><input type="time" value="${esc(data.coolStart||'')}" data-step-field="coolStart"></div>
         <div class="form-group"><label>目标温度 (°C)</label><input type="number" placeholder="40" value="${esc(data.coolTargetTemp||'')}" step="any" data-step-field="coolTargetTemp"></div>
-        <div class="form-group"><label>降温完成</label><input type="time" value="${esc(data.coolEnd||'')}" data-step-field="coolEnd"></div>
+        <div class="form-group"><label>调温完成</label><input type="time" value="${esc(data.coolEnd||'')}" data-step-field="coolEnd"></div>
       </div>
     </div>
     <div class="form-group" style="margin:10px 0;">
@@ -4285,7 +4286,7 @@ function renderReport(entry) {
     const d        = (entry.stepData || {})[step.id] || {};
     const hasDone  = !!(d.addTime || d.obs);
     const params   = [d.temp ? `🌡 ${d.temp}°C` : '', d.rpm ? `⚙ ${d.rpm}rpm` : ''].filter(Boolean);
-    const times    = [d.addTime ? `加料 ${d.addTime}` : '', d.needCool && d.coolStart ? `降温开始 ${d.coolStart}` : '', d.needCool && d.coolTargetTemp ? `→ ${d.coolTargetTemp}°C` : '', d.needCool && d.coolEnd ? `降温完成 ${d.coolEnd}` : ''].filter(Boolean);
+    const times    = [d.addTime ? `加料 ${d.addTime}` : '', d.needCool && d.coolStart ? `调温开始 ${d.coolStart}` : '', d.needCool && d.coolTargetTemp ? `→ ${d.coolTargetTemp}°C` : '', d.needCool && d.coolEnd ? `调温完成 ${d.coolEnd}` : ''].filter(Boolean);
     const addedR   = (d.addedReagents || []).map(rid => {
       if (rid === 'water') return '💧水';
       const r = rList.find(x => String(x.id) === String(rid));
@@ -4820,7 +4821,7 @@ async function exportPDF() {
       const d       = stepData[step.id] || {};
       const params  = [d.temp ? `温度 ${d.temp}°C` : '', d.rpm ? `转速 ${d.rpm}rpm` : ''].filter(Boolean).join('，');
       const addTime = d.addTime || '';
-      const times   = [addTime ? `加料 ${addTime}` : '', d.needCool && d.coolStart ? `降温开始 ${d.coolStart}` : '', d.needCool && d.coolEnd ? `降温完成 ${d.coolEnd}` : ''].filter(Boolean).join(' · ');
+      const times   = [addTime ? `加料 ${addTime}` : '', d.needCool && d.coolStart ? `调温开始 ${d.coolStart}` : '', d.needCool && d.coolEnd ? `调温完成 ${d.coolEnd}` : ''].filter(Boolean).join(' · ');
       const addedR  = (d.addedReagents || []).map(rid => {
         if (rid === 'water') return '💧水';
         const r = reagents.find(x => String(x.id) === String(rid));
