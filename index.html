@@ -753,6 +753,17 @@ input.inRequired, textarea.inRequired, select.inRequired {
 }
 .preset-pill-del:hover { transform: translateY(-50%) scale(1.1); }
 
+.preset-category {
+  width: 100%;
+  font-size: var(--f-xs);
+  font-weight: 600;
+  color: var(--text3);
+  padding: 6px 0 2px;
+  border-top: 1px dashed var(--border);
+  margin-top: 2px;
+}
+.preset-category:first-child { border-top: none; margin-top: 0; padding-top: 0; }
+
 /* ════════════════════════════════
    STEP CARDS (Process page)
 ════════════════════════════════ */
@@ -2191,6 +2202,7 @@ const BUILTIN_PRESETS = Object.freeze([
   { name: 'T9',         type: 'other',   mw: 632.32, f: 0 },
   { name: 'DBTDL',      type: 'other',   mw: 631.56, f: 0 },
   { name: 'DMF',        type: 'solvent', mw:  73.09, f: 0 },
+  { name: 'NEP',        type: 'solvent', mw: 113.16, f: 0 },
   { name: 'NMP',        type: 'solvent', mw:  99.13, f: 0 },
   { name: '丙酮',       type: 'solvent', mw:  58.08, f: 0 },
 ]);
@@ -2199,8 +2211,8 @@ const DEFAULT_PROCESS_STEPS = Object.freeze(
   Array.from({ length: 6 }, (_, i) => ({ id: `s${i + 1}`, title: `步骤 ${i + 1}`, sub: '', catalyst: false }))
 );
 
-const DENSITY_MAP = Object.freeze({ HDI: 1.05, MDI: 1.23, BDO: 1.017, TEA: 0.726, EDA: 0.899, 'EDA·H2O': 0.96, DMF: 0.944, NMP: 1.028 });
-const ML_KEYWORDS = Object.freeze(['HDI', 'MDI', 'BDO', 'TEA', 'EDA', 'EDA·H2O', 'DMF', 'NMP']);
+const DENSITY_MAP = Object.freeze({ HDI: 1.05, MDI: 1.23, BDO: 1.017, TEA: 0.726, EDA: 0.899, 'EDA·H2O': 0.96, DMF: 0.944, NEP: 0.994, NMP: 1.028 });
+const ML_KEYWORDS = Object.freeze(['HDI', 'MDI', 'BDO', 'TEA', 'EDA', 'EDA·H2O', 'DMF', 'NEP', 'NMP']);
 
 const BUILTIN_PRICE_PRESETS = Object.freeze({
   '参考低价 (2026.04)': Object.freeze({
@@ -2210,7 +2222,7 @@ const BUILTIN_PRICE_PRESETS = Object.freeze({
     'DMPA': 22000, 'DMBA': 45000,
     'BDO': 8500, 'TMP': 12500, 'EDA': 15000, 'EDA·H2O': 12000,
     'TEA': 16500, 'T9': 58000, 'DBTDL': 65000,
-    'DMF': 5500, 'NMP': 8500, '丙酮': 6800,
+    'DMF': 5500, 'NEP': 9500, 'NMP': 8500, '丙酮': 6800,
   }),
   '参考中价 (2026.04)': Object.freeze({
     'PCD-2000': 16250, 'PCD-1000': 17500, 'PTMEG-2000': 19000, 'PCL-2000': 24250,
@@ -2219,7 +2231,7 @@ const BUILTIN_PRICE_PRESETS = Object.freeze({
     'DMPA': 24500, 'DMBA': 50000,
     'BDO': 9000, 'TMP': 13250, 'EDA': 16500, 'EDA·H2O': 13000,
     'TEA': 17250, 'T9': 61500, 'DBTDL': 71500,
-    'DMF': 6000, 'NMP': 9200, '丙酮': 7200,
+    'DMF': 6000, 'NEP': 10500, 'NMP': 9200, '丙酮': 7200,
   }),
   '参考高价 (2026.04)': Object.freeze({
     'PCD-2000': 18000, 'PCD-1000': 19500, 'PTMEG-2000': 20500, 'PCL-2000': 26000,
@@ -2228,7 +2240,7 @@ const BUILTIN_PRICE_PRESETS = Object.freeze({
     'DMPA': 27000, 'DMBA': 55000,
     'BDO': 9500, 'TMP': 14000, 'EDA': 18000, 'EDA·H2O': 14000,
     'TEA': 18000, 'T9': 65000, 'DBTDL': 78000,
-    'DMF': 6500, 'NMP': 10000, '丙酮': 7600,
+    'DMF': 6500, 'NEP': 11500, 'NMP': 10000, '丙酮': 7600,
   }),
 });
 
@@ -2999,29 +3011,48 @@ async function renderPresetBtns() {
   const c    = document.getElementById('preset-btns');
   const frag = document.createDocumentFragment();
 
-  BUILTIN_PRESETS.forEach(p => {
-    const b = document.createElement('button');
-    b.className   = 'preset-pill';
-    b.textContent = p.name;
-    b.addEventListener('click', () => fillPreset(p));
-    frag.appendChild(b);
+  const customs = await getCustomPresets();
+  const allPresets = [...BUILTIN_PRESETS, ...customs.map((p, i) => ({...p, _customIdx: i}))];
+
+  const typeOrder = ['polyol', 'iso', 'chain', 'amine', 'hydro', 'solvent', 'other'];
+  const groups = {};
+  typeOrder.forEach(t => { groups[t] = []; });
+  allPresets.forEach(p => {
+    const t = p.type || 'other';
+    if (!groups[t]) groups[t] = [];
+    groups[t].push(p);
   });
 
-  const customs = await getCustomPresets();
-  customs.forEach((p, idx) => {
-    const b    = document.createElement('button');
-    b.className = 'preset-pill preset-pill-custom';
-    b.addEventListener('click', () => fillPreset(p));
+  typeOrder.forEach(type => {
+    if (!groups[type].length) return;
+    groups[type].sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
 
-    const nameNode = document.createTextNode(p.name);
-    const del      = document.createElement('span');
-    del.className  = 'preset-pill-del';
-    del.textContent = '✕';
-    del.setAttribute('aria-label', `删除预设 ${p.name}`);
-    del.addEventListener('click', e => { e.stopPropagation(); deleteCustomPreset(idx); });
+    const label = document.createElement('div');
+    label.className = 'preset-category';
+    label.textContent = TYPE_NAME[type];
+    frag.appendChild(label);
 
-    b.append(nameNode, del);
-    frag.appendChild(b);
+    groups[type].forEach(p => {
+      if (p._customIdx !== undefined) {
+        const b = document.createElement('button');
+        b.className = 'preset-pill preset-pill-custom';
+        b.addEventListener('click', () => fillPreset(p));
+        const nameNode = document.createTextNode(p.name);
+        const del = document.createElement('span');
+        del.className = 'preset-pill-del';
+        del.textContent = '✕';
+        del.setAttribute('aria-label', `删除预设 ${p.name}`);
+        del.addEventListener('click', e => { e.stopPropagation(); deleteCustomPreset(p._customIdx); });
+        b.append(nameNode, del);
+        frag.appendChild(b);
+      } else {
+        const b = document.createElement('button');
+        b.className = 'preset-pill';
+        b.textContent = p.name;
+        b.addEventListener('click', () => fillPreset(p));
+        frag.appendChild(b);
+      }
+    });
   });
 
   const add  = document.createElement('button');
@@ -3037,13 +3068,34 @@ async function renderPresetBtns() {
 function renderBuiltinPresetsDisplay() {
   const c    = document.getElementById('builtin-presets-display');
   const frag = document.createDocumentFragment();
+
+  const typeOrder = ['polyol', 'iso', 'chain', 'amine', 'hydro', 'solvent', 'other'];
+  const groups = {};
+  typeOrder.forEach(t => { groups[t] = []; });
   BUILTIN_PRESETS.forEach(p => {
-    const span = document.createElement('span');
-    span.className   = 'preset-pill';
-    span.style.cursor = 'default';
-    span.textContent = `${p.name} (MW:${p.mw},f:${p.f})`;
-    frag.appendChild(span);
+    const t = p.type || 'other';
+    if (!groups[t]) groups[t] = [];
+    groups[t].push(p);
   });
+
+  typeOrder.forEach(type => {
+    if (!groups[type].length) return;
+    groups[type].sort((a, b) => a.name < b.name ? -1 : a.name > b.name ? 1 : 0);
+
+    const label = document.createElement('div');
+    label.className = 'preset-category';
+    label.textContent = TYPE_NAME[type];
+    frag.appendChild(label);
+
+    groups[type].forEach(p => {
+      const span = document.createElement('span');
+      span.className = 'preset-pill';
+      span.style.cursor = 'default';
+      span.textContent = `${p.name} (MW:${p.mw},f:${p.f})`;
+      frag.appendChild(span);
+    });
+  });
+
   c.innerHTML = '';
   c.appendChild(frag);
 }
